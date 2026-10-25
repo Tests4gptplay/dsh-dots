@@ -18,13 +18,13 @@
 
 ### ① DSH Desktop
 
-打开 **插件 → 添加插件**，在确认 `v0.1.0-alpha.1` Tag 已发布后输入：
+打开 **插件 → 添加插件**，打开 **插件 → 添加插件**，输入以下已经发布的固定版本：
 
 ```text
 github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1
 ```
 
-**发行状态以 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases) 的实际页面为准。** 版本尚未发布时，开发测试可使用已有 `main` 分支：
+**已发布 [v0.1.0-alpha.1 预发布版本](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v0.1.0-alpha.1)**，并附有可直接安装的同版本 TGZ。开发测试仍可使用最新的 `main` 分支：
 
 ```text
 github:Tests4gptplay/dsh-dots#main
@@ -40,7 +40,7 @@ github:Tests4gptplay/dsh-dots#main
 dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1'
 ```
 
-如尚无该 Tag，开发测试用：
+仅在验证最新开发代码时使用：
 
 ```bash
 dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#main'
@@ -48,7 +48,7 @@ dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#main'
 
 ### ③ 备用 TGZ 安装包
 
-每个实际发布的版本在 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases) 提供同版本命名的 `dsh-dots-0.1.0-alpha.1.tgz` 备用安装包，安装方式和 Kujira 一致。**以 Release 页面实际存在的下载资产为准。** 在 GitHub Desktop/Web 安装失败时，可改用对应版本的正式 `.tgz` 文件。
+每个实际发布的版本在 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases) 提供同版本命名的 `dsh-dots-0.1.0-alpha.1.tgz` 备用安装包，安装方式和 Kujira 一致。已发布的备用安装包：[dsh-dots-0.1.0-alpha.1.tgz](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.0-alpha.1/dsh-dots-0.1.0-alpha.1.tgz)。在 GitHub Desktop/Web 安装失败时，可改用这个同版本文件。
 
 ### Windows 安装错误
 

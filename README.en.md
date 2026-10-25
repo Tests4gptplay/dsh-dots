@@ -6,25 +6,25 @@
 
 ## Install and upgrade — matching Kujira's standard
 
-Use the DSH plugin manager on Desktop. **Once** version `v0.1.0-alpha.1` is actually tagged and published:
+On DSH Desktop, open the plugin manager and install the **published** `v0.1.0-alpha.1` prerelease:
 
 ```text
 github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1
 ```
 
-**The version Tag and Release are not published yet.** Until then, the development installation source is:
+**[Version v0.1.0-alpha.1 is released](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v0.1.0-alpha.1)**, with a prebuilt TGZ asset. For development builds only, you can also use:
 
 ```text
 github:Tests4gptplay/dsh-dots#main
 ```
 
-For DSH Web (a separate plugin profile), the version-tagged command will be:
+For DSH Web (a separate plugin profile), use:
 
 ```bash
 dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1'
 ```
 
-Until publication, replace the tag with `#main` for testing. Once published, [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases) provides `dsh-dots-0.1.0-alpha.1.tgz` as a fallback. No npm build is needed for installation: the compiled Host/Client files are already committed. On upgrade, uninstall the old plugin through DSH, install the selected version, enable it and restart DSH. Do not delete other plugins, profiles, or browser sign-in data.
+The [prebuilt release TGZ](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.0-alpha.1/dsh-dots-0.1.0-alpha.1.tgz) is available as a fallback. No npm build is needed for installation: the compiled Host/Client files are already committed. On upgrade, uninstall the old plugin through DSH, install the selected version, enable it and restart DSH. Do not delete other plugins, profiles, or browser sign-in data.
 
 ## Scope and limitations
 
@@ -45,4 +45,4 @@ npm run pack:check
 npm pack --ignore-scripts
 ```
 
-The `pack:check` script verifies the exact shipped files, entrypoints and bilingual plugin-manager metadata. The release workflow is manually triggered; ordinary pushes never publish a Tag or Release. See [Chinese test cases](docs/TEST-CASES.md), [Changelog](CHANGELOG.md) and the [GitHub repository](https://github.com/Tests4gptplay/dsh-dots).
+The `pack:check` script verifies the exact shipped files, entrypoints and bilingual plugin-manager metadata. The release workflow is triggered manually or by an intentional change to a versioned release note; ordinary source pushes do not publish. See [Chinese test cases](docs/TEST-CASES.md), [Changelog](CHANGELOG.md) and the [GitHub repository](https://github.com/Tests4gptplay/dsh-dots).
