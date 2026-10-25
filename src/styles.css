@@ -1,0 +1,29 @@
+/* All rules scoped: do not alter the DSH host or the embedded ChatGPT origin. */
+.dotsPage { width:100%; height:100%; min-height:600px; display:flex; flex-direction:column; padding:24px 28px; gap:16px; color:var(--dsw-alias-label-primary,inherit); box-sizing:border-box; }
+.dotsTop { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.dotsLogo { width:36px; height:36px; flex:none; }
+.dotsLogo circle { stroke:currentColor; }
+.dotsTitle { font-size:19px; line-height:1.25; margin:0; font-weight:650; }
+.dotsSubtitle { font-size:12px; opacity:.66; margin:3px 0 0; }
+.dotsActions { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+.dotsButton { appearance:none; padding:8px 12px; border:1px solid var(--dsw-alias-border-l3,#84888855); border-radius:9px; background:transparent; color:inherit; font-size:12px; line-height:1.4; cursor:pointer; }
+.dotsButton:hover { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }
+.dotsButton:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
+.dotsButtonPrimary { background:var(--dsw-alias-bg-strong,rgba(127,127,127,.12)); font-weight:550; }
+.dotsBanner { margin:0; font-size:12px; line-height:1.6; opacity:.7; }
+.dotsFrameWrap { flex:1; min-height:390px; border:1px solid var(--dsw-alias-border-l3,#8884); border-radius:12px; overflow:hidden; background:var(--dsw-alias-bg-surface,#fafafa); position:relative; }
+.dotsFrame { width:100%; height:100%; display:block; border:0; background:#fff; }
+.dotsBottom { font-size:11px; line-height:1.6; opacity:.7; }
+.dotsProblem { color:var(--dsw-alias-label-error,#b63b3b); font-size:12px; }
+.dotsMockBadge { display:inline-flex; border:1px dashed currentColor; padding:4px 10px; font-size:11px; border-radius:8px; opacity:.9; }
+.dotsDemo { flex:1; border:1px solid var(--dsw-alias-border-l3,#8884); border-radius:12px; display:flex; flex-direction:column; min-height:360px; overflow:hidden; }
+.dotsMessages { padding:14px; flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
+.dotsMessage { max-width:82%; padding:10px 13px; border-radius:10px; font-size:13px; white-space:pre-wrap; line-height:1.5; background:var(--dsw-alias-bg-surface,rgba(127,127,127,.1)); }
+.dotsMessageUser { align-self:flex-end; background:var(--dsw-alias-bg-hover,rgba(100,120,155,.15)); }
+.dotsMessageFake { align-self:flex-start; }
+.dotsInputRow { display:flex; align-items:center; gap:9px; padding:12px; border-top:1px solid var(--dsw-alias-border-l3,#8884); }
+.dotsInput { flex:1; border:1px solid var(--dsw-alias-border-l3,#8884); border-radius:8px; padding:10px; font:inherit; color:inherit; background:transparent; min-width:0; }
+.dotsTestNote { font-size:11px; opacity:.7; margin:0; }
+.dotsSidebarIcon { display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; color:inherit; }
+.dotsSidebarIcon svg { display:block; width:100%; height:100%; }
+@media (max-width:700px) { .dotsPage { padding:16px; gap:12px; } .dotsActions { margin-left:0; width:100%; } .dotsFrameWrap { min-height:380px; } .dotsTitle { font-size:17px; } }

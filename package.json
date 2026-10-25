@@ -1,0 +1,47 @@
+{
+  "name": "dsh-dots",
+  "version": "0.1.0-alpha.1",
+  "description": "适用于 DeepSeek Harness 的第三方 ChatGPT Dots 网页入口与原生风格界面。",
+  "type": "module",
+  "main": "./lib/host.js",
+  "exports": {
+    ".": "./lib/host.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
+    "./icon": "./assets/dots-ring.svg"
+  },
+  "icon": "./assets/dots-ring.svg",
+  "files": ["lib/host.js", "lib/client.js", "assets/dots-ring.svg", "cordis.patch.yml", "README.md", "README.en.md", "LICENSE"],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "test:browser": "python3 -m unittest discover -s tests/browser -p 'test_*.py'",
+    "pack:check": "npm pack --dry-run --ignore-scripts"
+  },
+  "engines": { "node": ">=22" },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-client-locale": "*",
+    "@deepseek-ai/dsh-client-ui-layout": "*",
+    "@deepseek-ai/dsh-client-ui-sidebar": "*",
+    "@deepseek-ai/dsh-client-ui-renderer": "*",
+    "@deepseek-ai/dsh-client-ui-primitives": "*",
+    "react": "*"
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/Tests4gptplay/dsh-dots.git" },
+  "homepage": "https://github.com/Tests4gptplay/dsh-dots#readme",
+  "license": "MIT"
+}

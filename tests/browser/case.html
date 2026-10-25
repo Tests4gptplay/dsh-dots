@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSH Dots · 模拟后端实测用例（非真实 DSH）</title>
+<style>
+:root { color-scheme: light; --dsw-alias-label-primary:#26303c; --dsw-alias-border-l3:#bcc3cd; --dsw-alias-bg-surface:#fff; --dsw-alias-bg-hover:#e9edf5; }
+body { font-family: system-ui, 'Noto Sans CJK JP','Microsoft Yahei',sans-serif; margin:0; color:#26303c; background:#f3f5f9; }
+body.dark { color-scheme:dark; color:#e4e6ee; background:#141923; --dsw-alias-label-primary:#e4e6ee; --dsw-alias-border-l3:#3b4050; --dsw-alias-bg-surface:#202636; --dsw-alias-bg-hover:#333b51; }
+.shell { display:grid; grid-template-columns: 76px minmax(0,1fr); min-height:100vh; }
+nav { background:var(--dsw-alias-bg-surface); border-right:1px solid var(--dsw-alias-border-l3); display:flex; flex-direction:column; align-items:center; padding:18px 4px; gap:16px; }
+nav > button { background:transparent; color:inherit; padding:8px; cursor:pointer; border:1px solid var(--dsw-alias-border-l3); border-radius:9px; }
+nav small { text-align:center; font-size:9px; }
+.main { width:100%; max-width:1000px; min-height:80vh; margin:0 auto; }
+.case-meta { position:fixed; bottom:0; right:0; padding:6px 10px; font-size:10px; opacity:.6; background:var(--dsw-alias-bg-surface); }
+</style></head><body>
+<div class="shell"><nav>
+  <div id="sidebar-icon" title="模拟 DSH Slot 图标"></div>
+  <small>Dots</small>
+  <button type="button" id="theme-toggle">明 / 暗</button>
+</nav><div class="main" id="app"></div></div>
+<div class="case-meta">CASE: Mock Dot UI · 独立模拟宿主；非真实 ChatGPT 登录或 DSH 实装截图</div>
+<script type="module" src="./case.mjs"></script>
+</body></html>
