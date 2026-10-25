@@ -44,9 +44,6 @@
     "test:browser": "python3 -m unittest discover -s tests/browser -p 'test_*.py'",
     "pack:check": "node scripts/verify-pack.mjs"
   },
-  "engines": {
-    "node": ">=22"
-  },
   "peerDependencies": {
     "@deepseek-ai/cordis": "*",
     "@deepseek-ai/dsh-client-locale": "*",

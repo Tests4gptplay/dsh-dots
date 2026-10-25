@@ -23,6 +23,7 @@ const actual = metadata.files.map(f => f.path).sort()
 assert.deepEqual(actual, expected, 'Distribution must include exactly the runtime whitelist; no tests, source or Mock Dot files')
 assert.equal(metadata.name, manifest.name)
 assert.equal(metadata.version, manifest.version)
+assert.equal(manifest.engines, undefined, 'Do not constrain installation by Node engine version')
 assert.equal(metadata.filename, `${manifest.name}-${manifest.version}.tgz`)
 for (const field of ['dependencies', 'optionalDependencies']) {
   assert.ok(!Object.hasOwn(manifest[field] ?? {}, manifest.name),

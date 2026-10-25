@@ -62,6 +62,7 @@ test('package has no explicit DSH release gate', async () => {
   for (const [key, value] of Object.entries(manifest.peerDependencies)) {
     if (key.startsWith('@deepseek-ai/')) assert.equal(value, '*')
   }
+  assert.equal(manifest.engines, undefined, 'Installation should use the host runtime without a Node version gate')
   assert.equal(manifest.dsh.client.platform, 'web')
 })
 

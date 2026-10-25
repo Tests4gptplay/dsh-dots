@@ -18,6 +18,18 @@ function bridgeCase() {
 
 const tick = () => new Promise(resolve => setImmediate(resolve))
 
+test('Desktop browser uses available host APIs without a protocol-version gate', async () => {
+  const { bridge } = bridgeCase()
+  for (const protocolVersion of [1, 2, undefined]) {
+    const page = await loadNativeClient({ desktopBridge: { protocolVersion, browser: bridge } })
+    assert.equal(page.client.desktopBrowserBridge(), bridge)
+  }
+  const incomplete = await loadNativeClient({
+    desktopBridge: { protocolVersion: 1, browser: { acquire: async () => {} } },
+  })
+  assert.equal(incomplete.client.desktopBrowserBridge(), undefined)
+})
+
 test('DSH Desktop guest uses host-issued partition and renders Dot as a full browser page', async () => {
   const page = await loadNativeClient()
   const {bridge,calls} = bridgeCase()

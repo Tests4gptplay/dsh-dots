@@ -68,13 +68,13 @@ jobs:
           VERSION: ${{ steps.release.outputs.version }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            # One-time, user-authorized in-place repair of v0.1.1 only.
+            # One-time, user-authorized in-place compatibility repair of v0.1.1 only.
             if [ "$TAG" != "v0.1.1" ]; then
               echo "Release $TAG already exists; refusing silent overwrite"
               exit 1
             fi
             OLD_REF=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --jq '.object.sha')
-            if [ "$OLD_REF" != "ab77253053e7815a6c38b9d3bdc75d957feb00bd" ]; then
+            if [ "$OLD_REF" != "0f4e19788ecc6f4a51aa88b9d916dda7198567e7" ]; then
               echo "Repair already applied or tag changed; stop without replacing assets"
               exit 1
             fi

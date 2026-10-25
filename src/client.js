@@ -35,7 +35,7 @@ const en = {
  */
 function desktopBrowserBridge() {
   const desktop = typeof window === 'object' ? window.dshDesktop : undefined
-  return desktop?.protocolVersion === 1 && desktop.browser &&
+  return desktop?.browser &&
     typeof desktop.browser.acquire === 'function' &&
     typeof desktop.browser.release === 'function' ? desktop.browser : undefined
 }

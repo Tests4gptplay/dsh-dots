@@ -2,6 +2,9 @@
 
 ## 0.1.1（正式修复版，2026-10-26）
 
+- 修复 DSH Desktop 的 pnpm 安装 ENOENT：清除本地 TGZ 自依赖，发行包增设 pnpm 安装回归测试。
+- 扩大安装与运行环境兼容性：按宿主实际提供的 WebView 浏览器接口能力启用桌面载体，移除打包清单中不必要的 Node 引擎版本要求。保留 DSH 运行时依赖通配符。
+
 - 修复 DSH Desktop 实机反馈：ChatGPT 登录网页只露出顶部一小条、剩余页面显示宿主背景。之前错误地将 Electron `<webview>` 的 `display:flex` 覆盖成 `display:block`，导致内部 Shadow iframe 无法撑满视口；现在恢复 `display:flex` 和尺寸约束。
 - 主面板作为 DSH 原生 flex 子元素填满可用高度；窗口大小变化时 WebView 和网页视口跟随缩放，不另做独立浏览器卡片。
 - 新增真实生产 Client CSS 的单元检查及 Chromium Shadow iframe 尺寸/缩放回归测试，防止再次出现顶部短条。

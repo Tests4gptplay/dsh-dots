@@ -3,7 +3,7 @@ import vm from 'node:vm'
 import { createTestReact } from './runtime.mjs'
 
 /** Executes the actual production client bundle behind a fake DSH Slot Host. */
-export async function loadNativeClient({ language = 'zh', browserAvailable = true, registryAvailable = true, onUpdate } = {}) {
+export async function loadNativeClient({ language = 'zh', browserAvailable = true, registryAvailable = true, desktopBridge, onUpdate } = {}) {
   const runtime = createTestReact(onUpdate)
   const slots = []
   let dictionaries = {}
@@ -16,7 +16,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   let client
   const sandbox = {
     URL,
-    window: { __ModuleLoader__: { load({ id, factory }) { if (id !== 'dsh-dots') throw new Error('Wrong module'); client = factory(id => {
+    window: { dshDesktop: desktopBridge, __ModuleLoader__: { load({ id, factory }) { if (id !== 'dsh-dots') throw new Error('Wrong module'); client = factory(id => {
       if (id === 'react') return runtime.React
       throw new Error(`Unexpected dependency ${id}`)
     }) } }, open() { nativeOpened.push({ kind: 'external' }) } },
