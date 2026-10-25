@@ -1,12 +1,17 @@
 # 更新记录
 
-## 0.1.0-alpha.1（预发布候选，2026-10-25）
+## 0.1.0（正式 Release，2026-10-25）
 
-- 原生 DSH 主页面与左侧状态栏入口，提供 ChatGPT Dots 官方网页入口。
-- 圆环 SVG 跟随明暗／自定义主题；内置独立 DSH Browser 和系统浏览器打开方式。
-- 中文界面及中文插件管理器说明为主，英文界面和说明为辅助。
-- 隔离的 Mock Dot 对话、出错恢复和 Chromium UI 测试；模拟后台不进入生产插件包。
-- 提供预编译 Host/Client、清洁运行文件白名单及可复现的发行打包验证。
-- **尚未完成真实 ChatGPT Dots 网页登录和 DSH Desktop 安装验证**，不得用模拟案例替代。
+- 改为 **DSH 原生全幅 Dots 页面**：背景、顶部工具栏、圆环及按钮跟随宿主皮肤，去掉重复的网页外框、说明段落与红色侧栏浏览器报错。
+- DSH Desktop 直接使用宿主批准的 Electron WebView 租约加载官方 Dots 网页；不再依赖仅对会话右栏有效的 Browser 插件，修复“当前 DSH 浏览器不可用”。
+- 桌面 Guest 由 DSH 原生主进程约束：不可用额外 Node/Electron 权限，禁止本插件读取 Cookies/Token；页面关闭释放自身 guest。
+- DSH Web 保持全幅 iframe（网站允许时），并提供在浏览器中打开的可靠回退；跨域 Dot 内部皮肤由网站控制，不能强行覆盖。
+- 修复打开浏览器时 `noopener` 返回 null 的误判；新增原生 WebView 建立/跳转/释放/失败与页面边框回归用例。
+- Windows/Ubuntu CI 重新验证、Chrome 测试与严格预构建安装包白名单；以 **非 Pre-release** 的 GitHub Release 提供固定 Tag / TGZ。
+- 实际 ChatGPT 登录、Dot 内容和 Cookies 持久性仍需用户在 DSH Desktop／Web 中实测确认；不以模拟回执代替。
 
-安装与升级按 [README.md](README.md) 的版本 Tag + Release `.tgz` 标准执行。发布版本后再使用对应 Tag 安装；当前 `main` 是开发测试入口。
+## 0.1.0-alpha.1（预发布，2026-10-25）
+
+- 首个 DSH 原生页面与侧边栏入口；圆环图标随主题变化。
+- 官方 Dots 网页 iframe 入口与 DSH Browser 链接候选；该 Browser 链接后来被确认在独立主页面无法使用，已由正式版替换。
+- 预编译 Host/Client、模拟 Dot 对话与错误处理用例。

@@ -1,7 +1,7 @@
 {
   "name": "dsh-dots",
-  "version": "0.1.0-alpha.1",
-  "description": "适用于 DeepSeek Harness 的第三方 ChatGPT Dots 网页入口与原生风格界面。",
+  "version": "0.1.0",
+  "description": "将 ChatGPT Dots 网页作为 DSH 原生主页面内容：桌面版使用宿主授权的 Electron WebView，自动适配 DSH 主题。",
   "type": "module",
   "main": "./lib/host.js",
   "exports": {

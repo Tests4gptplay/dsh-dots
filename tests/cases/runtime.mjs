@@ -9,6 +9,18 @@ export function createTestReact(onUpdate = () => {}) {
     createElement(type, props, ...children) {
       return { type, props: { ...props, children: children.length < 2 ? children[0] : children } }
     },
+    useRef(initial) {
+      if (active === null) throw new Error('useRef requires a rendered function component')
+      const key = active
+      let state = instances.get(key)
+      if (!state) { state = []; instances.set(key, state) }
+      const index = hookIndex++
+      if (!Object.hasOwn(state, index)) state[index] = { current: initial }
+      return state[index]
+    },
+    // Synthetic VNode tests have no real DOM lifecycle. Desktop bridge behavior
+    // is tested separately against the mountDesktopDotGuest adapter.
+    useEffect(_callback, _deps) { hookIndex++ },
     useState(initial) {
       if (active === null) throw new Error('useState requires a rendered function component')
       const key = active

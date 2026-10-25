@@ -73,6 +73,18 @@ class BrowserCase(unittest.TestCase):
         p.screenshot(path=str(SCREENSHOTS / 'mock-dot-dark.png'))
         self.assertEqual(self.errors, [], '\n'.join(self.errors))
 
+    def test_d_full_bleed_native_shell_has_no_duplicate_browser_frame(self):
+        p = self.page
+        main = p.locator('.dotsPage')
+        self.assertTrue(main.is_visible())
+        self.assertEqual(p.locator('.dotsToolbar').count(), 1)
+        self.assertEqual(p.locator('.dotsFrameWrap').count(), 0)
+        self.assertEqual(p.locator('.dotsBanner').count(), 0)
+        bounds = main.bounding_box()
+        self.assertGreater(bounds['height'], 790)
+        self.assertGreater(bounds['width'], 1050)
+        self.assertEqual(self.errors, [], '\n'.join(self.errors))
+
 
 if __name__ == '__main__':
     unittest.main()

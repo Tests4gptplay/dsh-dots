@@ -2,47 +2,41 @@
 
 [简体中文（主文档）](README.md)
 
-**Open the real ChatGPT Dots website from DeepSeek Harness (DSH).** This unofficial plugin provides a DSH-native main panel, sidebar entry, and theme-adaptive ring icon. It relies on the user's own ChatGPT browser login; it does not implement or impersonate Dots.
+**DSH Dots opens the actual [ChatGPT Dots website](https://chatgpt.com/dots/home) inside a DSH-native main panel.** The plugin does not emulate Dots or require an API key. Chinese is the primary locale, English is secondary.
 
-## Install and upgrade — matching Kujira's standard
+## Experience
 
-On DSH Desktop, open the plugin manager and install the **published** `v0.1.0-alpha.1` prerelease:
+- A compact DSH-themed toolbar and a **full-bleed** content area—no boxed browser UI.
+- On **DSH Desktop**, a guest WebView is acquired through DSH's own Electron browser bridge, using an approved partition and main-process navigation checks; it no longer depends on the Session right-sidebar Browser plugin.
+- On **DSH Web**, the site is embedded by iframe on a best-effort basis. ChatGPT can refuse embedding. The native toolbar offers an **Open in browser** fallback.
+- The surrounding DSH shell uses the host's CSS theme variables. The cross-origin ChatGPT site's **internal** styling is controlled by ChatGPT and cannot be rewritten by this plugin.
+- Account login and any memory/tasks are owned by the official ChatGPT website. The plugin does not capture credentials or use unofficial Dots APIs. DSH Desktop guest cookies are not guaranteed to persist across application restarts.
+
+Not affiliated with or endorsed by OpenAI.
+
+## Install (published stable release)
+
+Desktop: DSH → Plugins → Add Plugin:
 
 ```text
-github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1
+github:Tests4gptplay/dsh-dots#v0.1.0
 ```
 
-**[Version v0.1.0-alpha.1 is released](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v0.1.0-alpha.1)**, with a prebuilt TGZ asset. For development builds only, you can also use:
-
-```text
-github:Tests4gptplay/dsh-dots#main
-```
-
-For DSH Web (a separate plugin profile), use:
+Web profile:
 
 ```bash
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1'
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0'
 ```
 
-The [prebuilt release TGZ](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.0-alpha.1/dsh-dots-0.1.0-alpha.1.tgz) is available as a fallback. No npm build is needed for installation: the compiled Host/Client files are already committed. On upgrade, uninstall the old plugin through DSH, install the selected version, enable it and restart DSH. Do not delete other plugins, profiles, or browser sign-in data.
+[Latest release](https://github.com/Tests4gptplay/dsh-dots/releases/latest) · [Prebuilt TGZ](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.0/dsh-dots-0.1.0.tgz). Compiled Host/Client entries are included; no local npm build is required. To upgrade, uninstall only the previous Dots package through DSH, install the new release, enable it and restart DSH. Preserve other plugins, profiles and user data.
 
-## Scope and limitations
-
-- Opens the official [ChatGPT Dots web page](https://chatgpt.com/dots/home) through the DSH page, the DSH Browser (if available) or the system browser.
-- ChatGPT website sign-in is independent of Codex app-server authentication.
-- The website may reject iframe embedding; DSH Desktop WebView cookies may not survive app restart. The plugin neither collects login secrets nor bypasses browser/site security restrictions.
-- Interface and installer compatibility follow DSH's actual runtime capabilities, not a hardcoded DSH RC version gate.
-- Developer-only Mock Dot tests never appear in the production package. Mock screenshots do not prove real ChatGPT login.
-
-**Not affiliated with or endorsed by OpenAI.**
-
-## Developer verification
+## Verification and limits
 
 ```bash
 npm run build
 npm test
+npm run test:browser
 npm run pack:check
-npm pack --ignore-scripts
 ```
 
-The `pack:check` script verifies the exact shipped files, entrypoints and bilingual plugin-manager metadata. The release workflow is triggered manually or by an intentional change to a versioned release note; ordinary source pushes do not publish. See [Chinese test cases](docs/TEST-CASES.md), [Changelog](CHANGELOG.md) and the [GitHub repository](https://github.com/Tests4gptplay/dsh-dots).
+The repository tests the native DSH interface against DSH 0.2.1-rc.3 source code and a simulated Dot conversation. **Actual ChatGPT Dots authentication and Desktop guest operation require end-user testing in DSH**; tests and mock screenshots are not proof of successful account login. Compatibility is capability-based, not gated by DSH version strings. See [test cases](docs/TEST-CASES.md).

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "DSH Dots · ChatGPT Web Entry",
-    "description": "Open the official ChatGPT Dots website from DeepSeek Harness with a native panel, sidebar entry, browser sign-in, and theme-adaptive ring icon.\n\nNo unofficial Dots API or credential collection. Actual embed and login behavior depends on the website, browser, and account."
+    "title": "DSH Dots · ChatGPT Web",
+    "description": "Open the official ChatGPT Dots website inside a DSH-native full-page view. Desktop uses a DSH-authorized WebView; the shell and ring icon follow the DSH theme.\n\nNo API key or credential collection. ChatGPT owns the login and page content."
   }
 }

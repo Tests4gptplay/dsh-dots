@@ -9,16 +9,33 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   let dictionaries = {}
   let nativeOpened = []
   const styles = []
+  const created = []
   const browser = browserAvailable ? { openTab: (kind, options) => {
     nativeOpened.push({ kind, options })
   } } : undefined
   let client
   const sandbox = {
+    URL,
     window: { __ModuleLoader__: { load({ id, factory }) { if (id !== 'dsh-dots') throw new Error('Wrong module'); client = factory(id => {
       if (id === 'react') return runtime.React
       throw new Error(`Unexpected dependency ${id}`)
     }) } }, open() { nativeOpened.push({ kind: 'external' }) } },
-    document: { head: { append(value) { styles.push(value) } }, createElement() { return { dataset: {}, textContent: '' } } },
+    document: {
+      head: { append(value) { styles.push(value) } },
+      createElement(tag) {
+        const events = new Map()
+        const node = { tag, dataset: {}, textContent: '', attrs: {}, navigations: [], reloads: 0, removed: false,
+          setAttribute(k,v) { this.attrs[k] = v },
+          addEventListener(k,fn) { events.set(k, fn) },
+          emit(k,event={}) { events.get(k)?.(event) },
+          loadURL(url) { this.navigations.push(url); return Promise.resolve() },
+          reload() { this.reloads++ },
+          remove() { this.removed = true },
+        }
+        created.push(node)
+        return node
+      },
+    },
     console, queueMicrotask,
   }
   const compiled = await readFile(new URL('../../lib/client.js', import.meta.url), 'utf8')
@@ -42,5 +59,5 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   client.apply(ctx)
   const main = slots.find(slot => slot.options.name === 'main')
   const icon = slots.find(slot => slot.options.name === 'sidebar.panellist')
-  return { client, runtime, slots, styles, main, icon, nativeOpened, props: main.options.inject() }
+  return { client, runtime, slots, styles, main, icon, nativeOpened, props: main.options.inject(), created } 
 }

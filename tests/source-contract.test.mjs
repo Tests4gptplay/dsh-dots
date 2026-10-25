@@ -27,3 +27,14 @@ test('real DSH Browser source documents site embedding limitations', { skip: !ro
   assert.match(readme, /iframe/)
   assert.match(readme, /X-Frame-Options/)
 })
+
+
+test('real DSH Desktop bridge offers browser guest reservation independent of session sidebar', { skip: !root }, async () => {
+  const guests = await readFile(from('apps/desktop/src/browser-guests.ts'), 'utf8')
+  const preload = await readFile(from('apps/desktop/src/preload-browser.ts'), 'utf8')
+  assert.match(guests,/acquire\(owner: WebContents, workspace: unknown\)/)
+  assert.match(guests,/will-attach-webview/)
+  assert.match(guests,/partition: lease.partition/)
+  assert.match(preload,/browserAcquire/)
+  assert.match(preload,/onOpenRequested/)
+})

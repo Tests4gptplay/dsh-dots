@@ -1,7 +1,7 @@
-name: Publish prerelease
+name: Publish release
 
-# A release is explicitly requested by changing its versioned release note on
-# main (or by running workflow_dispatch). Normal source pushes do not publish.
+# Release is triggered only for versioned release-note changes (or manually).
+# Normal source pushes cannot publish. Native DSH Desktop login remains a user acceptance test.
 on:
   workflow_dispatch:
   push:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check DSH API surface against pinned test fixture
+      - name: Checkout DSH interface contract sources
         uses: actions/checkout@v4
         with:
           repository: deepseek-ai/deepseek-harness
@@ -32,37 +32,36 @@ jobs:
           sparse-checkout: |
             packages/client/ui-schedule/src/client
             packages/client/ui-sidebar-browser
-      - name: Validate code, mock-test boundaries and production package
+            apps/desktop/src/browser-guests.ts
+            apps/desktop/src/preload-browser.ts
+      - name: Validate production and mock-test boundaries
         env:
           DSH_SOURCE_DIR: _dsh-host-source
         run: |
           npm test
           npm run pack:check
           git diff --exit-code -- lib/host.js lib/client.js
-      - name: Ensure release notes and package version match
+      - name: Ensure release notes and version match
         id: release
         shell: bash
         run: |
-          set -euo pipefail
           VERSION=$(node -p 'require("./package.json").version')
           test -f "docs/releases/v${VERSION}.md"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
-      - name: Create exact release TGZ without install scripts
+      - name: Create exact release TGZ (no install scripts)
         run: npm pack --ignore-scripts
-      - name: Publish immutable version tag and release asset
+      - name: Publish version tag and release asset
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
           VERSION: ${{ steps.release.outputs.version }}
-        shell: bash
         run: |
-          set -euo pipefail
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; refusing to overwrite it."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing silent overwrite"
             exit 1
           fi
           gh release create "$TAG" "dsh-dots-${VERSION}.tgz" \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "DSH Dots $TAG" --prerelease \
+            --title "DSH Dots $TAG" --latest \
             --notes-file "docs/releases/$TAG.md"

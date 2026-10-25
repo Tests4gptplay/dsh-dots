@@ -46,8 +46,18 @@ npm pack --dry-run --ignore-scripts
 - `npm run build` 后的 `lib/host.js` / `lib/client.js` 与 Git 提交一致，不靠用户安装时触发构建。
 - `npm run pack:check` 检查包内完整运行白名单：Host、Client、双语插件元数据、SVG、patch、README、LICENSE、CHANGELOG；**排除**源码、测试、模拟后台、Chromium 截图、CI 脚本。
 - 在插件管理器识别 `locale/zh.json` 的中文名称和简介，选英文时显示 `locale/en.json`；两份 `meta.title` / `meta.description` 实际能被安装器读取。
-- 正式预发布 `#v0.1.0-alpha.1` 已由 Release 工作流创建并附上预编译 TGZ；`#main` 仅用于未发布的后续开发测试。真实 DSH Desktop 登录仍待实机核验。
+- 本插件未发布 Tag 前使用 `github:Tests4gptplay/dsh-dots#main` 测试；手动 Release 形成 `#v0.1.0-alpha.1` Tag 后才宣称它可安装，不将未存在的 Tag 作为当前可用入口。
 - Release 文件名与 `package.json` 一致（`dsh-dots-0.1.0-alpha.1.tgz`），标签内提交包含已编译运行文件，Git 标记与 TGZ 校验一致。
 - Desktop：插件管理器安装、启用和重启；Web：`dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1'`（Tag 发布后）。
 - 旧版升级只处理 Dots 包；不删除其他插件、整个 Profile、用户 ChatGPT Cookies。兼容性按能力和宿主实际报错，不锁 DSH RC 字符串。
-- 通过手动触发或明确更新 `docs/releases/v*.md` 启动 `Publish prerelease`；普通源码推送和 PR 不会自动创建 Release，已存在的固定版本不可静默覆盖。
+- 手动 `Publish prerelease` 工作流执行打包与发行；**一般的 push 和 PR 不能自动创建 Release**。
+
+## v0.1.0 正式版新增回归
+
+- `DESKTOP-13`：DSH Desktop 自带浏览器 Guest Bridge 获取租约、隔离 `partition` 和 `about:blank#lease`，初次 `dom-ready` 后导航到 Dots 官方 URL。
+- `DESKTOP-14`：页面内 OAuth 弹窗通过 DSH Guest 的 `onOpenRequested` 以同一网页分区导航；不允许 `file:` URL，刷新只刷新既有 Guest。
+- `DESKTOP-15`：未完成的 Guest 租约创建途中页面被关闭，确保晚到的租约被释放，不留下后台页面。
+- `DESKTOP-16`：Acquire 失败时显示 DSH 原生小提示并允许在浏览器中打开，不假称已登录。
+- `UI-17`：生产模式只显示小型 DSH 主题顶栏＋全幅网页，没有独立浏览器工具条、额外的大边框、标题解释区或旧红字 Browser 错误。
+- `UI-18`：真正的 Dots 内容和登录由 ChatGPT 控制；内嵌 Dot 内部 CSS 不可由插件跨源修改，不能把外壳改色当成内部网页已换皮肤。
+- `RELEASE-19`：`v0.1.0` 发布为**正常 Release**（`prerelease=false`，不是 alpha），附带匹配的 `.tgz` 和校验摘要。

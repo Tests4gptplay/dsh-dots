@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "DSH Dots · ChatGPT 网页入口",
-    "description": "在 DeepSeek Harness 内便捷打开 ChatGPT Dots 官方网页。支持 DSH 原生页面和侧边栏、网页登录与深浅主题自适应圆环图标。\n\n不使用非官方 Dots API，不读取 ChatGPT 凭据。网页嵌入与登录以浏览器及账号的实际支持为准。"
+    "title": "DSH Dots · ChatGPT 网页",
+    "description": "在 DSH 原生页面中直接展示 ChatGPT Dots 官方网页。桌面版采用 DSH 授权 WebView；外层界面、圆环状态栏随主题变化。\n\n无需 API Key，不读取 ChatGPT 凭据；网站登录与内容由 ChatGPT 管理。"
   }
 }
