@@ -11,7 +11,7 @@
 - **DSH Web**：原生页面仍可尝试 iframe；ChatGPT 网站可能禁止跨域嵌入，此时用右上角「在浏览器打开」进入官方网页，不以空白嵌入冒充成功。
 - Dot 网页**内部**的配色、导航与内容仍由 ChatGPT 官方网站管理。DSH 主题只能控制外壳，无法通过跨域 CSS 强制重绘 Dot 内页；用户可使用 ChatGPT 自带主题设置。
 - 顶部只有「Dots」圆环标识、刷新和外部打开入口，没有重复的浏览器地址栏、功能介绍、外框或多余提示。
-- 网页登录在浏览器容器中进行，不读取、记录或转移 ChatGPT Cookies／Token。DSH WebView 的认证分区由 DSH 宿主管理，Cookie 可能在重启后失效；与 Codex app-server 登录状态相互独立。
+- v0.1.1 修复 Electron WebView 仅显示顶部一小条的样式问题，网页登录在浏览器容器中进行，不读取、记录或转移 ChatGPT Cookies／Token。DSH WebView 的认证分区由 DSH 宿主管理，Cookie 可能在重启后失效；与 Codex app-server 登录状态相互独立。
 
 **非官方第三方插件，不隶属或代表 OpenAI。** 受官方网站登录、账号资格和安全策略约束；未使用非官方 Dots API。
 
@@ -22,16 +22,16 @@
 **DSH Desktop**：「插件 → 添加插件」，使用当前正式发行版：
 
 ```text
-github:Tests4gptplay/dsh-dots#v0.1.0
+github:Tests4gptplay/dsh-dots#v0.1.1
 ```
 
 **DSH Web**（另一个独立 Profile）：
 
 ```bash
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0'
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.1'
 ```
 
-[正式版本 / 下载](https://github.com/Tests4gptplay/dsh-dots/releases/latest) · [固定 TGZ 下载](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.0/dsh-dots-0.1.0.tgz)
+[正式版本 / 下载](https://github.com/Tests4gptplay/dsh-dots/releases/latest) · [固定 TGZ 下载](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.1/dsh-dots-0.1.1.tgz)
 
 升级时仅通过 DSH 插件管理器卸载旧 `dsh-dots`，安装本版本并重启 DSH；不删除 DSH Profile、其他插件、用户记忆或浏览器分区。安装失败显示原始宿主错误；不要盲目清空 `node_modules` 或更改 DSH 版本。
 

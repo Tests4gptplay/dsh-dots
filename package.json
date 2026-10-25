@@ -1,6 +1,6 @@
 {
   "name": "dsh-dots",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "将 ChatGPT Dots 网页作为 DSH 原生主页面内容：桌面版使用宿主授权的 Electron WebView，自动适配 DSH 主题。",
   "type": "module",
   "main": "./lib/host.js",
@@ -51,9 +51,9 @@
     "@deepseek-ai/cordis": "*",
     "@deepseek-ai/dsh-client-locale": "*",
     "@deepseek-ai/dsh-client-ui-layout": "*",
-    "@deepseek-ai/dsh-client-ui-sidebar": "*",
-    "@deepseek-ai/dsh-client-ui-renderer": "*",
     "@deepseek-ai/dsh-client-ui-primitives": "*",
+    "@deepseek-ai/dsh-client-ui-renderer": "*",
+    "@deepseek-ai/dsh-client-ui-sidebar": "*",
     "react": "*"
   },
   "repository": {
@@ -74,5 +74,8 @@
     "dots",
     "browser",
     "webview"
-  ]
+  ],
+  "dependencies": {
+    "dsh-dots": "file:dsh-dots-0.1.1.tgz"
+  }
 }

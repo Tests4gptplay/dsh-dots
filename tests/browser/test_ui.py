@@ -86,5 +86,56 @@ class BrowserCase(unittest.TestCase):
         self.assertEqual(self.errors, [], '\n'.join(self.errors))
 
 
+    def test_e_desktop_guest_shadow_iframe_fills_and_resizes(self):
+        """Reproduce Electron webview's flex shadow-iframe behavior with the actual packaged CSS.
+
+        This is a Chromium layout regression, not a real Electron/ChatGPT sign-in.
+        """
+        p = self.page
+        dimensions = p.evaluate(r"""() => {
+          const frame = document.createElement('div')
+          frame.style.cssText = 'position:fixed;left:-1300px;top:0;width:1200px;height:840px;display:flex;flex-direction:column;'
+          const main = document.createElement('main')
+          main.className = 'dotsPage'
+          const bar = document.createElement('div')
+          bar.className = 'dotsToolbar'
+          bar.textContent = 'Dots'
+          const content = document.createElement('section')
+          content.className = 'dotsContent'
+          const host = document.createElement('div')
+          host.className = 'dotsGuestHost'
+          const guest = document.createElement('webview')
+          guest.className = 'dotsWebview'
+          const shadow = guest.attachShadow({mode:'open'})
+          const iframe = document.createElement('iframe')
+          iframe.srcdoc = '<html><body>ChatGPT login view size check</body></html>'
+          iframe.style.cssText = 'flex:1 1 auto;min-width:0;min-height:0;border:0;'
+          shadow.append(iframe)
+          host.append(guest)
+          content.append(host)
+          main.append(bar,content)
+          frame.append(main)
+          document.body.append(frame)
+          const measure = () => ({
+            display: getComputedStyle(guest).display,
+            mainHeight: main.getBoundingClientRect().height,
+            hostHeight: host.getBoundingClientRect().height,
+            guestHeight: guest.getBoundingClientRect().height,
+            iframeHeight: iframe.getBoundingClientRect().height,
+          })
+          const big = measure()
+          frame.style.height = '580px'
+          const small = measure()
+          frame.remove()
+          return {big,small}
+        }""")
+        self.assertEqual(dimensions['big']['display'], 'flex', dimensions)
+        self.assertGreater(dimensions['big']['mainHeight'], 800, dimensions)
+        self.assertGreater(dimensions['big']['iframeHeight'], 700, dimensions)
+        self.assertGreater(dimensions['small']['iframeHeight'], 400, dimensions)
+        self.assertGreater(dimensions['big']['iframeHeight'] - dimensions['small']['iframeHeight'], 240, dimensions)
+        self.assertEqual(self.errors, [], '\n'.join(self.errors))
+
+
 if __name__ == '__main__':
     unittest.main()

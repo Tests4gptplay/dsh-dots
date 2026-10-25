@@ -46,11 +46,11 @@ npm pack --dry-run --ignore-scripts
 - `npm run build` 后的 `lib/host.js` / `lib/client.js` 与 Git 提交一致，不靠用户安装时触发构建。
 - `npm run pack:check` 检查包内完整运行白名单：Host、Client、双语插件元数据、SVG、patch、README、LICENSE、CHANGELOG；**排除**源码、测试、模拟后台、Chromium 截图、CI 脚本。
 - 在插件管理器识别 `locale/zh.json` 的中文名称和简介，选英文时显示 `locale/en.json`；两份 `meta.title` / `meta.description` 实际能被安装器读取。
-- 本插件未发布 Tag 前使用 `github:Tests4gptplay/dsh-dots#main` 测试；手动 Release 形成 `#v0.1.0-alpha.1` Tag 后才宣称它可安装，不将未存在的 Tag 作为当前可用入口。
-- Release 文件名与 `package.json` 一致（`dsh-dots-0.1.0-alpha.1.tgz`），标签内提交包含已编译运行文件，Git 标记与 TGZ 校验一致。
-- Desktop：插件管理器安装、启用和重启；Web：`dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1'`（Tag 发布后）。
+- 正式已发布的安装入口以 GitHub Release 固定标签为准； `#main` 仅做开发测试。当前正式修复版本为 `v0.1.1`。
+- Release 文件名与 `package.json` 一致（例如 `dsh-dots-0.1.1.tgz`），标签内提交包含已编译运行文件，Git 标记与 TGZ 校验一致。
+- Desktop：插件管理器安装、启用和重启；Web：`dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.1'`（Tag 发布后）。
 - 旧版升级只处理 Dots 包；不删除其他插件、整个 Profile、用户 ChatGPT Cookies。兼容性按能力和宿主实际报错，不锁 DSH RC 字符串。
-- 手动 `Publish prerelease` 工作流执行打包与发行；**一般的 push 和 PR 不能自动创建 Release**。
+- 手动 `Publish release`，或明确修改 `docs/releases/v*.md` 可触发发行；普通源码 push 和 PR 不自动创建 Release。
 
 ## v0.1.0 正式版新增回归
 
@@ -61,3 +61,9 @@ npm pack --dry-run --ignore-scripts
 - `UI-17`：生产模式只显示小型 DSH 主题顶栏＋全幅网页，没有独立浏览器工具条、额外的大边框、标题解释区或旧红字 Browser 错误。
 - `UI-18`：真正的 Dots 内容和登录由 ChatGPT 控制；内嵌 Dot 内部 CSS 不可由插件跨源修改，不能把外壳改色当成内部网页已换皮肤。
 - `RELEASE-19`：`v0.1.0` 发布为**正常 Release**（`prerelease=false`，不是 alpha），附带匹配的 `.tgz` 和校验摘要。
+
+## v0.1.1 登录页实际可见区域修复（2026-10-26）
+
+- **CSS-20**：与 Electron/DSH `Browser.module.css` 对照，`dotsWebview` 必须保留 `display:flex`，不得误改成 `display:block`；这会破坏 Chromium WebView shadow 内部 iframe 撑满逻辑。
+- **BROWSER-21**：用发布包的实际客户端 CSS 和 Chromium，构造模拟 Electron Shadow iframe，检查主面板高度至少 800px、实际子 iframe 高度至少 700px；更改容器高度后实际子 iframe 同步缩小超过 240px。**测试不接入真实 ChatGPT 账户。**
+- **DSH-22（用户实机验证）**：使用发行版 `v0.1.1` 重装插件并重启 DSH Desktop；看登录页面是否完整可见且表单可点击/输入。之后手动在 ChatGPT 官方站点登录。如果仍出现浏览器登录限制，记录实际错误和重定向现象，不能假称已解决认证。

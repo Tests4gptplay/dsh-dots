@@ -6,7 +6,7 @@
 
 ## Experience
 
-- A compact DSH-themed toolbar and a **full-bleed** content area—no boxed browser UI.
+- A compact DSH-themed toolbar and a **full-bleed** content area—no boxed browser UI. Version 0.1.1 restores Electron WebView flex layout to prevent the login page from being clipped to a short strip.
 - On **DSH Desktop**, a guest WebView is acquired through DSH's own Electron browser bridge, using an approved partition and main-process navigation checks; it no longer depends on the Session right-sidebar Browser plugin.
 - On **DSH Web**, the site is embedded by iframe on a best-effort basis. ChatGPT can refuse embedding. The native toolbar offers an **Open in browser** fallback.
 - The surrounding DSH shell uses the host's CSS theme variables. The cross-origin ChatGPT site's **internal** styling is controlled by ChatGPT and cannot be rewritten by this plugin.
@@ -19,16 +19,16 @@ Not affiliated with or endorsed by OpenAI.
 Desktop: DSH → Plugins → Add Plugin:
 
 ```text
-github:Tests4gptplay/dsh-dots#v0.1.0
+github:Tests4gptplay/dsh-dots#v0.1.1
 ```
 
 Web profile:
 
 ```bash
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0'
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.1'
 ```
 
-[Latest release](https://github.com/Tests4gptplay/dsh-dots/releases/latest) · [Prebuilt TGZ](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.0/dsh-dots-0.1.0.tgz). Compiled Host/Client entries are included; no local npm build is required. To upgrade, uninstall only the previous Dots package through DSH, install the new release, enable it and restart DSH. Preserve other plugins, profiles and user data.
+[Latest release](https://github.com/Tests4gptplay/dsh-dots/releases/latest) · [Prebuilt TGZ](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.1/dsh-dots-0.1.1.tgz). Compiled Host/Client entries are included; no local npm build is required. To upgrade, uninstall only the previous Dots package through DSH, install the new release, enable it and restart DSH. Preserve other plugins, profiles and user data.
 
 ## Verification and limits
 

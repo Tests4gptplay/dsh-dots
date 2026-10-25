@@ -42,7 +42,7 @@ jobs:
           npm pack --ignore-scripts
           mkdir -p _package-test
           cd _package-test
-          npm install --offline --legacy-peer-deps --ignore-scripts --no-audit --no-fund ../dsh-dots-0.1.0.tgz
+          npm install --offline --legacy-peer-deps --ignore-scripts --no-audit --no-fund "../$(node -p 'require("../package.json").name + "-" + require("../package.json").version + ".tgz"')"
           node --input-type=module -e 'import("dsh-dots").then(x=>{if(x.name!=="dsh-dots")process.exit(1)})'
           node --input-type=module -e 'import zh from "dsh-dots/locale/zh.json" with {type:"json"}; import en from "dsh-dots/locale/en.json" with {type:"json"}; if(!zh.meta.title || !en.meta.title)process.exit(1)'
 
