@@ -13,13 +13,13 @@ jobs:
         with:
           node-version: '22'
       # The real host source is a test fixture only; it is never installed or
-      # copied into the plugin's release package. Track the host's current
-      # master instead of blocking the plugin on a fixed DSH version string.
+      # copied into the plugin's release package. Pin a known source fixture
+      # for repeatability; the plugin itself never gates runtime by DSH version.
       - name: Checkout DSH interface sources
         uses: actions/checkout@v4
         with:
-          repository: Tests4gptplay/deepseek-harness
-          ref: master
+          repository: deepseek-ai/deepseek-harness
+          ref: dsh-v0.2.1-rc.3
           path: _dsh-host-source
           sparse-checkout: |
             packages/client/ui-schedule/src/client
