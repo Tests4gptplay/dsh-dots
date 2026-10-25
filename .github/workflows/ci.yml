@@ -5,12 +5,28 @@ on:
   pull_request:
 jobs:
   unit:
-    name: DSH Slot and Mock Dot tests
+    name: DSH Slot, host-source and Mock Dot tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm test
-      - run: npm run pack:check
+      # The real host source is a test fixture only; it is never installed or
+      # copied into the plugin's release package. Track the host's current
+      # master instead of blocking the plugin on a fixed DSH version string.
+      - name: Checkout DSH interface sources
+        uses: actions/checkout@v4
+        with:
+          repository: Tests4gptplay/deepseek-harness
+          ref: master
+          path: _dsh-host-source
+          sparse-checkout: |
+            packages/client/ui-schedule/src/client
+            packages/client/ui-sidebar-browser
+      - name: Native-slot, mock conversation and host-source tests
+        run: npm test
+        env:
+          DSH_SOURCE_DIR: _dsh-host-source
+      - name: Verify packaged file whitelist
+        run: npm run pack:check
