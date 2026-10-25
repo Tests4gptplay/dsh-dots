@@ -1,0 +1,49 @@
+name: Publish prerelease
+
+# Manual publication only, after actual DSH Desktop / WebView validation.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate production and mock-test boundaries
+        run: |
+          npm test
+          npm run pack:check
+          git diff --exit-code -- lib/host.js lib/client.js
+      - name: Ensure release notes and version match
+        id: release
+        shell: bash
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          test -f "docs/releases/v${VERSION}.md"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Create exact release TGZ (no install scripts)
+        run: npm pack --ignore-scripts
+      - name: Publish version tag and release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing silent overwrite"
+            exit 1
+          fi
+          gh release create "$TAG" "dsh-dots-${VERSION}.tgz" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DSH Dots $TAG" --prerelease \
+            --notes-file "docs/releases/$TAG.md"

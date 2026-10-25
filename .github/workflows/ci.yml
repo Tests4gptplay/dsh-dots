@@ -5,8 +5,12 @@ on:
   pull_request:
 jobs:
   unit:
-    name: DSH Slot, host-source and Mock Dot tests
-    runs-on: ubuntu-latest
+    name: DSH installability / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,3 +34,13 @@ jobs:
           DSH_SOURCE_DIR: _dsh-host-source
       - name: Verify packaged file whitelist
         run: npm run pack:check
+      - name: Check distributable can be installed without running scripts
+        shell: bash
+        run: |
+          npm pack --ignore-scripts
+          mkdir -p _package-test
+          cd _package-test
+          npm install --offline --legacy-peer-deps --ignore-scripts --no-audit --no-fund ../dsh-dots-0.1.0-alpha.1.tgz
+          node --input-type=module -e 'import("dsh-dots").then(x=>{if(x.name!=="dsh-dots")process.exit(1)})'
+          node --input-type=module -e 'import zh from "dsh-dots/locale/zh.json" with {type:"json"}; import en from "dsh-dots/locale/en.json" with {type:"json"}; if(!zh.meta.title || !en.meta.title)process.exit(1)'
+

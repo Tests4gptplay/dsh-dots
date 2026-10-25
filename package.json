@@ -8,12 +8,25 @@
     ".": "./lib/host.js",
     "./client": "./lib/client.js",
     "./package.json": "./package.json",
-    "./icon": "./assets/dots-ring.svg"
+    "./icon": "./assets/dots-ring.svg",
+    "./locale/*.json": "./locale/*.json"
   },
   "icon": "./assets/dots-ring.svg",
-  "files": ["lib/host.js", "lib/client.js", "assets/dots-ring.svg", "cordis.patch.yml", "README.md", "README.en.md", "LICENSE"],
+  "files": [
+    "lib/host.js",
+    "lib/client.js",
+    "assets/dots-ring.svg",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "inject": [
@@ -29,9 +42,11 @@
     "build": "node scripts/build.mjs",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:browser": "python3 -m unittest discover -s tests/browser -p 'test_*.py'",
-    "pack:check": "npm pack --dry-run --ignore-scripts"
+    "pack:check": "node scripts/verify-pack.mjs"
   },
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "peerDependencies": {
     "@deepseek-ai/cordis": "*",
     "@deepseek-ai/dsh-client-locale": "*",
@@ -41,7 +56,23 @@
     "@deepseek-ai/dsh-client-ui-primitives": "*",
     "react": "*"
   },
-  "repository": { "type": "git", "url": "git+https://github.com/Tests4gptplay/dsh-dots.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tests4gptplay/dsh-dots.git"
+  },
   "homepage": "https://github.com/Tests4gptplay/dsh-dots#readme",
-  "license": "MIT"
+  "license": "MIT",
+  "author": "Tests4gptplay",
+  "bugs": {
+    "url": "https://github.com/Tests4gptplay/dsh-dots/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "chatgpt",
+    "dots",
+    "browser",
+    "webview"
+  ]
 }

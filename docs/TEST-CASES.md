@@ -40,3 +40,14 @@ npm pack --dry-run --ignore-scripts
 ### DSH 实际环境注意
 
 用户提供了 DSH 0.2.1-rc.3 官方源码归档，已用于对照 Slot/Browser 的真实接口；此处仅静态核验源码，**在隔离环境未安装其完整工作区依赖时不能自称启动了 DSH Host**。Windows `.exe` 安装包无法在 Linux 测试容器里直接运行。
+
+## 统一安装与发行检查（参照 Kujira）
+
+- `npm run build` 后的 `lib/host.js` / `lib/client.js` 与 Git 提交一致，不靠用户安装时触发构建。
+- `npm run pack:check` 检查包内完整运行白名单：Host、Client、双语插件元数据、SVG、patch、README、LICENSE、CHANGELOG；**排除**源码、测试、模拟后台、Chromium 截图、CI 脚本。
+- 在插件管理器识别 `locale/zh.json` 的中文名称和简介，选英文时显示 `locale/en.json`；两份 `meta.title` / `meta.description` 实际能被安装器读取。
+- 本插件未发布 Tag 前使用 `github:Tests4gptplay/dsh-dots#main` 测试；手动 Release 形成 `#v0.1.0-alpha.1` Tag 后才宣称它可安装，不将未存在的 Tag 作为当前可用入口。
+- Release 文件名与 `package.json` 一致（`dsh-dots-0.1.0-alpha.1.tgz`），标签内提交包含已编译运行文件，Git 标记与 TGZ 校验一致。
+- Desktop：插件管理器安装、启用和重启；Web：`dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1'`（Tag 发布后）。
+- 旧版升级只处理 Dots 包；不删除其他插件、整个 Profile、用户 ChatGPT Cookies。兼容性按能力和宿主实际报错，不锁 DSH RC 字符串。
+- 手动 `Publish prerelease` 工作流执行打包与发行；**一般的 push 和 PR 不能自动创建 Release**。
