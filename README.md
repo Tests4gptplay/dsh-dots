@@ -18,13 +18,13 @@
 
 ### ① DSH Desktop
 
-打开 **插件 → 添加插件**，正式发布 `v0.1.0-alpha.1` Tag 后输入：
+打开 **插件 → 添加插件**，在确认 `v0.1.0-alpha.1` Tag 已发布后输入：
 
 ```text
 github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1
 ```
 
-**发行状态：本仓库目前尚未建立该版本 Tag / Release；上面是发布后使用的固定版本地址，并非当前已经可安装的 Tag。** 在正式发行之前，开发测试使用已有 `main` 分支：
+**发行状态以 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases) 的实际页面为准。** 版本尚未发布时，开发测试可使用已有 `main` 分支：
 
 ```text
 github:Tests4gptplay/dsh-dots#main
@@ -40,7 +40,7 @@ github:Tests4gptplay/dsh-dots#main
 dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.0-alpha.1'
 ```
 
-Tag 尚未发布时，开发测试用：
+如尚无该 Tag，开发测试用：
 
 ```bash
 dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#main'
@@ -48,7 +48,7 @@ dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#main'
 
 ### ③ 备用 TGZ 安装包
 
-每个实际发布的版本在 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases) 提供同版本命名的 `dsh-dots-0.1.0-alpha.1.tgz` 备用安装包，安装方式和 Kujira 一致。**目前该文件仅作为候选构建产物，未宣称已经上传到 Releases。** 在 GitHub Desktop/Web 安装失败时，可改用已发布 Release 的对应 `.tgz` 文件。
+每个实际发布的版本在 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases) 提供同版本命名的 `dsh-dots-0.1.0-alpha.1.tgz` 备用安装包，安装方式和 Kujira 一致。**以 Release 页面实际存在的下载资产为准。** 在 GitHub Desktop/Web 安装失败时，可改用对应版本的正式 `.tgz` 文件。
 
 ### Windows 安装错误
 
@@ -71,7 +71,7 @@ npm run pack:check
 npm pack --ignore-scripts
 ```
 
-`lib/host.js`、`lib/client.js` 已提交入库。`pack:check` **严格校验**运行包内容、图标、导出入口和中英文插件管理器元数据；源码、测试、截图和模拟后台仅保留在开发仓库，不进入用户安装包。发布者可从 GitHub Actions 手动启动「Publish prerelease」任务，完成测试、验证仓库已编译产物，并生成固定 Tag 与 Release TGZ；**不会因普通推送自动发布**。
+`lib/host.js`、`lib/client.js` 已提交入库。`pack:check` **严格校验**运行包内容、图标、导出入口和中英文插件管理器元数据；源码、测试、截图和模拟后台仅保留在开发仓库，不进入用户安装包。发布者可从 GitHub Actions 手动启动「Publish prerelease」，或通过明确更新 `docs/releases/v*.md` 版本说明触发一次固定版本发行。流程将验证源码、安装包并创建 Tag 和 Release TGZ；**普通源码推送不会自动发布**。
 
 测试明细见 [测试案例](docs/TEST-CASES.md)，版本变化见 [更新记录](CHANGELOG.md)。[模拟浅色](docs/screenshots/mock-dot-light.png) / [模拟深色](docs/screenshots/mock-dot-dark.png) 截图仅证明模拟对话的浏览器渲染，不代表真实 DSH 中的登录成功。
 
