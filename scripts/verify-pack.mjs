@@ -24,6 +24,10 @@ assert.deepEqual(actual, expected, 'Distribution must include exactly the runtim
 assert.equal(metadata.name, manifest.name)
 assert.equal(metadata.version, manifest.version)
 assert.equal(metadata.filename, `${manifest.name}-${manifest.version}.tgz`)
+for (const field of ['dependencies', 'optionalDependencies']) {
+  assert.ok(!Object.hasOwn(manifest[field] ?? {}, manifest.name),
+    `Plugin ${manifest.name} must not depend on itself through ${field}`)
+}
 assert.equal(manifest.main, './lib/host.js')
 assert.equal(manifest.exports['./client'], './lib/client.js')
 assert.equal(manifest.exports['./locale/*.json'], './locale/*.json')

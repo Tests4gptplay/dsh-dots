@@ -51,6 +51,16 @@ jobs:
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
       - name: Create exact release TGZ (no install scripts)
         run: npm pack --ignore-scripts
+      - name: Verify release TGZ installs with pnpm
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        shell: bash
+        run: |
+          npm install -g pnpm@10
+          mkdir -p _release-pnpm-test
+          cd _release-pnpm-test
+          printf '%s\n' '{"name":"dsh-dots-release-install-check","private":true}' > package.json
+          pnpm add "../dsh-dots-${VERSION}.tgz" --ignore-scripts --config.auto-install-peers=false
       - name: Publish version tag and release asset
         env:
           GH_TOKEN: ${{ github.token }}
@@ -58,10 +68,23 @@ jobs:
           VERSION: ${{ steps.release.outputs.version }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; refusing silent overwrite"
-            exit 1
+            # One-time, user-authorized in-place repair of v0.1.1 only.
+            if [ "$TAG" != "v0.1.1" ]; then
+              echo "Release $TAG already exists; refusing silent overwrite"
+              exit 1
+            fi
+            OLD_REF=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --jq '.object.sha')
+            if [ "$OLD_REF" != "ab77253053e7815a6c38b9d3bdc75d957feb00bd" ]; then
+              echo "Repair already applied or tag changed; stop without replacing assets"
+              exit 1
+            fi
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" \
+              -f sha="$GITHUB_SHA" -F force=true >/dev/null
+            gh release upload "$TAG" "dsh-dots-${VERSION}.tgz" --clobber
+            gh release edit "$TAG" --notes-file "docs/releases/$TAG.md" --target "$GITHUB_SHA"
+          else
+            gh release create "$TAG" "dsh-dots-${VERSION}.tgz" \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "DSH Dots $TAG" --latest \
+              --notes-file "docs/releases/$TAG.md"
           fi
-          gh release create "$TAG" "dsh-dots-${VERSION}.tgz" \
-            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "DSH Dots $TAG" --latest \
-            --notes-file "docs/releases/$TAG.md"
