@@ -10,7 +10,7 @@ const expected = [
   'LICENSE', 'README.en.md', 'README.md', 'CHANGELOG.md',
   'assets/dots-ring.svg', 'cordis.patch.yml',
   'lib/client.js', 'lib/host.js', 'locale/en.json', 'locale/zh.json',
-  'package.json',
+  'package.json', 'scripts/enable-desktop-persistence.py',
 ].sort()
 const proc = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm',
   ['pack', '--dry-run', '--ignore-scripts', '--json'], { cwd: root, encoding: 'utf8', shell: process.platform === 'win32' })

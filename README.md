@@ -1,55 +1,59 @@
 # DSH Dots
 
+在 DeepSeek Harness 原生页面中打开 [ChatGPT Dots](https://chatgpt.com/dots/home)，配备随 DSH 主题变化的工具栏、刷新和外部浏览器打开入口。
+
 [English](README.en.md)
 
-**在 DeepSeek Harness（DSH）原生页面中打开真正的 ChatGPT Dots。** 默认中文、英文辅助，无需 API Key，不复制或模拟 Dot 的记忆、任务和账号数据。
+## 功能
 
-## 界面与使用
+- **启动预加载**：DSH Desktop 加载插件后，在后台打开 Dots。
+- **切换即用**：切换到聊天或其他页面时保留同一个网页，返回 Dots 时直接显示已有页面与状态。
+- **手动刷新**：点击刷新按钮时重新加载网页；禁用插件或退出 DSH 时释放网页。
+- **登录态复用**：使用宿主管理的浏览器分区；配套 Desktop 持久化更新将 Dots 存储保存在固定分区中。
+- **原生外观**：全幅内容区、中英文界面，工具栏和圆环图标随 DSH 明暗主题变化。网页内部使用 ChatGPT 自身的主题设置。
 
-- 页面外壳、顶部工具栏、背景和状态栏圆环跟随 DSH 明暗主题及其 CSS 色板。**没有额外的大型浏览器外框**，内容区直接占满剩余空间。
-- **DSH Desktop**：使用 DSH Electron 自身批准的 Browser WebView guest（独立租约、隔离分区和宿主导航限制），直接加载 `https://chatgpt.com/dots/home`，不再调用会话右侧栏 Browser，因此没有“当前 DSH 浏览器不可用”的错误。
-- **DSH Web**：原生页面仍可尝试 iframe；ChatGPT 网站可能禁止跨域嵌入，此时用右上角「在浏览器打开」进入官方网页，不以空白嵌入冒充成功。
-- Dot 网页**内部**的配色、导航与内容仍由 ChatGPT 官方网站管理。DSH 主题只能控制外壳，无法通过跨域 CSS 强制重绘 Dot 内页；用户可使用 ChatGPT 自带主题设置。
-- 顶部只有「Dots」圆环标识、刷新和外部打开入口，没有重复的浏览器地址栏、功能介绍、外框或多余提示。
-- v0.1.1 修复 Electron WebView 仅显示顶部一小条的样式问题，网页登录在浏览器容器中进行，不读取、记录或转移 ChatGPT Cookies／Token。DSH WebView 的认证分区由 DSH 宿主管理，Cookie 可能在重启后失效；与 Codex app-server 登录状态相互独立。
-
-**非官方第三方插件，不隶属或代表 OpenAI。** 受官方网站登录、账号资格和安全策略约束；未使用非官方 Dots API。
+Desktop 通过宿主的 Electron WebView 加载网页。Web 版使用 iframe 嵌入；站点限制嵌入时，可点击「在浏览器打开」。
 
 ## 安装与升级
 
-与 [Kujira](https://github.com/Tests4gptplay/dsh-kujira-persona) 相同，提供**固定 Git Tag + GitHub Release 的预编译 `.tgz`**，用户不需要本地编译或 npm 账号。
-
-**DSH Desktop**：「插件 → 添加插件」，使用当前正式发行版：
+**DSH Desktop**：打开「插件 → 添加插件」，粘贴固定版本来源并安装、启用：
 
 ```text
-github:Tests4gptplay/dsh-dots#v0.1.1
+github:Tests4gptplay/dsh-dots#v1.0.5
 ```
 
-**DSH Web**（另一个独立 Profile）：
+**DSH Web**：
 
-```bash
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v0.1.1'
+```sh
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.5'
 ```
 
-[正式版本 / 下载](https://github.com/Tests4gptplay/dsh-dots/releases/latest) · [固定 TGZ 下载](https://github.com/Tests4gptplay/dsh-dots/releases/download/v0.1.1/dsh-dots-0.1.1.tgz)
+[正式版本](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.5) · [预打包安装包](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.5/dsh-dots-1.0.5.tgz)
 
-升级时仅通过 DSH 插件管理器卸载旧 `dsh-dots`，安装本版本并重启 DSH；不删除 DSH Profile、其他插件、用户记忆或浏览器分区。安装失败显示原始宿主错误；不要盲目清空 `node_modules` 或更改 DSH 版本。
+安装包已包含 Host/Client 运行文件。升级后重启 DSH，加载新的后台预加载功能；已有设置和浏览器数据继续保留。
 
-## 兼容性和测试边界
+## Desktop 登录态持久化
 
-- 与 DSH 的兼容性按实际功能接口判断；**不按固定版本号拒绝安装/运行**。官方 `@deepseek-ai/*` 模块以 `peerDependencies: "*"` 使用宿主版本。
-- 开发使用 DSH `0.2.1-rc.3` 源码检查 Slot、Desktop WebView guest lease 与主进程安全限制。Windows / Ubuntu CI 进行测试及实际安装包白名单验证。
-- 模拟 Dot 可执行输入、回复、异常恢复仅供开发测试；**模拟后台、测试源码及截图不进入发行 TGZ**。
-- **真实网页登录是否成功、第三方网站是否允许 Web 版嵌入、Cookie 是否跨重启保留需要实际 DSH Desktop／Web 实机检查。** 构建通过或模拟测试通过并不能证明真实 ChatGPT 登录成功。
+后台预加载由插件直接提供。跨重启的登录态存储由 Desktop 主进程管理，本版同时提供 **Windows DSH 0.2.1-rc.3** 的配套更新脚本。
 
-开发者验证：
+需要启用持久分区时，下载并解压安装包，完全退出 Desktop（包括托盘），使用 Python 运行：
 
-```bash
+```sh
+python scripts/enable-desktop-persistence.py "<DSH 安装目录>/resources/app.asar"
+```
+
+脚本先保存原始宿主备份，再将 Dots 的分区调整为 `persist:dsh-dots-personal-browser`；其他网页的分区策略及宿主授权、隔离和导航规则保持原样。重新启动 DSH 后，在新分区登录一次，后续启动复用其网站存储，登录有效期由网站管理。
+
+已经应用此配套更新的用户，升级到 1.0.5 时直接安装插件并重启即可。Desktop 应用升级后，依据新版宿主的存储支持情况使用配套更新。备份文件保存在原 `app.asar` 旁，后缀为 `.before-dots-1.0.4`；需要还原时，退出 Desktop 后用备份替换 `app.asar`。
+
+## 开发
+
+```sh
 npm run build
 npm test
-npm run test:browser  # 具备 Chromium + Python Playwright 的环境
 npm run pack:check
-npm pack --ignore-scripts
 ```
 
-详细案例见 [测试用例](docs/TEST-CASES.md)，历史版本见 [更新记录](CHANGELOG.md)。插件管理器中英文信息分别为 `locale/zh.json`、`locale/en.json`；状态栏 SVG 使用 `currentColor` 直接跟随 DSH 皮肤。
+[更新记录](CHANGELOG.md) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues) · [MIT 许可](LICENSE)
+
+DSH Dots 是第三方插件；ChatGPT Dots 由 OpenAI 提供，账号登录及服务访问条件由官方网站管理。

@@ -10,21 +10,25 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   let nativeOpened = []
   const styles = []
   const created = []
+  const disposers = []
+  const bodyChildren = []
+  const windowEvents = new Map()
   const browser = browserAvailable ? { openTab: (kind, options) => {
     nativeOpened.push({ kind, options })
   } } : undefined
   let client
   const sandbox = {
     URL,
-    window: { dshDesktop: desktopBridge, __ModuleLoader__: { load({ id, factory }) { if (id !== 'dsh-dots') throw new Error('Wrong module'); client = factory(id => {
+    window: { addEventListener(k, fn) { windowEvents.set(k, fn) }, removeEventListener(k) { windowEvents.delete(k) }, dshDesktop: desktopBridge, __ModuleLoader__: { load({ id, factory }) { if (id !== 'dsh-dots') throw new Error('Wrong module'); client = factory(id => {
       if (id === 'react') return runtime.React
       throw new Error(`Unexpected dependency ${id}`)
     }) } }, open() { nativeOpened.push({ kind: 'external' }) } },
     document: {
       head: { append(value) { styles.push(value) } },
+      body: { append(value) { bodyChildren.push(value) } },
       createElement(tag) {
         const events = new Map()
-        const node = { tag, dataset: {}, textContent: '', attrs: {}, navigations: [], reloads: 0, removed: false,
+        const node = { tag, style: {}, children: [], append(value) { this.children.push(value) }, dataset: {}, textContent: '', attrs: {}, navigations: [], reloads: 0, removed: false,
           setAttribute(k,v) { this.attrs[k] = v },
           addEventListener(k,fn) { events.set(k, fn) },
           emit(k,event={}) { events.get(k)?.(event) },
@@ -36,12 +40,13 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
         return node
       },
     },
+    ResizeObserver: class { observe() {} disconnect() {} },
     console, queueMicrotask,
   }
   const compiled = await readFile(new URL('../../lib/client.js', import.meta.url), 'utf8')
   vm.runInNewContext(compiled, sandbox, { filename: 'lib/client.js' })
   const ctx = {
-    effect(callback) { callback() },
+    effect(callback) { const dispose = callback(); if (typeof dispose === 'function') disposers.push(dispose) },
     locale: {
       register(namespace, entries) { dictionaries[namespace] = entries },
       bind(namespace) { return (key) => dictionaries[namespace]?.[language]?.[key] ?? key },
@@ -59,5 +64,6 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   client.apply(ctx)
   const main = slots.find(slot => slot.options.name === 'main')
   const icon = slots.find(slot => slot.options.name === 'sidebar.panellist')
-  return { client, runtime, slots, styles, main, icon, nativeOpened, props: main.options.inject(), created } 
+  return { client, runtime, slots, styles, main, icon, nativeOpened, props: main.options.inject(), created, bodyChildren, windowEvents,
+    async dispose() { for (const dispose of disposers.reverse()) await dispose() } }
 }

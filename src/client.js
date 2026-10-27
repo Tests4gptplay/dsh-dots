@@ -110,17 +110,90 @@ function mountDesktopDotGuest(host, bridge, onError, onLoaded) {
   }
 }
 
-function DotsWebSurface({ reloadCount, onFailure, onLoaded, t }) {
+/** One connected guest per plugin lifetime. Parking never reparents the webview. */
+function createDesktopDotsSession(bridge) {
+  const root = document.createElement('div')
+  root.className = 'dotsPersistentGuest'
+  Object.assign(root.style, { position: 'fixed', display: 'flex', overflow: 'hidden',
+    left: '0px', top: '0px', width: '1024px', height: '768px',
+    visibility: 'hidden', pointerEvents: 'none', background: 'var(--dsw-alias-bg-base)' })
+  root.setAttribute('aria-hidden', 'true')
+  document.body.append(root)
+  let error = null
+  let loaded = false
+  let detach = () => {}
+  const listeners = new Set()
+  const notify = () => { for (const listener of listeners) listener(error, loaded) }
+  const guest = mountDesktopDotGuest(root, bridge,
+    reason => { error = reason; loaded = false; notify() },
+    () => { error = null; loaded = true; notify() })
+  const park = () => {
+    root.style.visibility = 'hidden'
+    root.style.pointerEvents = 'none'
+    root.setAttribute('aria-hidden', 'true')
+  }
+  return {
+    reload: () => guest.reload(),
+    attach(target, onError, onLoaded) {
+      detach()
+      const listener = (failure, ready) => {
+        if (failure) onError(failure)
+        else if (ready) onLoaded()
+      }
+      listeners.add(listener)
+      listener(error, loaded)
+      const position = () => {
+        const rect = target.getBoundingClientRect()
+        if (!target.isConnected || !rect.width || !rect.height) { park(); return }
+        Object.assign(root.style, { left: rect.left + 'px', top: rect.top + 'px',
+          width: rect.width + 'px', height: rect.height + 'px',
+          visibility: 'visible', pointerEvents: 'auto' })
+        root.setAttribute('aria-hidden', 'false')
+      }
+      const observer = new ResizeObserver(position)
+      observer.observe(target)
+      window.addEventListener('resize', position)
+      window.addEventListener('scroll', position, true)
+      position()
+      let attached = true
+      const release = () => {
+        if (!attached) return
+        attached = false
+        observer.disconnect()
+        window.removeEventListener('resize', position)
+        window.removeEventListener('scroll', position, true)
+        listeners.delete(listener)
+        park()
+      }
+      detach = release
+      return release
+    },
+    async dispose() {
+      detach()
+      listeners.clear()
+      await guest.dispose()
+      root.remove()
+    },
+  }
+}
+
+function DotsWebSurface({ reloadCount, onFailure, onLoaded, t, desktopSession }) {
   const container = useRef(null)
   const owner = useRef(null)
   const bridge = desktopBrowserBridge()
   useEffect(() => {
     if (!bridge || !container.current) return
+    if (desktopSession) {
+      owner.current = desktopSession
+      const detach = desktopSession.attach(container.current,
+        () => onFailure(t('guestFailed')), onLoaded)
+      return () => { owner.current = null; detach() }
+    }
     const mounted = mountDesktopDotGuest(container.current, bridge,
       () => onFailure(t('guestFailed')), onLoaded)
     owner.current = mounted
     return () => { owner.current = null; void mounted.dispose() }
-  }, [bridge])
+  }, [bridge, desktopSession])
   useEffect(() => {
     if (reloadCount > 0 && bridge) owner.current?.reload()
   }, [reloadCount, bridge])
@@ -145,7 +218,7 @@ function DotsSidebarIcon({ size = 18 }) {
  * We intentionally do not render a redundant framed browser or CSS-inject the
  * cross-origin ChatGPT document. Its own appearance remains site-controlled.
  */
-function DotsPage({ t, openExternal, __testDotsBackend }) {
+function DotsPage({ t, openExternal, desktopSession, __testDotsBackend }) {
   const [reloadCount, setReloadCount] = useState(0)
   const [error, setError] = useState('')
   const mock = __testDotsBackend !== undefined
@@ -169,7 +242,7 @@ function DotsPage({ t, openExternal, __testDotsBackend }) {
     mock
       ? h(MockDotConversation, { key: 'mock-conversation', backend: __testDotsBackend, t })
       : h('section', { className: 'dotsContent', 'data-testid': 'dots-native-content' },
-          h(DotsWebSurface, { reloadCount, onFailure: message => setError(String(message)), onLoaded: () => setError(''), t }),
+          h(DotsWebSurface, { reloadCount, onFailure: message => setError(String(message)), onLoaded: () => setError(''), t, desktopSession }),
           error ? h('div', { className: 'dotsEmbedNotice', role: 'alert' },
             h('span', null, error),
             h('button', { className: 'dotsTool dotsOpen', type: 'button', onClick: launchExternal }, t('inBrowser'))) : null))
@@ -219,6 +292,7 @@ exports.DotsPage = DotsPage
 exports.zh = zh
 exports.en = en
 exports.DOTS_URL = DOTS_URL
+exports.createDesktopDotsSession = createDesktopDotsSession
 exports.mountDesktopDotGuest = mountDesktopDotGuest
 exports.desktopBrowserBridge = desktopBrowserBridge
 exports.apply = function apply(ctx) {
@@ -230,6 +304,13 @@ exports.apply = function apply(ctx) {
     document.head.append(style)
     return () => style.remove()
   }, 'dsh-dots.style')
+  let desktopSession
+  ctx.effect(() => {
+    const bridge = desktopBrowserBridge()
+    if (!bridge) return
+    desktopSession = createDesktopDotsSession(bridge)
+    return () => desktopSession.dispose()
+  }, 'dsh-dots.preload')
   const t = ctx.locale.bind(NAMESPACE)
   const openExternal = () => {
     window.open(DOTS_URL, '_blank', 'noopener,noreferrer')
@@ -238,7 +319,7 @@ exports.apply = function apply(ctx) {
   }
   ctx.slots.inject('main', () => ctx.slots.register({
     name: 'main', key: PANEL_ID, locale: NAMESPACE,
-    inject: () => ({ t, openExternal }),
+    inject: () => ({ t, openExternal, desktopSession }),
   }, DotsPage))
   ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
     name: 'sidebar.panellist', id: PANEL_ID, order: 25, locale: NAMESPACE, label: () => t('panel'),
