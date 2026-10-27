@@ -110,90 +110,160 @@ function mountDesktopDotGuest(host, bridge, onError, onLoaded) {
   }
 }
 
-/** One connected guest per plugin lifetime. Parking never reparents the webview. */
-function createDesktopDotsSession(bridge) {
-  const root = document.createElement('div')
-  root.className = 'dotsPersistentGuest'
-  Object.assign(root.style, { position: 'fixed', display: 'flex', overflow: 'hidden',
-    left: '0px', top: '0px', width: '1024px', height: '768px',
-    visibility: 'hidden', pointerEvents: 'none', background: 'var(--dsw-alias-bg-base)' })
-  root.setAttribute('aria-hidden', 'true')
-  document.body.append(root)
-  let error = null
-  let loaded = false
-  let detach = () => {}
-  const listeners = new Set()
-  const notify = () => { for (const listener of listeners) listener(error, loaded) }
-  const guest = mountDesktopDotGuest(root, bridge,
-    reason => { error = reason; loaded = false; notify() },
-    () => { error = null; loaded = true; notify() })
-  const park = () => {
-    root.style.visibility = 'hidden'
-    root.style.pointerEvents = 'none'
-    root.setAttribute('aria-hidden', 'true')
+/** Plain-DOM ring used by the persistent page; the React icon stays for the Web panel. */
+function ringSvgNode(size) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('width', String(size))
+  svg.setAttribute('height', String(size))
+  svg.setAttribute('viewBox', '0 0 100 100')
+  svg.setAttribute('fill', 'none')
+  svg.setAttribute('aria-hidden', 'true')
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+  circle.setAttribute('cx', '50')
+  circle.setAttribute('cy', '50')
+  circle.setAttribute('r', '32')
+  circle.setAttribute('stroke', 'currentColor')
+  circle.setAttribute('stroke-width', '30')
+  svg.append(circle)
+  return svg
+}
+
+/** One guest for the whole plugin lifetime, in a normal flex child of DSH's
+ * center column. Panel switches only toggle visibility, so the webpage is
+ * never reparented, reloaded or recreated by a slot remount. */
+function mountPersistentDotsPage(bridge, t, openExternal) {
+  let disposed = false
+  let page
+  let host
+  let notice
+  let noticeText
+  let guest
+  let observer
+  let error = ''
+  const setError = message => {
+    error = message ? String(message) : ''
+    if (!notice) return
+    notice.style.display = error ? 'flex' : 'none'
+    if (noticeText) noticeText.textContent = error
+  }
+  const external = () => { try { openExternal() } catch {} }
+  const build = () => {
+    const node = document.createElement('div')
+    node.className = 'dotsPage dotsPersistentPage'
+    node.setAttribute('aria-label', 'DSH Dots')
+    node.style.display = 'none'
+    const toolbar = document.createElement('header')
+    toolbar.className = 'dotsToolbar'
+    const brand = document.createElement('div')
+    brand.className = 'dotsBrand'
+    const mark = document.createElement('span')
+    mark.className = 'dotsMark'
+    mark.setAttribute('aria-hidden', 'true')
+    mark.append(ringSvgNode(23))
+    const name = document.createElement('span')
+    name.className = 'dotsBrandName'
+    name.textContent = t('title')
+    brand.append(mark, name)
+    const actions = document.createElement('div')
+    actions.className = 'dotsToolbarActions'
+    const reload = document.createElement('button')
+    reload.className = 'dotsTool dotsReload'
+    reload.setAttribute('type', 'button')
+    reload.textContent = t('reload')
+    reload.addEventListener('click', () => { if (guest) guest.reload() })
+    const open = document.createElement('button')
+    open.className = 'dotsTool dotsOpen'
+    open.setAttribute('type', 'button')
+    open.textContent = t('inBrowser')
+    open.setAttribute('title', t('fallback'))
+    open.addEventListener('click', external)
+    actions.append(reload, open)
+    toolbar.append(brand, actions)
+    const content = document.createElement('section')
+    content.className = 'dotsContent'
+    content.setAttribute('data-testid', 'dots-native-content')
+    host = document.createElement('div')
+    host.className = 'dotsGuestHost'
+    host.setAttribute('data-testid', 'dots-desktop-webview-host')
+    notice = document.createElement('div')
+    notice.className = 'dotsEmbedNotice'
+    notice.setAttribute('role', 'alert')
+    notice.style.display = 'none'
+    noticeText = document.createElement('span')
+    const noticeOpen = document.createElement('button')
+    noticeOpen.className = 'dotsTool dotsOpen'
+    noticeOpen.setAttribute('type', 'button')
+    noticeOpen.textContent = t('inBrowser')
+    noticeOpen.addEventListener('click', external)
+    notice.append(noticeText, noticeOpen)
+    content.append(host, notice)
+    node.append(toolbar, content)
+    return node
+  }
+  const show = () => {
+    if (!page) return
+    page.style.display = 'flex'
+    page.setAttribute('aria-hidden', 'false')
+  }
+  const hide = () => {
+    if (!page) return
+    page.style.display = 'none'
+    page.setAttribute('aria-hidden', 'true')
+  }
+  const attach = () => {
+    if (disposed || page) return Boolean(page)
+    const column = document.querySelector('[data-slot="main"]')?.parentElement
+    if (!column) return false
+    page = build()
+    // The center column survives panel changes; the slot outlet only swaps
+    // its own contents, so this node stays connected with its guest alive.
+    column.append(page)
+    hide()
+    guest = mountDesktopDotGuest(host, bridge, setError, () => setError(''))
+    observer?.disconnect()
+    observer = undefined
+    return true
+  }
+  if (!attach()) {
+    observer = new MutationObserver(() => attach())
+    observer.observe(document.body, { childList: true, subtree: true })
+  }
+  const isVisible = () => {
+    if (!page || !page.isConnected) return false
+    if (typeof getComputedStyle === 'function' && getComputedStyle(page).display === 'none') return false
+    if (typeof page.getBoundingClientRect !== 'function') return true
+    return page.getBoundingClientRect().height > 0
+  }
+  const statusText = () => {
+    const slot = document.querySelector('[data-slot="main"]')
+    const parent = slot?.parentElement
+    const height = page?.getBoundingClientRect?.().height ?? 0
+    return `slot=${slot ? 1 : 0} parent=${parent?.className?.split(' ')[0] || '-'} page=${page ? 1 : 0} h=${Math.round(height)}`
   }
   return {
-    reload: () => guest.reload(),
-    attach(target, onError, onLoaded) {
-      detach()
-      const listener = (failure, ready) => {
-        if (failure) onError(failure)
-        else if (ready) onLoaded()
-      }
-      listeners.add(listener)
-      listener(error, loaded)
-      const position = () => {
-        const rect = target.getBoundingClientRect()
-        if (!target.isConnected || !rect.width || !rect.height) { park(); return }
-        Object.assign(root.style, { left: rect.left + 'px', top: rect.top + 'px',
-          width: rect.width + 'px', height: rect.height + 'px',
-          visibility: 'visible', pointerEvents: 'auto' })
-        root.setAttribute('aria-hidden', 'false')
-      }
-      const observer = new ResizeObserver(position)
-      observer.observe(target)
-      window.addEventListener('resize', position)
-      window.addEventListener('scroll', position, true)
-      position()
-      let attached = true
-      const release = () => {
-        if (!attached) return
-        attached = false
-        observer.disconnect()
-        window.removeEventListener('resize', position)
-        window.removeEventListener('scroll', position, true)
-        listeners.delete(listener)
-        park()
-      }
-      detach = release
-      return release
-    },
-    async dispose() {
-      detach()
-      listeners.clear()
-      await guest.dispose()
-      root.remove()
+    attach, show, hide, isVisible, statusText,
+    reload() { if (guest) guest.reload() },
+    dispose() {
+      disposed = true
+      observer?.disconnect()
+      guest?.dispose()
+      page?.remove()
+      page = undefined
     },
   }
 }
 
-function DotsWebSurface({ reloadCount, onFailure, onLoaded, t, desktopSession }) {
+function DotsWebSurface({ reloadCount, onFailure, onLoaded, t }) {
   const container = useRef(null)
   const owner = useRef(null)
   const bridge = desktopBrowserBridge()
   useEffect(() => {
     if (!bridge || !container.current) return
-    if (desktopSession) {
-      owner.current = desktopSession
-      const detach = desktopSession.attach(container.current,
-        () => onFailure(t('guestFailed')), onLoaded)
-      return () => { owner.current = null; detach() }
-    }
     const mounted = mountDesktopDotGuest(container.current, bridge,
       () => onFailure(t('guestFailed')), onLoaded)
     owner.current = mounted
     return () => { owner.current = null; void mounted.dispose() }
-  }, [bridge, desktopSession])
+  }, [bridge])
   useEffect(() => {
     if (reloadCount > 0 && bridge) owner.current?.reload()
   }, [reloadCount, bridge])
@@ -218,7 +288,7 @@ function DotsSidebarIcon({ size = 18 }) {
  * We intentionally do not render a redundant framed browser or CSS-inject the
  * cross-origin ChatGPT document. Its own appearance remains site-controlled.
  */
-function DotsPage({ t, openExternal, desktopSession, __testDotsBackend }) {
+function DotsPage({ t, openExternal, __testDotsBackend }) {
   const [reloadCount, setReloadCount] = useState(0)
   const [error, setError] = useState('')
   const mock = __testDotsBackend !== undefined
@@ -242,7 +312,7 @@ function DotsPage({ t, openExternal, desktopSession, __testDotsBackend }) {
     mock
       ? h(MockDotConversation, { key: 'mock-conversation', backend: __testDotsBackend, t })
       : h('section', { className: 'dotsContent', 'data-testid': 'dots-native-content' },
-          h(DotsWebSurface, { reloadCount, onFailure: message => setError(String(message)), onLoaded: () => setError(''), t, desktopSession }),
+          h(DotsWebSurface, { reloadCount, onFailure: message => setError(String(message)), onLoaded: () => setError(''), t }),
           error ? h('div', { className: 'dotsEmbedNotice', role: 'alert' },
             h('span', null, error),
             h('button', { className: 'dotsTool dotsOpen', type: 'button', onClick: launchExternal }, t('inBrowser'))) : null))
@@ -292,7 +362,7 @@ exports.DotsPage = DotsPage
 exports.zh = zh
 exports.en = en
 exports.DOTS_URL = DOTS_URL
-exports.createDesktopDotsSession = createDesktopDotsSession
+exports.mountPersistentDotsPage = mountPersistentDotsPage
 exports.mountDesktopDotGuest = mountDesktopDotGuest
 exports.desktopBrowserBridge = desktopBrowserBridge
 exports.apply = function apply(ctx) {
@@ -304,23 +374,45 @@ exports.apply = function apply(ctx) {
     document.head.append(style)
     return () => style.remove()
   }, 'dsh-dots.style')
-  let desktopSession
-  ctx.effect(() => {
-    const bridge = desktopBrowserBridge()
-    if (!bridge) return
-    desktopSession = createDesktopDotsSession(bridge)
-    return () => desktopSession.dispose()
-  }, 'dsh-dots.preload')
   const t = ctx.locale.bind(NAMESPACE)
   const openExternal = () => {
     window.open(DOTS_URL, '_blank', 'noopener,noreferrer')
     // noopener may intentionally return null even for a successful open.
     return true
   }
+  const persistent = Boolean(desktopBrowserBridge())
+  let persistentPage
+  ctx.effect(() => {
+    if (!persistent) return
+    persistentPage = mountPersistentDotsPage(desktopBrowserBridge(), t, openExternal)
+    return () => persistentPage?.dispose()
+  }, 'dsh-dots.preload')
+  const MainEntry = persistent ? function DotsNativeSlot({ t: translate, openExternal: open }) {
+    // Mounting the slot is the authoritative signal that Dots is selected:
+    // show the persistent page and hide it again when the panel is replaced.
+    // If that page cannot be shown, fall back to the proven in-slot renderer
+    // instead of leaving an empty panel.
+    const [fallback, setFallback] = useState(false)
+    const [status, setStatus] = useState('')
+    useEffect(() => {
+      if (fallback) return
+      persistentPage?.attach()
+      persistentPage?.show()
+      if (persistentPage?.isVisible()) return () => persistentPage?.hide()
+      setStatus(persistentPage?.statusText() || 'session=missing')
+      persistentPage?.dispose()
+      persistentPage = undefined
+      setFallback(true)
+    }, [fallback])
+    if (!fallback) return null
+    return h('div', { className: 'dotsFallbackHost' },
+      h(DotsPage, { t: translate, openExternal: open }),
+      h('div', { className: 'dotsDiagnostic', title: status }, status))
+  } : DotsPage
   ctx.slots.inject('main', () => ctx.slots.register({
     name: 'main', key: PANEL_ID, locale: NAMESPACE,
-    inject: () => ({ t, openExternal, desktopSession }),
-  }, DotsPage))
+    inject: () => ({ t, openExternal }),
+  }, MainEntry))
   ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
     name: 'sidebar.panellist', id: PANEL_ID, order: 25, locale: NAMESPACE, label: () => t('panel'),
   }, DotsSidebarIcon))

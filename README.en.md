@@ -19,16 +19,16 @@ Desktop uses the host's Electron WebView. The Web profile uses iframe embedding,
 Desktop: **Plugins → Add plugin**, then install and enable:
 
 ```text
-github:Tests4gptplay/dsh-dots#v1.0.5
+github:Tests4gptplay/dsh-dots#v1.0.9
 ```
 
 Web profile:
 
 ```sh
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.5'
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.9'
 ```
 
-[Release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.5) · [Prebuilt package](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.5/dsh-dots-1.0.5.tgz)
+[Release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.9) · [Prebuilt package](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.9/dsh-dots-1.0.9.tgz)
 
 Host/Client runtime files are included. Restart DSH after upgrading to load the preload feature. Existing settings and browser data are preserved.
 
@@ -44,7 +44,7 @@ python scripts/enable-desktop-persistence.py "<DSH installation>/resources/app.a
 
 The script backs up the original archive and sets the Dots partition to `persist:dsh-dots-personal-browser`, preserving other browser partition policies and host authorization, isolation and navigation rules. Restart DSH and sign in once in the new partition. Later launches reuse its website storage; the website manages session validity.
 
-If this companion update is already applied, install 1.0.5 and restart DSH directly. After Desktop upgrades, apply the companion update according to the new host's storage support. The backup sits alongside `app.asar` with the suffix `.before-dots-1.0.4`; to restore it, exit Desktop and replace `app.asar` with the backup.
+If this companion update is already applied, install 1.0.9 and restart DSH directly. After Desktop upgrades, apply the companion update according to the new host's storage support. The backup sits alongside `app.asar` with the suffix `.before-dots-1.0.4`; to restore it, exit Desktop and replace `app.asar` with the backup.
 
 ## Development
 

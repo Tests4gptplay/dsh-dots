@@ -1,5 +1,5 @@
 /* Native DSH panel, with Dot content full-bleed; never style the foreign origin. */
-.dotsPage { color-scheme:light; box-sizing:border-box; display:flex; flex-direction:column; flex:1 1 auto; align-self:stretch; width:100%; height:100%; min-height:0; min-width:0; overflow:hidden; color:var(--dsw-alias-label-primary,inherit); background:var(--dsw-alias-bg-base,transparent); }
+.dotsPage { color-scheme:light; box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 auto; align-self:stretch; width:100%; height:100%; min-height:0; min-width:0; overflow:hidden; color:var(--dsw-alias-label-primary,inherit); background:var(--dsw-alias-bg-base,transparent); }
 .dotsToolbar { box-sizing:border-box; display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:calc(var(--dsh-frame-top-clearance,0px) + 8px) 18px 9px; min-height:48px; background:var(--dsw-alias-bg-base,transparent); border-bottom:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.18)); }
 .dotsBrand,.dotsToolbarActions { display:inline-flex; align-items:center; gap:9px; min-width:0; }
 .dotsMark,.dotsMark svg { display:block; flex:none; width:23px; height:23px; }
@@ -31,3 +31,7 @@
 
 /* DSH is authoritative for Light/Dark/System; prefer its resolved theme attribute. */
 body[data-ds-dark-theme] .dotsPage { color-scheme:dark; }
+
+/* Fallback host: keeps the proven in-slot page filling the native center column. */
+.dotsFallbackHost { box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 0; min-height:0; min-width:0; width:100%; position:relative; }
+.dotsDiagnostic { position:absolute; left:12px; bottom:12px; z-index:3; padding:4px 9px; border-radius:6px; font:600 13px/1.5 ui-monospace,monospace; color:#fff; background:rgba(0,0,0,.66); pointer-events:none; }

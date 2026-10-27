@@ -1,6 +1,8 @@
 /** Test-only minimal React element + hook renderer, not part of the plugin package. */
 export function createTestReact(onUpdate = () => {}) {
   const instances = new Map()
+  const effectCleanups = []
+  let runEffects = false
   let active = null
   let hookIndex = 0
   const Fragment = Symbol('TestFragment')
@@ -18,9 +20,14 @@ export function createTestReact(onUpdate = () => {}) {
       if (!Object.hasOwn(state, index)) state[index] = { current: initial }
       return state[index]
     },
-    // Synthetic VNode tests have no real DOM lifecycle. Desktop bridge behavior
-    // is tested separately against the mountDesktopDotGuest adapter.
-    useEffect(_callback, _deps) { hookIndex++ },
+    // Synthetic VNode tests have no real DOM lifecycle. Effects stay inert
+    // unless a test explicitly drives mount/unmount through runEffects().
+    useEffect(callback, _deps) {
+      hookIndex++
+      if (!runEffects || active === null) return
+      const cleanup = callback()
+      if (typeof cleanup === 'function') effectCleanups.push(cleanup)
+    },
     useState(initial) {
       if (active === null) throw new Error('useState requires a rendered function component')
       const key = active
@@ -54,7 +61,19 @@ export function createTestReact(onUpdate = () => {}) {
     props.children = expand(props.children, `${path}/${node.type}`)
     return { type: node.type, props }
   }
-  return { React, expand }
+  return {
+    React, expand, effectCleanups,
+    /** Render one component as a mounted tree: its effects run for real. */
+    mount(component, props) {
+      runEffects = true
+      const before = active
+      const beforeIndex = hookIndex
+      active = '/mounted'
+      hookIndex = 0
+      try { return component(props) } finally { active = before; hookIndex = beforeIndex; runEffects = false }
+    },
+    unmount() { for (const cleanup of effectCleanups.splice(0).reverse()) cleanup() },
+  }
 }
 
 export function flatten(tree) {

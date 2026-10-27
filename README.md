@@ -19,16 +19,16 @@ Desktop 通过宿主的 Electron WebView 加载网页。Web 版使用 iframe 嵌
 **DSH Desktop**：打开「插件 → 添加插件」，粘贴固定版本来源并安装、启用：
 
 ```text
-github:Tests4gptplay/dsh-dots#v1.0.5
+github:Tests4gptplay/dsh-dots#v1.0.9
 ```
 
 **DSH Web**：
 
 ```sh
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.5'
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.9'
 ```
 
-[正式版本](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.5) · [预打包安装包](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.5/dsh-dots-1.0.5.tgz)
+[正式版本](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.9) · [预打包安装包](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.9/dsh-dots-1.0.9.tgz)
 
 安装包已包含 Host/Client 运行文件。升级后重启 DSH，加载新的后台预加载功能；已有设置和浏览器数据继续保留。
 
@@ -44,7 +44,7 @@ python scripts/enable-desktop-persistence.py "<DSH 安装目录>/resources/app.a
 
 脚本先保存原始宿主备份，再将 Dots 的分区调整为 `persist:dsh-dots-personal-browser`；其他网页的分区策略及宿主授权、隔离和导航规则保持原样。重新启动 DSH 后，在新分区登录一次，后续启动复用其网站存储，登录有效期由网站管理。
 
-已经应用此配套更新的用户，升级到 1.0.5 时直接安装插件并重启即可。Desktop 应用升级后，依据新版宿主的存储支持情况使用配套更新。备份文件保存在原 `app.asar` 旁，后缀为 `.before-dots-1.0.4`；需要还原时，退出 Desktop 后用备份替换 `app.asar`。
+已经应用此配套更新的用户，升级到 1.0.9 时直接安装插件并重启即可。Desktop 应用升级后，依据新版宿主的存储支持情况使用配套更新。备份文件保存在原 `app.asar` 旁，后缀为 `.before-dots-1.0.4`；需要还原时，退出 Desktop 后用备份替换 `app.asar`。
 
 ## 开发
 
