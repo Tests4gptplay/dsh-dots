@@ -4,6 +4,8 @@
 
 [English](README.en.md)
 
+**Support / 赞助：** [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](SPONSOR.md)
+
 ## 功能
 
 - **启动预加载**：DSH Desktop 加载插件后，在后台打开 Dots。
