@@ -4,8 +4,6 @@ Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness 
 
 [中文说明](README.md)
 
-**Support / 赞助：** [GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](SPONSOR.md)
-
 ## Features
 
 - **Startup preload:** opens Dots in the background when Desktop loads the plugin.
@@ -59,3 +57,7 @@ npm run pack:check
 [Changelog](CHANGELOG.md) · [Issues](https://github.com/Tests4gptplay/dsh-dots/issues) · [MIT license](LICENSE)
 
 DSH Dots is a third-party plugin. OpenAI provides ChatGPT Dots and manages website authentication and service access.
+
+## 支持项目 / Support
+
+[GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](SPONSOR.md)
