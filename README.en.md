@@ -25,25 +25,35 @@ Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness 
 
 Open Dots from DSH on Desktop or Web; use Open in browser if the website restricts embedded display.
 
-Current version: **1.0.11**. Follow the steps below for a first installation; an upgrade does not require uninstalling the existing plugin.
+Current version: **1.0.11**. Follow the steps below for a first installation; follow the upgrade steps below for an existing installation.
 
-## Install and upgrade
+## Install or update
 
-Desktop: **Plugins → Add plugin**, then install and enable:
+Current version: **1.0.11**. The fixed tag and installation package include runtime files; no build is needed.
+
+**First installation (Desktop):** Open **Plugins → Add plugin** in the sidebar (or **Install a third-party plugin** in the arrow menu). Paste the complete line below into **Package name or address**, click **Install**, check the version and click **Enable now**.
 
 ```text
 github:Tests4gptplay/dsh-dots#v1.0.11
 ```
 
-Web profile:
+**Updating:** Use the same dialog with the new versioned source above, verify the installed version and enable it. Retain existing settings and user files. If DSH reports that it is already installed or requires removal first, follow that message to remove only the plugin entry and install the new version; do not clear DSH data or manually delete plugin directories. Restart only when DSH asks you to; fully quit and reopen it, including the Desktop tray process.
+
+After enabling, open Dots from the sidebar. Login persistence depends on the website and host storage partition; the separate Windows persistence companion is not automatically applied by installing this plugin.
+
+**Alternative package:** Paste this `.tgz` URL into the same **Package name or address** field, or download it and enter its full absolute path. No extraction is needed. The path must be on the computer running DSH.
+
+```text
+https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.11/dsh-dots-1.0.11.tgz
+```
+
+**Web:** Run this on the computer hosting the service. Stop the corresponding Web profile before updating and restart it after success. Web and Desktop installations are separate.
 
 ```sh
 dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.11'
 ```
 
-[Release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.11) · [Prebuilt package](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.11/dsh-dots-1.0.11.tgz)
-
-Runtime files are included; no manual build is needed. Restart DSH after installation or upgrade, then open Dots from the sidebar. Upgrading does not actively clear settings or browser storage; continued login validity depends on the website and host storage partition.
+Alternatively, replace the source in the command with the `.tgz` URL above or the downloaded file's absolute path.
 
 ## Persistent Desktop login storage
 
@@ -57,7 +67,7 @@ python scripts/enable-desktop-persistence.py "<DSH installation>/resources/app.a
 
 The script backs up the original archive and sets the Dots partition to `persist:dsh-dots-personal-browser`, preserving other browser partition policies and host authorization, isolation and navigation rules. Restart DSH and sign in once in the new partition. Later launches reuse its website storage; the website manages session validity.
 
-If this companion update is already applied, install 1.0.11 and restart DSH directly. After Desktop upgrades, apply the companion update according to the new host's storage support. The backup sits alongside `app.asar` with the suffix `.before-dots-1.0.4`; to restore it, exit Desktop and replace `app.asar` with the backup.
+If this companion update is already applied, follow the plugin upgrade steps above; a plugin-only update does not require applying the companion again. After Desktop upgrades, apply the companion update according to the new host's storage support. The backup sits alongside `app.asar` with the suffix `.before-dots-1.0.4`; to restore it, exit Desktop and replace `app.asar` with the backup.
 
 ## Developer resources
 
