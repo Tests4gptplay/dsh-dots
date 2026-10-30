@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "DSH Dots · ChatGPT Web",
-    "description": "Open the official ChatGPT Dots website in the DSH main page, with a host-authorized WebView, page reuse, theme-aware controls and an external-browser entry."
+    "description": "Use ChatGPT Dots inside DSH with startup preload, retained pages across panel switches, Chinese/English theme-aware controls, reload and external-browser opening; includes a separately applied Windows login-persistence companion."
   }
 }

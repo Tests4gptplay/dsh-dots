@@ -1,5 +1,11 @@
 # 更新记录
 
+## 1.0.11（2026-10-30）
+
+修复安装包内的发行说明、验收记录和支持页面链接；现在解压安装包后也可正确打开。运行功能、设置和既有数据处理方式不变。
+
+Repair release-note, acceptance and support links when reading the extracted installation package. Runtime behavior, settings and data handling are unchanged.
+
 ## 1.0.10（2026-10-30）
 
 - Keep mock conversation views and diagnostics out of the production package.

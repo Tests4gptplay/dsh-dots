@@ -1,7 +1,7 @@
 {
   "name": "dsh-dots",
-  "version": "1.0.10",
-  "description": "在 DSH 主页面打开 ChatGPT Dots 官方网页，提供宿主授权 WebView、页面复用、主题适配与外部浏览器入口。",
+  "version": "1.0.11",
+  "description": "在 DSH 中使用 ChatGPT Dots，支持启动预加载、页面切换保留、中英文主题适配、刷新和外部浏览器打开；提供需单独应用的 Windows 登录态持久化配套工具。",
   "type": "module",
   "main": "./lib/host.js",
   "exports": {

@@ -1,13 +1,13 @@
 # DSH Dots
 
-> **1.0.10** · [发行说明](docs/releases/v1.0.10.md) · [验收与范围](docs/testing/ACCEPTANCE.md)。
+> **1.0.11** · [更新记录](CHANGELOG.md) · [验收与范围](https://github.com/Tests4gptplay/dsh-dots/blob/f3bc47068bfc52565b573a48549e90d49590880f/docs/testing/ACCEPTANCE.md)。
 
 
 ## 在 DSH 中使用 Dots
 
-桌面版通过 DSH 授权的 Electron WebView 打开 ChatGPT Dots 官方网页，并在启动时预加载。切到其他 DSH 面板再回来，仍显示原来的网页与页面状态；需要重新加载时使用刷新按钮。
+桌面版在 DSH 内打开 ChatGPT Dots 官方网页，并在启动时预加载。切到其他 DSH 面板再回来，仍显示原来的网页与页面状态；需要重新加载时使用刷新按钮。
 
-全幅页面、工具栏和圆环图标随 DSH 明暗主题变化，网页内部主题由 ChatGPT 管理。Web 版提供 iframe 嵌入；网站限制嵌入时可直接使用“在浏览器中打开”。禁用插件或退出 DSH 会释放对应网页。
+全幅页面、工具栏和圆环图标随 DSH 明暗主题变化，网页内部主题由 ChatGPT 管理。Web 版可在页面内打开 Dots；网站限制嵌入时可直接使用“在浏览器中打开”。禁用插件或退出 DSH 会释放对应网页。
 
 登录在官方网页中完成，浏览器分区由 DSH Desktop 管理。需要跨重启保留登录态时，可按下方说明单独应用适用的 Windows 持久分区更新。
 
@@ -23,31 +23,31 @@
 - **登录态复用**：使用宿主管理的浏览器分区；配套 Desktop 持久化更新将 Dots 存储保存在固定分区中。
 - **原生外观**：全幅内容区、中英文界面，工具栏和圆环图标随 DSH 明暗主题变化。网页内部使用 ChatGPT 自身的主题设置。
 
-Desktop 通过宿主的 Electron WebView 加载网页。Web 版使用 iframe 嵌入；站点限制嵌入时，可点击「在浏览器打开」。
+桌面版和 Web 版均可从 DSH 进入 Dots；若网站限制页面内显示，可点击「在浏览器打开」。
 
-正式安装版本为 1.0.10；历史候选包和校验值仅作为验收归档，见 `test-artifacts/README.md`。
+当前版本为 **1.0.11**。首次安装请按下方步骤操作；升级前无需卸载现有插件。
 
 ## 安装与升级
 
 **DSH Desktop**：打开「插件 → 添加插件」，粘贴固定版本来源并安装、启用：
 
 ```text
-github:Tests4gptplay/dsh-dots#v1.0.10
+github:Tests4gptplay/dsh-dots#v1.0.11
 ```
 
 **DSH Web**：
 
 ```sh
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.10'
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.11'
 ```
 
-[正式版本](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.10) · [预打包安装包](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.10/dsh-dots-1.0.10.tgz)
+[正式版本](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.11) · [预打包安装包](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.11/dsh-dots-1.0.11.tgz)
 
-安装包已包含 Host/Client 运行文件。升级后重启 DSH，加载新的后台预加载功能；已有设置和浏览器数据继续保留。
+安装包已包含运行文件。安装或升级后重启 DSH，再从侧栏进入 Dots；无需自行编译。升级不会主动清除已有设置或浏览器数据，登录是否继续有效由网站和宿主存储分区决定。
 
 ## Desktop 登录态持久化
 
-后台预加载由插件直接提供。跨重启的登录态存储由 Desktop 主进程管理，本版同时提供 **Windows DSH 0.2.1-rc.3** 的配套更新脚本。
+后台预加载由插件直接提供。跨重启的登录态存储由 Desktop 主进程管理，本版同时提供为 **Windows DSH 0.2.1-rc.3** 编写的可选配套更新脚本。其他宿主版本不要直接套用此脚本。
 
 需要启用持久分区时，下载并解压安装包，完全退出 Desktop（包括托盘），使用 Python 运行：
 
@@ -57,15 +57,11 @@ python scripts/enable-desktop-persistence.py "<DSH 安装目录>/resources/app.a
 
 脚本先保存原始宿主备份，再将 Dots 的分区调整为 `persist:dsh-dots-personal-browser`；其他网页的分区策略及宿主授权、隔离和导航规则保持原样。重新启动 DSH 后，在新分区登录一次，后续启动复用其网站存储，登录有效期由网站管理。
 
-已经应用此配套更新的用户，升级到 1.0.10 时直接安装插件并重启即可。Desktop 应用升级后，依据新版宿主的存储支持情况使用配套更新。备份文件保存在原 `app.asar` 旁，后缀为 `.before-dots-1.0.4`；需要还原时，退出 Desktop 后用备份替换 `app.asar`。
+已经应用此配套更新的用户，升级到 1.0.11 时直接安装插件并重启即可。Desktop 应用升级后，依据新版宿主的存储支持情况使用配套更新。备份文件保存在原 `app.asar` 旁，后缀为 `.before-dots-1.0.4`；需要还原时，退出 Desktop 后用备份替换 `app.asar`。
 
-## 开发
+## 开发者资料
 
-```sh
-npm run build
-npm test
-npm run pack:check
-```
+[源码与技术说明](https://github.com/Tests4gptplay/dsh-dots/tree/f3bc47068bfc52565b573a48549e90d49590880f)面向开发者；普通用户无需编译。
 
 [更新记录](CHANGELOG.md) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues) · [MIT 许可](LICENSE)
 
@@ -73,16 +69,16 @@ DSH Dots 是第三方插件；ChatGPT Dots 由 OpenAI 提供，账号登录及�
 
 ## 兼容性与验收范围
 
-此正式版本保持已测候选运行代码不变；版本元数据、安装指引与发行说明已更新。插件界面与宿主集成使用 DSH 提供的平台无关 API，不依赖特定系统路径或命令。Linux、Windows、macOS 必须分别在对应系统实际验证，Linux 结果不能代表另外两种系统通过。
+本次更新修正安装包中的文档链接，插件功能与上一版本一致。Linux、Windows、macOS 必须分别在对应系统实际验证，Linux 结果不能代表另外两种系统通过。
 
-可选归档修改脚本仅有 Windows DSH 0.2.1-rc.3 的使用声明，不是跨平台持久化方案；它不处理 macOS 代码签名，也不为修改后的宿主重新签名，不能对未核实的宿主执行。本插件不自动运行该脚本、不更改宿主授权/隔离/导航策略、不读取已有账户存储。既有登录跨重启保留已由 Windows D-W3 验证；新登录、macOS 和非100%缩放未据此宣称通过。模拟对话夹具仅在 tests 内，运行时与安装包均不包含它。
+可选归档修改脚本仅有 Windows DSH 0.2.1-rc.3 的使用声明，不是跨平台持久化方案；它不处理 macOS 代码签名，也不为修改后的宿主重新签名，不能对未核实的宿主执行。本插件不自动运行该脚本、不更改宿主授权/隔离/导航策略、不读取已有账户存储。Windows 已验证既有登录在正常重启后保留；新登录、macOS 和非100%缩放未据此宣称通过。
 
 ## 支持项目 / Support
 
-[GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](SPONSOR.md)
+[GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](https://github.com/Tests4gptplay/dsh-dots/blob/f3bc47068bfc52565b573a48549e90d49590880f/SPONSOR.md)
 
 
-本轮Windows D-W1–4全部通过；范围见[验收](docs/testing/ACCEPTANCE.md)。
+Windows 已验证网页切换保留、正常重启、既有登录保留及中英明暗主题（100%缩放）；范围见[验收](https://github.com/Tests4gptplay/dsh-dots/blob/f3bc47068bfc52565b573a48549e90d49590880f/docs/testing/ACCEPTANCE.md)。
 
 
-[查验具体用例、实际结果与公开净化证据](docs/testing/EVIDENCE.md)。
+[查验具体用例、实际结果与公开净化证据](https://github.com/Tests4gptplay/dsh-dots/blob/f3bc47068bfc52565b573a48549e90d49590880f/docs/testing/EVIDENCE.md)。

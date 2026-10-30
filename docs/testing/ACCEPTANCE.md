@@ -1,4 +1,4 @@
-> Release 1.0.10 preserves the tested candidate runtime. Candidate versions and checksums below identify historical evidence, not the formal release asset. See [release notes](../releases/v1.0.10.md).
+> Release 1.0.11 preserves the previously verified runtime. Versions and checksums below identify historical acceptance evidence. See [current release notes](../releases/v1.0.11.md).
 
 # Dots候选1验收
 
