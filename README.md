@@ -1,6 +1,6 @@
 # DSH Dots
 
-> 候选分支：[安装](test-artifacts/INSTALL.md) · [验收](docs/testing/ACCEPTANCE.md) · [变更](docs/testing/CHANGES.md) · [索引](docs/testing/README.md)。此次文档整理不更换包身份。
+> **1.0.10** · [发行说明](docs/releases/v1.0.10.md) · [验收与范围](docs/testing/ACCEPTANCE.md)。
 
 
 ## 在 DSH 中使用 Dots
@@ -25,23 +25,23 @@
 
 Desktop 通过宿主的 Electron WebView 加载网页。Web 版使用 iframe 嵌入；站点限制嵌入时，可点击「在浏览器打开」。
 
-本分支测试候选 1.0.10-uiqa.20261029.1 的固定安装包与校验值见 `test-artifacts/README.md`；下列旧版标签为历史发布。
+正式安装版本为 1.0.10；历史候选包和校验值仅作为验收归档，见 `test-artifacts/README.md`。
 
 ## 安装与升级
 
 **DSH Desktop**：打开「插件 → 添加插件」，粘贴固定版本来源并安装、启用：
 
 ```text
-github:Tests4gptplay/dsh-dots#v1.0.9
+github:Tests4gptplay/dsh-dots#v1.0.10
 ```
 
 **DSH Web**：
 
 ```sh
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.9'
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.10'
 ```
 
-[正式版本](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.9) · [预打包安装包](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.9/dsh-dots-1.0.9.tgz)
+[正式版本](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.10) · [预打包安装包](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.10/dsh-dots-1.0.10.tgz)
 
 安装包已包含 Host/Client 运行文件。升级后重启 DSH，加载新的后台预加载功能；已有设置和浏览器数据继续保留。
 
@@ -57,7 +57,7 @@ python scripts/enable-desktop-persistence.py "<DSH 安装目录>/resources/app.a
 
 脚本先保存原始宿主备份，再将 Dots 的分区调整为 `persist:dsh-dots-personal-browser`；其他网页的分区策略及宿主授权、隔离和导航规则保持原样。重新启动 DSH 后，在新分区登录一次，后续启动复用其网站存储，登录有效期由网站管理。
 
-已经应用此配套更新的用户，升级到 1.0.9 时直接安装插件并重启即可。Desktop 应用升级后，依据新版宿主的存储支持情况使用配套更新。备份文件保存在原 `app.asar` 旁，后缀为 `.before-dots-1.0.4`；需要还原时，退出 Desktop 后用备份替换 `app.asar`。
+已经应用此配套更新的用户，升级到 1.0.10 时直接安装插件并重启即可。Desktop 应用升级后，依据新版宿主的存储支持情况使用配套更新。备份文件保存在原 `app.asar` 旁，后缀为 `.before-dots-1.0.4`；需要还原时，退出 Desktop 后用备份替换 `app.asar`。
 
 ## 开发
 
@@ -71,11 +71,11 @@ npm run pack:check
 
 DSH Dots 是第三方插件；ChatGPT Dots 由 OpenAI 提供，账号登录及服务访问条件由官方网站管理。
 
-## 本地兼容性候选（未发布）
+## 兼容性与验收范围
 
-当前源树为固定 QA 候选，不是已发布版本；验证时使用对应本地 `.tgz`，上方公开链接仍指向上一正式版本。插件界面与宿主集成使用 DSH 提供的平台无关 API，不依赖特定系统路径或命令。Linux、Windows、macOS 必须分别在对应系统实际验证，Linux 结果不能代表另外两种系统通过。
+此正式版本保持已测候选运行代码不变；版本元数据、安装指引与发行说明已更新。插件界面与宿主集成使用 DSH 提供的平台无关 API，不依赖特定系统路径或命令。Linux、Windows、macOS 必须分别在对应系统实际验证，Linux 结果不能代表另外两种系统通过。
 
-可选归档修改脚本仅有 Windows DSH 0.2.1-rc.3 的使用声明，不是跨平台持久化方案；它不处理 macOS 代码签名，也不为修改后的宿主重新签名，不能对未核实的宿主执行。本候选不运行该脚本、不更改宿主授权/隔离/导航策略、不读取已有账户存储。真实登录与跨重启会话持久化仍是独立未验证门槛。模拟对话夹具仅在 tests 内，运行时与安装包均不包含它。
+可选归档修改脚本仅有 Windows DSH 0.2.1-rc.3 的使用声明，不是跨平台持久化方案；它不处理 macOS 代码签名，也不为修改后的宿主重新签名，不能对未核实的宿主执行。本插件不自动运行该脚本、不更改宿主授权/隔离/导航策略、不读取已有账户存储。既有登录跨重启保留已由 Windows D-W3 验证；新登录、macOS 和非100%缩放未据此宣称通过。模拟对话夹具仅在 tests 内，运行时与安装包均不包含它。
 
 ## 支持项目 / Support
 

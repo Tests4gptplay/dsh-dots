@@ -1,6 +1,6 @@
 # DSH Dots
 
-> Candidate branch: [Install](test-artifacts/INSTALL.md) · [Acceptance](docs/testing/ACCEPTANCE.md) · [Changes](docs/testing/CHANGES.md) · [Index](docs/testing/README.md). Package identity is unchanged by this documentation update.
+> **1.0.10** · [Release notes](docs/releases/v1.0.10.md) · [Acceptance and scope](docs/testing/ACCEPTANCE.md).
 
 
 ## Use Dots inside DSH
@@ -25,23 +25,23 @@ Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness 
 
 Desktop uses the host's Electron WebView. The Web profile uses iframe embedding, with Open in browser available when the website restricts embedding.
 
-For this branch's test candidate 1.0.10-uiqa.20261029.1, use the pinned package and checksums in `test-artifacts/README.md`; older tags below refer to historical releases.
+Install release 1.0.10. Historical candidate packages/checksums are retained only as acceptance archives in `test-artifacts/README.md`.
 
 ## Install and upgrade
 
 Desktop: **Plugins → Add plugin**, then install and enable:
 
 ```text
-github:Tests4gptplay/dsh-dots#v1.0.9
+github:Tests4gptplay/dsh-dots#v1.0.10
 ```
 
 Web profile:
 
 ```sh
-dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.9'
+dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.10'
 ```
 
-[Release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.9) · [Prebuilt package](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.9/dsh-dots-1.0.9.tgz)
+[Release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v1.0.10) · [Prebuilt package](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.10/dsh-dots-1.0.10.tgz)
 
 Host/Client runtime files are included. Restart DSH after upgrading to load the preload feature. Existing settings and browser data are preserved.
 
@@ -57,7 +57,7 @@ python scripts/enable-desktop-persistence.py "<DSH installation>/resources/app.a
 
 The script backs up the original archive and sets the Dots partition to `persist:dsh-dots-personal-browser`, preserving other browser partition policies and host authorization, isolation and navigation rules. Restart DSH and sign in once in the new partition. Later launches reuse its website storage; the website manages session validity.
 
-If this companion update is already applied, install 1.0.9 and restart DSH directly. After Desktop upgrades, apply the companion update according to the new host's storage support. The backup sits alongside `app.asar` with the suffix `.before-dots-1.0.4`; to restore it, exit Desktop and replace `app.asar` with the backup.
+If this companion update is already applied, install 1.0.10 and restart DSH directly. After Desktop upgrades, apply the companion update according to the new host's storage support. The backup sits alongside `app.asar` with the suffix `.before-dots-1.0.4`; to restore it, exit Desktop and replace `app.asar` with the backup.
 
 ## Development
 
@@ -71,13 +71,13 @@ npm run pack:check
 
 DSH Dots is a third-party plugin. OpenAI provides ChatGPT Dots and manages website authentication and service access.
 
-## Local compatibility candidate (unpublished)
+## Compatibility and acceptance scope
 
-This source tree is a pinned QA candidate, not a published release. Install its exact local `.tgz` for validation; the public links above still identify the previous release.
+This release preserves the tested candidate runtime; version metadata, installation guidance and release notes are updated.
 
 The plugin UI and host integration use DSH-provided, OS-neutral APIs rather than OS paths or commands. Linux, Windows and macOS native behavior must each be validated on that OS; a Linux result does not certify Windows or macOS.
 
-The optional archive-modification script is only documented for Windows DSH 0.2.1-rc.3. It is not a cross-platform persistence solution: it does not handle macOS code signing or re-sign a modified host, and must not be run against an unverified host. This candidate does not run it, modify host authorization/isolation/navigation policy, or access existing account storage. Login and cross-restart account persistence remain separate, unverified acceptance gates. Synthetic conversation fixtures live only in tests and are absent from the runtime/package.
+The optional archive-modification script is only documented for Windows DSH 0.2.1-rc.3. It is not a cross-platform persistence solution: it does not handle macOS code signing or re-sign a modified host, and must not be run against an unverified host. The plugin does not automatically run it, modify host authorization/isolation/navigation policy, or access existing account storage. Windows D-W3 verified retention of an existing login across restart; this does not certify a new login flow, macOS, or non-100% scaling. Synthetic conversation fixtures live only in tests and are absent from the runtime/package.
 
 ## 支持项目 / Support
 

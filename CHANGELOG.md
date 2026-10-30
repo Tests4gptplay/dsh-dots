@@ -1,11 +1,12 @@
-# 1.0.10-uiqa.20261029.1 — unpublished local QA candidate
-
-- Keep mock conversation views, strings and CSS in tests only; remove runtime diagnostic overlay.
-- Refresh persistent toolbar/error text when DSH locale changes, without recreating the guest.
-- Make guest disposal idempotent and localize failure recovery.
-- No prompt, installation-version gate, host security policy or provider credential changes.
-
 # 更新记录
+
+## 1.0.10（2026-10-30）
+
+- Keep mock conversation views and diagnostics out of the production package.
+- Refresh persistent toolbar and error text on locale changes without recreating the guest.
+- Make guest disposal idempotent and improve localized error recovery.
+
+33 cloud component/source-contract checks and production package whitelist passed. Existing Windows D-W1–4 evidence is adopted: page reuse, lifecycle/restart, existing-login retention, external opening, Chinese/English and 100% DPI light/dark coverage. This release does not claim new-login, macOS or other DPI validation. The optional host archive script was not executed; no credentials or host security policy changed.
 
 ## 1.0.9（2026-10-27）
 
