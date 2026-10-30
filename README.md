@@ -9,7 +9,13 @@
 
 全幅页面、工具栏和圆环图标随 DSH 明暗主题变化，网页内部主题由 ChatGPT 管理。Web 版可在页面内打开 Dots；网站限制嵌入时可直接使用“在浏览器中打开”。禁用插件或退出 DSH 会释放对应网页。
 
-登录在官方网页中完成，浏览器分区由 DSH Desktop 管理。需要跨重启保留登录态时，可按下方说明单独应用适用的 Windows 持久分区更新。
+登录在官方网页中完成，浏览器分区由 DSH Desktop 管理。
+
+### DSH 0.2.1-rc.5 登录态说明
+
+升级至DSH 0.2.1-rc.5后，Dots内嵌页面可能需要在重新启动DSH后再次登录。当前宿主浏览器不提供跨重启登录态保存，原有额外持久化处理也可能在宿主升级时被覆盖；这不是Dots此次更新移除了登录保存功能。
+
+切换DSH面板时保留同一个网页，属于同一进程内的页面复用，不等于退出并重启DSH后保存登录态。参见 [DSH rc.5 浏览器说明](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-rc.5/packages/client/ui-sidebar-browser/README.md#known-limitations-and-deferred-work)。
 
 在 DeepSeek Harness 原生页面中打开 [ChatGPT Dots](https://chatgpt.com/dots/home)，配备随 DSH 主题变化的工具栏、刷新和外部浏览器打开入口。
 
@@ -20,7 +26,7 @@
 - **启动预加载**：DSH Desktop 加载插件后，在后台打开 Dots。
 - **切换即用**：切换到聊天或其他页面时保留同一个网页，返回 Dots 时直接显示已有页面与状态。
 - **手动刷新**：点击刷新按钮时重新加载网页；禁用插件或退出 DSH 时释放网页。
-- **登录态复用**：使用宿主管理的浏览器分区；配套 Desktop 持久化更新将 Dots 存储保存在固定分区中。
+- **登录态与宿主分区**：同一次 DSH 运行中复用网页；跨重启保存需宿主支持或单独的适用持久化处理，见下方说明。
 - **原生外观**：全幅内容区、中英文界面，工具栏和圆环图标随 DSH 明暗主题变化。网页内部使用 ChatGPT 自身的主题设置。
 
 桌面版和 Web 版均可从 DSH 进入 Dots；若网站限制页面内显示，可点击「在浏览器打开」。
@@ -56,6 +62,8 @@ dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.11'
 备用时将命令中的来源换成上面的 `.tgz` 直链或下载文件的完整绝对路径。
 
 ## Desktop 登录态持久化
+
+以下配套工具会修改 Desktop 的 `app.asar`，不随插件安装自动应用；宿主升级可能覆盖这项修改。其旧版适用声明不代表未经修改的 rc.5 已提供跨重启登录保存。
 
 后台预加载由插件直接提供。跨重启的登录态存储由 Desktop 主进程管理，本版同时提供为 **Windows DSH 0.2.1-rc.3** 编写的可选配套更新脚本。其他宿主版本不要直接套用此脚本。
 

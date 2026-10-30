@@ -10,6 +10,18 @@
 
 Repair release-note, acceptance and support links when reading the extracted installation package. Runtime behavior, settings and data handling are unchanged.
 
+## DSH 0.2.1-rc.5 登录态说明 / Sign-in state
+
+升级至DSH 0.2.1-rc.5后，Dots内嵌页面可能需要在重新启动DSH后再次登录。当前宿主浏览器不提供跨重启登录态保存，原有额外持久化处理也可能在宿主升级时被覆盖；这不是Dots此次更新移除了登录保存功能。
+
+切换DSH面板时保留同一个网页，属于同一进程内的页面复用，不等于退出并重启DSH后保存登录态。参见 [DSH rc.5 浏览器说明](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-rc.5/packages/client/ui-sidebar-browser/README.md#known-limitations-and-deferred-work)。
+
+After upgrading to DSH 0.2.1-rc.5, you may need to sign in again in the embedded Dots page after restarting DSH. The current host browser does not preserve sign-in state across application restarts, and a host upgrade may overwrite an additional persistence modification previously applied. This Dots update did not remove a sign-in-saving feature.
+
+Keeping the same page while switching DSH panels is page reuse within one process, not sign-in persistence after quitting and restarting DSH. See the [DSH rc.5 browser documentation](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-rc.5/packages/client/ui-sidebar-browser/README.md#known-limitations-and-deferred-work).
+
+原有 Windows 持久化配套会单独修改宿主 `app.asar`，不是安装插件自动附带；宿主升级后可能需要重新评估其适用性。 / The separate Windows persistence companion modifies the host `app.asar`; it is not automatically applied with the plugin and its compatibility needs reassessment after a host upgrade.
+
 ## 安装与升级
 
 当前版本：**1.0.11**。安装包与固定标签均已包含运行文件，无需编译。

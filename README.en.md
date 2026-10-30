@@ -9,7 +9,13 @@ Desktop opens the official ChatGPT Dots website inside DSH and preloads it at st
 
 The full-page shell, toolbar and ring icon follow DSH's light/dark theme; ChatGPT manages the website's own theme. Web can embed the Dots page and an Open in browser option when the site restricts embedding. Disabling the plugin or exiting DSH closes its embedded page.
 
-Sign-in takes place on the official website, with browser partitions managed by DSH Desktop. For persistence across restarts, follow the separate compatible Windows persistent-partition update instructions below.
+Sign-in takes place on the official website, with browser partitions managed by DSH Desktop.
+
+### Sign-in state with DSH 0.2.1-rc.5
+
+After upgrading to DSH 0.2.1-rc.5, you may need to sign in again in the embedded Dots page after restarting DSH. The current host browser does not preserve sign-in state across application restarts, and a host upgrade may overwrite an additional persistence modification previously applied. This Dots update did not remove a sign-in-saving feature.
+
+Keeping the same page while switching DSH panels is page reuse within one process, not sign-in persistence after quitting and restarting DSH. See the [DSH rc.5 browser documentation](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.1-rc.5/packages/client/ui-sidebar-browser/README.md#known-limitations-and-deferred-work).
 
 Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness page, with a theme-aware toolbar, reload and external-browser controls.
 
@@ -20,7 +26,7 @@ Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness 
 - **Startup preload:** opens Dots in the background when Desktop loads the plugin.
 - **Page reuse:** keeps the same webpage and page state when switching to chat or other panels; returning displays the existing page.
 - **Explicit refresh:** Reload refreshes the webpage. Disabling the plugin or exiting DSH closes its embedded page.
-- **Session reuse:** uses host-managed browser storage, with a companion Desktop update for a fixed persistent Dots partition.
+- **Sign-in and host storage:** reuses the webpage during the same DSH run. Persistence across restarts requires host support or a separate compatible persistence modification, as described below.
 - **Native appearance:** full-width content, Chinese and English UI, theme-aware toolbar and ring icon. ChatGPT manages its own webpage theme.
 
 Open Dots from DSH on Desktop or Web; use Open in browser if the website restricts embedded display.
@@ -56,6 +62,8 @@ dsh plugin --profile web add 'github:Tests4gptplay/dsh-dots#v1.0.11'
 Alternatively, replace the source in the command with the `.tgz` URL above or the downloaded file's absolute path.
 
 ## Persistent Desktop login storage
+
+The companion below modifies Desktop’s `app.asar` and is not applied automatically by installing the plugin. A host upgrade may overwrite that modification. Its support statement for an older host does not mean that unmodified rc.5 preserves sign-in state across restarts.
 
 Background preloading is supplied directly by the plugin. Cross-restart storage is managed by the Desktop main process; this release includes an optional companion update script written for **Windows DSH 0.2.1-rc.3**. Do not apply the script unchanged to other host versions.
 
