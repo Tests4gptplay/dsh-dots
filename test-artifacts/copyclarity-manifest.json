@@ -1,0 +1,31 @@
+{
+  "plugin": "dots",
+  "originalSHA256": "50d04fc3f3fa56447a0df940a99bd7a469b195cee3f0f2d8679a95bad4809acd",
+  "newFile": "dsh-dots-1.0.10-uiqa.20261029.1-copyclarity.tgz",
+  "newSHA256": "9ef0f7b5e501eb23814e0aec29c081314a07707972503c98c02a00fd2b96a466",
+  "sizeBytes": 15909,
+  "version": "1.0.10-uiqa.20261029.1",
+  "changedFiles": [
+    "package/locale/en.json",
+    "package/package.json",
+    "package/locale/zh.json",
+    "package/README.en.md",
+    "package/README.md"
+  ],
+  "unchangedFiles": 7,
+  "qualification": "Documentation and display strings only. Original frozen artifact and acceptance identity unchanged. No new functional run or release. Compaction client differs only string literal values; original engine/index byte-identical.",
+  "files": {
+    "package/LICENSE": "90a38e0837508e475db51ef98075403b55a9c42fc09fd1f9ab3f2d3b8f167518",
+    "package/lib/client.js": "1b02e68ed9fe6034e9f3a4a9e158810421b155a298153000da6d2e1fb5ce795d",
+    "package/lib/host.js": "5a2c2720a636aaa20706b70007de60a08dcd042806129e3cd0127fe9a12a8b30",
+    "package/locale/en.json": "07bb93d7d38c6807cce23a717fc8ab01ae63846862393d35ea7cc0dd47a5a437",
+    "package/package.json": "663653ee6418304f485cefc079e7599cfe88c5e81d90c71052be0e621398e2d6",
+    "package/locale/zh.json": "5de436aca1bcdc121205dd59c99549941793f3bb38f34e2daa70f5ede7460942",
+    "package/CHANGELOG.md": "6bd66b1f844fbc0ad2d4393bd912b60caf07e1e916c4a9035f8f2a1e7dfdaa1c",
+    "package/README.en.md": "bfd25cd26c693e562d9ee3560befde68097df81675cad543cb648e6c3bd1e11f",
+    "package/README.md": "1261e89128430554df3dbd321623e924351f46f189c0b168e7861d473b30368c",
+    "package/scripts/enable-desktop-persistence.py": "98acbd1e963c93d41c22cdb6b9133029d1dff8777dcd4b764e10342b47adf725",
+    "package/assets/dots-ring.svg": "5a240072d9ddf1aaf734e4efdd5f47288fe205fc91c348e69197d0e214b39a9c",
+    "package/cordis.patch.yml": "00e92468de96b45ba52902810655a8683f8ec24d1d87dea5bf96548ac0fe88d4"
+  }
+}

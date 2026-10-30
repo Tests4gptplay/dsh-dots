@@ -9,3 +9,9 @@ Version: `1.0.10-uiqa.20261029.1`. This is an installable test candidate, not a 
 5. Validate native UI, normal operations, cancellation/error recovery, persistence after restart, and disable/re-enable behavior. Record PASS, FAIL, BLOCKED, and NOT RUN separately with sanitized evidence.
 
 The archive is byte-for-byte the frozen candidate. Root README changes clarify test installation and preserve current repository support links; they do not change archive bytes. `manifest.json` contains installed payload identities. Do not run optional Host archive patching, binary repair, or account actions without separate approval. Existing source tests include synthetic fixtures; their results do not certify actual native services, account login, or other operating systems.
+
+## 介绍文案更新包 / Copy clarification package
+
+新增独立文案包 [dsh-dots-1.0.10-uiqa.20261029.1-copyclarity.tgz](dsh-dots-1.0.10-uiqa.20261029.1-copyclarity.tgz)（15909 bytes），SHA256 `9ef0f7b5e501eb23814e0aec29c081314a07707972503c98c02a00fd2b96a466`。它更新 README、插件简介和界面说明；运行时代码字节不变。原始验收包和原清单保留，不使用旧 SHA 标识新文件。功能未变，本次仅做文案/包内容一致性核验。逐文件校验见 [copyclarity-manifest.json](copyclarity-manifest.json)。
+
+Separate documentation-only package; the original acceptance archive and manifest remain unchanged. This is not a new functional test run or a Release.

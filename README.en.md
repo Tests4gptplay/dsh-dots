@@ -1,6 +1,12 @@
-> Test candidate: install the exact archive in [test-artifacts](test-artifacts/), not the older release links below. Windows native acceptance is pending.
-
 # DSH Dots
+
+## Use Dots inside DSH
+
+Desktop opens the official ChatGPT Dots website in a DSH-authorized Electron WebView and preloads it at startup. Switch to other DSH panels and return to the same webpage and page state; use Reload when a fresh load is needed.
+
+The full-page shell, toolbar and ring icon follow DSH's light/dark theme; ChatGPT manages the website's own theme. Web provides iframe embedding and an Open in browser option when the site restricts embedding. Disabling the plugin or exiting DSH releases the guest.
+
+Sign-in takes place on the official website, with browser partitions managed by DSH Desktop. For persistence across restarts, follow the separate compatible Windows persistent-partition update instructions below.
 
 Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness page, with a theme-aware toolbar, reload and external-browser controls.
 
@@ -15,6 +21,8 @@ Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness 
 - **Native appearance:** full-width content, Chinese and English UI, theme-aware toolbar and ring icon. ChatGPT manages its own webpage theme.
 
 Desktop uses the host's Electron WebView. The Web profile uses iframe embedding, with Open in browser available when the website restricts embedding.
+
+For this branch's test candidate 1.0.10-uiqa.20261029.1, use the pinned package and checksums in `test-artifacts/README.md`; older tags below refer to historical releases.
 
 ## Install and upgrade
 

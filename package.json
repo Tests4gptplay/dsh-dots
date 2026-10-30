@@ -1,7 +1,7 @@
 {
   "name": "dsh-dots",
   "version": "1.0.10-uiqa.20261029.1",
-  "description": "将 ChatGPT Dots 网页作为 DSH 原生主页面内容：桌面版使用宿主授权的 Electron WebView，自动适配 DSH 主题。",
+  "description": "在 DSH 主页面打开 ChatGPT Dots 官方网页，提供宿主授权 WebView、页面复用、主题适配与外部浏览器入口。",
   "type": "module",
   "main": "./lib/host.js",
   "exports": {
