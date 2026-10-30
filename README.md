@@ -83,3 +83,6 @@ DSH Dots 是第三方插件；ChatGPT Dots 由 OpenAI 提供，账号登录及�
 
 
 本轮Windows D-W1–4全部通过；范围见[验收](docs/testing/ACCEPTANCE.md)。
+
+
+[查验具体用例、实际结果与公开净化证据](docs/testing/EVIDENCE.md)。
