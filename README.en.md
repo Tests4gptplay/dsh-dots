@@ -1,5 +1,8 @@
 # DSH Dots
 
+> Candidate branch: [Install](test-artifacts/INSTALL.md) · [Acceptance](docs/testing/ACCEPTANCE.md) · [Changes](docs/testing/CHANGES.md) · [Index](docs/testing/README.md). Package identity is unchanged by this documentation update.
+
+
 ## Use Dots inside DSH
 
 Desktop opens the official ChatGPT Dots website in a DSH-authorized Electron WebView and preloads it at startup. Switch to other DSH panels and return to the same webpage and page state; use Reload when a fresh load is needed.

@@ -1,5 +1,8 @@
 # DSH Dots
 
+> 候选分支：[安装](test-artifacts/INSTALL.md) · [验收](docs/testing/ACCEPTANCE.md) · [变更](docs/testing/CHANGES.md) · [索引](docs/testing/README.md)。此次文档整理不更换包身份。
+
+
 ## 在 DSH 中使用 Dots
 
 桌面版通过 DSH 授权的 Electron WebView 打开 ChatGPT Dots 官方网页，并在启动时预加载。切到其他 DSH 面板再回来，仍显示原来的网页与页面状态；需要重新加载时使用刷新按钮。
