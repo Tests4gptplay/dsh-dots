@@ -1,5 +1,13 @@
 # DSH Dots
 
+## 在 DSH 中使用 Dots
+
+桌面版通过 DSH 授权的 Electron WebView 打开 ChatGPT Dots 官方网页，并在启动时预加载。切到其他 DSH 面板再回来，仍显示原来的网页与页面状态；需要重新加载时使用刷新按钮。
+
+全幅页面、工具栏和圆环图标随 DSH 明暗主题变化，网页内部主题由 ChatGPT 管理。Web 版提供 iframe 嵌入；网站限制嵌入时可直接使用“在浏览器中打开”。禁用插件或退出 DSH 会释放对应网页。
+
+登录在官方网页中完成，浏览器分区由 DSH Desktop 管理。需要跨重启保留登录态时，可按下方说明单独应用适用的 Windows 持久分区更新。
+
 在 DeepSeek Harness 原生页面中打开 [ChatGPT Dots](https://chatgpt.com/dots/home)，配备随 DSH 主题变化的工具栏、刷新和外部浏览器打开入口。
 
 [English](README.en.md)

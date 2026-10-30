@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "DSH Dots · ChatGPT 网页",
-    "description": "在 DSH 原生页面中直接展示 ChatGPT Dots 官方网页。桌面版采用 DSH 授权 WebView；外层界面、圆环状态栏随主题变化。\n\n无需 API Key，不读取 ChatGPT 凭据；网站登录与内容由 ChatGPT 管理。"
+    "description": "在 DSH 主页面打开 ChatGPT Dots 官方网页，提供宿主授权 WebView、页面复用、主题适配与外部浏览器入口。"
   }
 }

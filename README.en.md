@@ -1,5 +1,13 @@
 # DSH Dots
 
+## Use Dots inside DSH
+
+Desktop opens the official ChatGPT Dots website in a DSH-authorized Electron WebView and preloads it at startup. Switch to other DSH panels and return to the same webpage and page state; use Reload when a fresh load is needed.
+
+The full-page shell, toolbar and ring icon follow DSH's light/dark theme; ChatGPT manages the website's own theme. Web provides iframe embedding and an Open in browser option when the site restricts embedding. Disabling the plugin or exiting DSH releases the guest.
+
+Sign-in takes place on the official website, with browser partitions managed by DSH Desktop. For persistence across restarts, follow the separate compatible Windows persistent-partition update instructions below.
+
 Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness page, with a theme-aware toolbar, reload and external-browser controls.
 
 [中文说明](README.md)
