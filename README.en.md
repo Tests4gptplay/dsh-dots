@@ -82,3 +82,6 @@ The optional archive-modification script is only documented for Windows DSH 0.2.
 ## 支持项目 / Support
 
 [GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](SPONSOR.md)
+
+
+本轮Windows D-W1–4全部通过；范围见[验收](docs/testing/ACCEPTANCE.md)。
