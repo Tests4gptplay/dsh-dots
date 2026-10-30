@@ -1,4 +1,5 @@
 import { createTestReact } from '../cases/runtime.mjs'
+import { createMockDotPage } from '../cases/mock-dot-view.mjs'
 import { createMockDotBackend } from '../cases/mock-dots-backend.mjs'
 
 const backend = createMockDotBackend()
@@ -14,7 +15,7 @@ window.__ModuleLoader__ = { load({ id, factory }) {
     throw Error(`Unexpected dependency ${specifier}`)
   })
 } }
-// Load the same compiled plugin client bundle delivered to DSH; no separate UI mock.
+// Load the production shell; the conversation view below is an explicit test-only fixture.
 await new Promise((resolve, reject) => {
   const element = document.createElement('script')
   element.src = '/lib/client.js'
@@ -66,7 +67,7 @@ function nodeToDom(node) {
 }
 function paint() {
   const main = registrations.get('main')
-  const frame = runtime.React.createElement(main.component, {
+  const frame = runtime.React.createElement(createMockDotPage(runtime.React, client), {
     ...main.options.inject(), __testDotsBackend: backend,
   })
   document.querySelector('#app').replaceChildren(nodeToDom(runtime.expand(frame)))

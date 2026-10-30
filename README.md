@@ -1,3 +1,5 @@
+> Test candidate: install the exact archive in [test-artifacts](test-artifacts/), not the older release links below. Windows native acceptance is pending.
+
 # DSH Dots
 
 在 DeepSeek Harness 原生页面中打开 [ChatGPT Dots](https://chatgpt.com/dots/home)，配备随 DSH 主题变化的工具栏、刷新和外部浏览器打开入口。
@@ -57,6 +59,12 @@ npm run pack:check
 [更新记录](CHANGELOG.md) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues) · [MIT 许可](LICENSE)
 
 DSH Dots 是第三方插件；ChatGPT Dots 由 OpenAI 提供，账号登录及服务访问条件由官方网站管理。
+
+## 本地兼容性候选（未发布）
+
+当前源树为固定 QA 候选，不是已发布版本；验证时使用对应本地 `.tgz`，上方公开链接仍指向上一正式版本。插件界面与宿主集成使用 DSH 提供的平台无关 API，不依赖特定系统路径或命令。Linux、Windows、macOS 必须分别在对应系统实际验证，Linux 结果不能代表另外两种系统通过。
+
+可选归档修改脚本仅有 Windows DSH 0.2.1-rc.3 的使用声明，不是跨平台持久化方案；它不处理 macOS 代码签名，也不为修改后的宿主重新签名，不能对未核实的宿主执行。本候选不运行该脚本、不更改宿主授权/隔离/导航策略、不读取已有账户存储。真实登录与跨重启会话持久化仍是独立未验证门槛。模拟对话夹具仅在 tests 内，运行时与安装包均不包含它。
 
 ## 支持项目 / Support
 

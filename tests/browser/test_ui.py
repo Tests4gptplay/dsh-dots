@@ -1,4 +1,4 @@
-"""Real Chromium rendering of the *production* client behind a clearly labeled fake DSH/Dot test host."""
+"""Chromium test-only conversation fixture plus production shell/CSS layout tests; not live Dots coverage."""
 import os
 from pathlib import Path
 import unittest
@@ -27,14 +27,18 @@ class BrowserCase(unittest.TestCase):
         host = (ROOT / 'tests/browser/case.mjs').read_text()
         react = (ROOT / 'tests/cases/runtime.mjs').read_text().replace('export function', 'function')
         fake = (ROOT / 'tests/cases/mock-dots-backend.mjs').read_text().replace('export function', 'function')
+        fixture = (ROOT / 'tests/cases/mock-dot-view.mjs').read_text().replace('export function', 'function')
+        fixture_css = (ROOT / 'tests/cases/mock-dot-styles.css').read_text()
+        markup = markup.replace('</head>', '<style>' + fixture_css + '</style></head>')
         bundle = (ROOT / 'lib/client.js').read_text()
         host = host.replace("import { createTestReact } from '../cases/runtime.mjs'", '')
         host = host.replace("import { createMockDotBackend } from '../cases/mock-dots-backend.mjs'", '')
+        host = host.replace("import { createMockDotPage } from '../cases/mock-dot-view.mjs'", '')
         start = host.index('await new Promise((resolve, reject) => {')
         stop = host.index('const ctx = {', start)
         host = host[:start] + bundle + '\n' + host[stop:]
         html = markup.replace('<script type="module" src="./case.mjs"></script>',
-            '<script>\n' + react + '\n' + fake + '\n' + host + '\n</script>')
+            '<script>\n' + react + '\n' + fake + '\n' + fixture + '\n' + host + '\n</script>')
         cls.page.set_content(html)
         cls.page.get_by_test_id('mock-badge').wait_for()
 

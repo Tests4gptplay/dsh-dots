@@ -13,18 +13,6 @@
 /* Electron webview uses an internal shadow iframe as a flex child. Do not override its display:flex. */
 .dotsWebview { display:flex; flex:1 1 auto; min-width:0; min-height:0; width:100%; height:100%; border:0; background:transparent; -webkit-app-region:no-drag; }
 .dotsEmbedNotice { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); z-index:1; max-width:calc(100% - 36px); display:flex; gap:12px; align-items:center; padding:10px 12px; border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.22)); border-radius:var(--dsw-radius-md,10px); background:var(--dsw-alias-bg-base,rgba(127,127,127,.12)); color:var(--dsw-alias-label-primary,inherit); box-shadow:0 4px 22px rgba(0,0,0,.1); font-size:12px; }
-.dotsMockBadge { display:inline-flex; border:.5px dashed currentColor; padding:4px 10px; font-size:11px; border-radius:7px; opacity:.75; }
-.dotsDemo { box-sizing:border-box; display:flex; flex-direction:column; min-height:0; flex:1; margin:14px 18px 18px; overflow:hidden; border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.22)); border-radius:var(--dsw-radius-md,10px); }
-.dotsMessages { padding:14px; flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
-.dotsMessage { max-width:82%; padding:10px 13px; border-radius:10px; font-size:13px; white-space:pre-wrap; line-height:1.5; background:var(--dsw-alias-bg-surface,rgba(127,127,127,.1)); }
-.dotsMessageUser { align-self:flex-end; background:var(--dsw-alias-bg-hover,rgba(100,120,155,.15)); }
-.dotsMessageFake { align-self:flex-start; }
-.dotsInputRow { display:flex; align-items:center; gap:9px; padding:12px; border-top:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.18)); }
-.dotsInput { flex:1; border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.2)); border-radius:8px; padding:10px; font:inherit; color:inherit; background:transparent; min-width:0; }
-.dotsButton { appearance:none; padding:8px 12px; border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.2)); border-radius:8px; color:inherit; background:transparent; cursor:pointer; }
-.dotsButtonPrimary { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }
-.dotsTestNote { font-size:11px; opacity:.68; margin:8px 18px 0; }
-.dotsProblem { font-size:12px; color:var(--dsw-alias-label-error,#bb4949); }
 .dotsSidebarIcon { display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; color:inherit; }
 .dotsSidebarIcon svg { display:block; width:100%; height:100%; }
 @media(max-width:540px) { .dotsToolbar { padding-inline:11px; } .dotsTool { padding:6px; } .dotsEmbedNotice { flex-wrap:wrap; } }
@@ -34,4 +22,3 @@ body[data-ds-dark-theme] .dotsPage { color-scheme:dark; }
 
 /* Fallback host: keeps the proven in-slot page filling the native center column. */
 .dotsFallbackHost { box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 0; min-height:0; min-width:0; width:100%; position:relative; }
-.dotsDiagnostic { position:absolute; left:12px; bottom:12px; z-index:3; padding:4px 9px; border-radius:6px; font:600 13px/1.5 ui-monospace,monospace; color:#fff; background:rgba(0,0,0,.66); pointer-events:none; }

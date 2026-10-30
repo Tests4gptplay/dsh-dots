@@ -44,6 +44,7 @@ for (const locale of ['zh', 'en']) {
   assert.ok(value.meta?.description?.trim(), `${locale} missing plugin-manager description`)
 }
 const compiled = await readFile(new URL('../lib/client.js', import.meta.url), 'utf8')
+assert.doesNotMatch(compiled, /MockDotConversation|__testDotsBackend|mockLabel|dotsMockBadge|dotsDiagnostic|statusText/, 'Test views and diagnostic overlays must not enter production')
 assert.match(compiled, /window\.__ModuleLoader__\.load/, 'Compiled DSH client loader missing')
 assert.match(compiled, /sidebar\.panellist/, 'Compiled sidebar slot missing')
 const host = await readFile(new URL('../lib/host.js', import.meta.url), 'utf8')

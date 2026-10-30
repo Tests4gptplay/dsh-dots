@@ -2,16 +2,17 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { loadNativeClient } from './cases/load-native-client.mjs'
 import { createMockDotBackend } from './cases/mock-dots-backend.mjs'
+import { createMockDotPage } from './cases/mock-dot-view.mjs'
 import { flatten } from './cases/runtime.mjs'
 
 function render(page, backend) {
-  const vnode = page.runtime.React.createElement(page.main.component, { ...page.props, __testDotsBackend: backend })
+  const vnode = page.runtime.React.createElement(createMockDotPage(page.runtime.React, page.client), { ...page.props, __testDotsBackend: backend })
   return flatten(page.runtime.expand(vnode))
 }
 function input(page, backend) { return render(page, backend).find(node => node.type === 'input') }
 function form(page, backend) { return render(page, backend).find(node => node.type === 'form') }
 
-test('mock Dot accepts foreground input and returns a labeled simulated reply', async () => {
+test('test-only fixture: mock Dot accepts foreground input and returns a labeled simulated reply', async () => {
   const backend = createMockDotBackend()
   const page = await loadNativeClient()
   assert.ok(render(page, backend).some(n => n.props?.['data-testid'] === 'mock-badge'))
@@ -24,7 +25,7 @@ test('mock Dot accepts foreground input and returns a labeled simulated reply', 
   assert.equal(backend.calls, 1)
 })
 
-test('a synthetic server error appears in the UI and keeps the conversation usable', async () => {
+test('test-only fixture: a synthetic server error appears in the UI and keeps the conversation usable', async () => {
   const backend = createMockDotBackend()
   const page = await loadNativeClient()
   input(page, backend).props.onChange({ target: { value: '触发模拟失败' } })
@@ -38,7 +39,7 @@ test('a synthetic server error appears in the UI and keeps the conversation usab
   assert.equal(backend.calls, 2)
 })
 
-test('mock path never opens official Dots iframe and is available only by explicit test injection', async () => {
+test('test-only fixture: mock path never opens official Dots iframe and is available only by explicit test injection', async () => {
   const backend = createMockDotBackend()
   const page = await loadNativeClient()
   assert.equal(render(page, backend).filter(n => n.type === 'iframe').length, 0)

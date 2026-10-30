@@ -1,3 +1,5 @@
+> Test candidate: install the exact archive in [test-artifacts](test-artifacts/), not the older release links below. Windows native acceptance is pending.
+
 # DSH Dots
 
 Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness page, with a theme-aware toolbar, reload and external-browser controls.
@@ -57,6 +59,14 @@ npm run pack:check
 [Changelog](CHANGELOG.md) · [Issues](https://github.com/Tests4gptplay/dsh-dots/issues) · [MIT license](LICENSE)
 
 DSH Dots is a third-party plugin. OpenAI provides ChatGPT Dots and manages website authentication and service access.
+
+## Local compatibility candidate (unpublished)
+
+This source tree is a pinned QA candidate, not a published release. Install its exact local `.tgz` for validation; the public links above still identify the previous release.
+
+The plugin UI and host integration use DSH-provided, OS-neutral APIs rather than OS paths or commands. Linux, Windows and macOS native behavior must each be validated on that OS; a Linux result does not certify Windows or macOS.
+
+The optional archive-modification script is only documented for Windows DSH 0.2.1-rc.3. It is not a cross-platform persistence solution: it does not handle macOS code signing or re-sign a modified host, and must not be run against an unverified host. This candidate does not run it, modify host authorization/isolation/navigation policy, or access existing account storage. Login and cross-restart account persistence remain separate, unverified acceptance gates. Synthetic conversation fixtures live only in tests and are absent from the runtime/package.
 
 ## 支持项目 / Support
 
