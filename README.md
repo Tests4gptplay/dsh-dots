@@ -1,5 +1,8 @@
 # DSH Dots
 
+> 候选分支：[安装](test-artifacts/INSTALL.md) · [验收](docs/testing/ACCEPTANCE.md) · [变更](docs/testing/CHANGES.md) · [索引](docs/testing/README.md)。此次文档整理不更换包身份。
+
+
 ## 在 DSH 中使用 Dots
 
 桌面版通过 DSH 授权的 Electron WebView 打开 ChatGPT Dots 官方网页，并在启动时预加载。切到其他 DSH 面板再回来，仍显示原来的网页与页面状态；需要重新加载时使用刷新按钮。
@@ -21,6 +24,8 @@
 - **原生外观**：全幅内容区、中英文界面，工具栏和圆环图标随 DSH 明暗主题变化。网页内部使用 ChatGPT 自身的主题设置。
 
 Desktop 通过宿主的 Electron WebView 加载网页。Web 版使用 iframe 嵌入；站点限制嵌入时，可点击「在浏览器打开」。
+
+本分支测试候选 1.0.10-uiqa.20261029.1 的固定安装包与校验值见 `test-artifacts/README.md`；下列旧版标签为历史发布。
 
 ## 安装与升级
 
@@ -66,6 +71,18 @@ npm run pack:check
 
 DSH Dots 是第三方插件；ChatGPT Dots 由 OpenAI 提供，账号登录及服务访问条件由官方网站管理。
 
+## 本地兼容性候选（未发布）
+
+当前源树为固定 QA 候选，不是已发布版本；验证时使用对应本地 `.tgz`，上方公开链接仍指向上一正式版本。插件界面与宿主集成使用 DSH 提供的平台无关 API，不依赖特定系统路径或命令。Linux、Windows、macOS 必须分别在对应系统实际验证，Linux 结果不能代表另外两种系统通过。
+
+可选归档修改脚本仅有 Windows DSH 0.2.1-rc.3 的使用声明，不是跨平台持久化方案；它不处理 macOS 代码签名，也不为修改后的宿主重新签名，不能对未核实的宿主执行。本候选不运行该脚本、不更改宿主授权/隔离/导航策略、不读取已有账户存储。真实登录与跨重启会话持久化仍是独立未验证门槛。模拟对话夹具仅在 tests 内，运行时与安装包均不包含它。
+
 ## 支持项目 / Support
 
 [GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](SPONSOR.md)
+
+
+本轮Windows D-W1–4全部通过；范围见[验收](docs/testing/ACCEPTANCE.md)。
+
+
+[查验具体用例、实际结果与公开净化证据](docs/testing/EVIDENCE.md)。

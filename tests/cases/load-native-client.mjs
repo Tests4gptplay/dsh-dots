@@ -44,6 +44,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   const bodyChildren = []
   const windowEvents = new Map()
   const panelListeners = new Set()
+  const localeListeners = new Set()
   let activePanelId = null
   const layout = { panelInfo: {
     getSnapshot: () => ({ activePanelId }),
@@ -86,6 +87,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
     layout,
     effect(callback) { const dispose = callback(); if (typeof dispose === 'function') disposers.push(dispose) },
     locale: {
+      subscribe(fn) { localeListeners.add(fn); return () => localeListeners.delete(fn) },
       register(namespace, entries) { dictionaries[namespace] = entries },
       bind(namespace) { return (key) => dictionaries[namespace]?.[language]?.[key] ?? key },
     },
@@ -106,6 +108,8 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   const root = column.children.find(child => child.className?.includes('dotsPersistentPage'))
   return { client, runtime, slots, styles, main, icon, nativeOpened, props: main.options.inject(), created,
     bodyChildren, windowEvents, centerChildren: column.children, root, panelListeners,
+    localeListeners,
+    setLanguage(value) { language = value; for (const fn of localeListeners) fn() },
     selectPanel(id) { activePanelId = id; for (const fn of panelListeners) fn() },
     async dispose() { for (const dispose of disposers.reverse()) await dispose() } }
 }

@@ -1,5 +1,8 @@
 # DSH Dots
 
+> Candidate branch: [Install](test-artifacts/INSTALL.md) · [Acceptance](docs/testing/ACCEPTANCE.md) · [Changes](docs/testing/CHANGES.md) · [Index](docs/testing/README.md). Package identity is unchanged by this documentation update.
+
+
 ## Use Dots inside DSH
 
 Desktop opens the official ChatGPT Dots website in a DSH-authorized Electron WebView and preloads it at startup. Switch to other DSH panels and return to the same webpage and page state; use Reload when a fresh load is needed.
@@ -21,6 +24,8 @@ Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness 
 - **Native appearance:** full-width content, Chinese and English UI, theme-aware toolbar and ring icon. ChatGPT manages its own webpage theme.
 
 Desktop uses the host's Electron WebView. The Web profile uses iframe embedding, with Open in browser available when the website restricts embedding.
+
+For this branch's test candidate 1.0.10-uiqa.20261029.1, use the pinned package and checksums in `test-artifacts/README.md`; older tags below refer to historical releases.
 
 ## Install and upgrade
 
@@ -66,6 +71,17 @@ npm run pack:check
 
 DSH Dots is a third-party plugin. OpenAI provides ChatGPT Dots and manages website authentication and service access.
 
+## Local compatibility candidate (unpublished)
+
+This source tree is a pinned QA candidate, not a published release. Install its exact local `.tgz` for validation; the public links above still identify the previous release.
+
+The plugin UI and host integration use DSH-provided, OS-neutral APIs rather than OS paths or commands. Linux, Windows and macOS native behavior must each be validated on that OS; a Linux result does not certify Windows or macOS.
+
+The optional archive-modification script is only documented for Windows DSH 0.2.1-rc.3. It is not a cross-platform persistence solution: it does not handle macOS code signing or re-sign a modified host, and must not be run against an unverified host. This candidate does not run it, modify host authorization/isolation/navigation policy, or access existing account storage. Login and cross-restart account persistence remain separate, unverified acceptance gates. Synthetic conversation fixtures live only in tests and are absent from the runtime/package.
+
 ## 支持项目 / Support
 
 [GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](SPONSOR.md)
+
+
+本轮Windows D-W1–4全部通过；范围见[验收](docs/testing/ACCEPTANCE.md)。

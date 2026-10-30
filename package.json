@@ -1,6 +1,6 @@
 {
   "name": "dsh-dots",
-  "version": "1.0.9",
+  "version": "1.0.10-uiqa.20261029.1",
   "description": "在 DSH 主页面打开 ChatGPT Dots 官方网页，提供宿主授权 WebView、页面复用、主题适配与外部浏览器入口。",
   "type": "module",
   "main": "./lib/host.js",

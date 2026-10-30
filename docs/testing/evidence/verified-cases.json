@@ -1,0 +1,66 @@
+{
+  "environment": {
+    "platform": "Windows",
+    "architecture": "x64",
+    "dsh": "0.2.1-rc.3",
+    "dpi": 96,
+    "display_scale": 1
+  },
+  "actualInstall": {
+    "version": "1.0.10-uiqa.20261029.1",
+    "original_package_sha256": "50d04fc3f3fa56447a0df940a99bd7a469b195cee3f0f2d8679a95bad4809acd",
+    "copyclarity_package_sha256": "9ef0f7b5e501eb23814e0aec29c081314a07707972503c98c02a00fd2b96a466",
+    "copyclarity_mapping_commit": "6fc103dffe62c4544ecc06fb153b45bcd98c582e",
+    "copyclarity_installed": false,
+    "running_client_host_match_both_packages": true,
+    "reinstalled": false
+  },
+  "cases": [
+    {
+      "caseId": "D-W1",
+      "status": "PASS",
+      "newlyExecuted": true,
+      "at": "2026-10-30T09:35:48.671Z"
+    },
+    {
+      "caseId": "D-W2",
+      "status": "PASS",
+      "newlyExecuted": true,
+      "at": "2026-10-30T09:35:48.671Z"
+    },
+    {
+      "caseId": "D-W3",
+      "status": "PASS",
+      "newlyExecuted": true,
+      "at": "2026-10-30T09:35:48.671Z"
+    },
+    {
+      "caseId": "D-W4",
+      "status": "PASS",
+      "newlyExecuted": true,
+      "at": "2026-10-30T09:35:48.671Z"
+    }
+  ],
+  "observations": {
+    "sameRendererSetOnPanelSwitch": true,
+    "disableExitsGuestEnableRecreates": true,
+    "signedInStateAfterFullRestart": true,
+    "loginLandingOnly": false,
+    "externalBrowserHandoffObserved": true,
+    "fullExternalUrlRead": false,
+    "themeAndLanguageObserved": [
+      "Light",
+      "Dark",
+      "zh",
+      "en"
+    ]
+  },
+  "provenance": [
+    {
+      "file": "Windows delta Dots results.json",
+      "sha256": "9ac261a38a72d30089f022a2d049bbbdad7569a24d794e0cb7b276cb2c11c56d"
+    }
+  ],
+  "sourceCommit": "41b129dbda4dc7d1f6b37c9929d778fea3630c22",
+  "format": "Public sanitized evidence extract; not raw logs"
+}
