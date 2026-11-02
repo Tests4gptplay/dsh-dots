@@ -93,7 +93,7 @@ DSH Dots 是第三方插件；ChatGPT Dots 由 OpenAI 提供，账号登录及�
 
 ## 支持项目 / Support
 
-[GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Patreon](https://www.patreon.com/cw/Kou848) · [爱发电 / Afdian](https://afdian.com/a/kkt_ifd1) · [支付宝 / Alipay](https://github.com/Tests4gptplay/dsh-dots/blob/f3bc47068bfc52565b573a48549e90d49590880f/SPONSOR.md)
+[GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [支付宝 / Alipay](https://github.com/Tests4gptplay/dsh-dots/blob/main/SPONSOR.md)
 
 
 Windows 已验证网页切换保留、正常重启、既有登录保留及中英明暗主题（100%缩放）；范围见[验收](https://github.com/Tests4gptplay/dsh-dots/blob/f3bc47068bfc52565b573a48549e90d49590880f/docs/testing/ACCEPTANCE.md)。
