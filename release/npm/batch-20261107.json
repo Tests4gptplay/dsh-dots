@@ -1,0 +1,45 @@
+{
+  "packages": [
+    {
+      "name": "@tests4gptplay/dsh-video-vision",
+      "version": "0.10.1",
+      "filename": "tests4gptplay-dsh-video-vision-0.10.1.tgz",
+      "sha256": "f74cbbad6820da9654159103e12d2d0f8c15d90b7f3fcdaa9a5b34cba3a3dda1",
+      "integrity": "sha512-aDN2PM4AZ9fA5de+lhJ9+G5Zm5KmOFzzNxnNGKaTozneDtu3EW9nmOLKDYJqDD+GP/7K6Hgw1c/BYMBYUtMCcQ==",
+      "sourceCommit": "3ed684ba4de8930e4b233f4382b9ceff74812714",
+      "access": "public",
+      "tag": "latest"
+    },
+    {
+      "name": "@tests4gptplay/dsh-kujira-persona",
+      "version": "2.4.2",
+      "filename": "tests4gptplay-dsh-kujira-persona-2.4.2.tgz",
+      "sha256": "dce6aa9b51f193d8ec61a5236dfc5ed5a87c92d93bc4bbac9a286df1768eb49c",
+      "integrity": "sha512-mLlsElKE84vzdw7V8dU0PGh42En0yhOc+tuL3zK6uIOXfvxqo189iWfgYFbjY0XguAAR13oapu62WwjbjwP2fA==",
+      "sourceCommit": "428fefe9a914a95b9923d751d356166e4b930cac",
+      "access": "public",
+      "tag": "latest"
+    },
+    {
+      "name": "@tests4gptplay/dsh-codex-native",
+      "version": "0.2.3",
+      "filename": "tests4gptplay-dsh-codex-native-0.2.3.tgz",
+      "sha256": "d24ba086800660c295e959795b10d6e0aca1fc06c7ebc0aad42f8ae49ad41666",
+      "integrity": "sha512-UI5OFK7PEXsPhR9B0PAzIkBS9stqFdp5fbGm82rcThG3S915OPF0bvdBR+h0AswsyDFqamj4AiJICDOcq49EHA==",
+      "sourceCommit": "b482bdf600556740e1792d211ef63318f8ed2288",
+      "access": "public",
+      "tag": "latest"
+    },
+    {
+      "name": "@tests4gptplay/dsh-compaction-selector",
+      "version": "1.0.7",
+      "filename": "tests4gptplay-dsh-compaction-selector-1.0.7.tgz",
+      "sha256": "157b84a005cb169aa165c2b931ffedf0c7f8f7937b9aab632645625722f2d2d1",
+      "integrity": "sha512-qpVRRvBXZ7g3s9A0h0y9CSWhMmCPCNtokj1dee3XwvUMOhJSjXLf3YF/G/vu6OatYFoBv807KXSoQANWlwpiDg==",
+      "sourceCommit": "5cdcc4d68f52dc6e8b853fcd62360e5c124cfa4c",
+      "access": "public",
+      "tag": "latest"
+    }
+  ],
+  "publish": false
+}

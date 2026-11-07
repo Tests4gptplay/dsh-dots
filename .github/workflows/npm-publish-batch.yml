@@ -1,0 +1,123 @@
+name: Publish pinned scoped npm batch
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/npm-publish-batch.yml'
+      - 'release/npm/batch-20261107.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: scoped-npm-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main' && github.repository == 'Tests4gptplay/dsh-dots'
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - repo: dsh-video-vision
+            ref: 3ed684ba4de8930e4b233f4382b9ceff74812714
+            fetch-depth: 0
+          - repo: dsh-kujira-persona
+            ref: 428fefe9a914a95b9923d751d356166e4b930cac
+            fetch-depth: 1
+          - repo: dsh-codex-native
+            ref: b482bdf600556740e1792d211ef63318f8ed2288
+            fetch-depth: 1
+          - repo: dsh-compaction-selector
+            ref: 5cdcc4d68f52dc6e8b853fcd62360e5c124cfa4c
+            fetch-depth: 1
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: source
+    steps:
+      - name: Checkout approved publication controls
+        uses: actions/checkout@v4
+        with:
+          path: _publisher
+          persist-credentials: false
+      - name: Checkout the exact reviewed plugin source
+        uses: actions/checkout@v4
+        with:
+          repository: Tests4gptplay/${{ matrix.repo }}
+          ref: ${{ matrix.ref }}
+          path: source
+          fetch-depth: ${{ matrix.fetch-depth }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Use the verified pack toolchain
+        run: npm install --global npm@11.9.0 --ignore-scripts
+      - name: Verify source pin
+        env:
+          EXPECTED_SOURCE: ${{ matrix.ref }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+      - name: Run existing credential-free tests
+        env:
+          PLUGIN_REPO: ${{ matrix.repo }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$PLUGIN_REPO" in
+            dsh-video-vision)
+              npm ci --ignore-scripts --no-audit --no-fund
+              npm test
+              ;;
+            dsh-kujira-persona)
+              node --test scripts/qa/account-ark-contract.test.mjs scripts/qa/account-credentials.test.mjs scripts/qa/account-options.test.mjs scripts/qa/account-query-contract.test.mjs scripts/qa/multisession-bubble-check.mjs
+              ;;
+            dsh-codex-native)
+              node --check lib/index.js
+              node --check lib/client.js
+              ;;
+            dsh-compaction-selector)
+              npm install --prefix "$RUNNER_TEMP/selector-deps" --ignore-scripts --no-audit --no-fund @deepseek-ai/cordis@4.0.5 @deepseek-ai/dsh-compaction-basic@0.2.1-rc.3
+              ln -s "$RUNNER_TEMP/selector-deps/node_modules" node_modules
+              npm test
+              npm run pack:check
+              ;;
+            *) echo 'Unexpected repository'; exit 1 ;;
+          esac
+          git diff --exit-code
+      - name: Test publication safety gates
+        run: node --test ../_publisher/scripts/npm/publish-guards.test.mjs
+      - name: Build scoped payload and verify every production byte
+        run: node ../_publisher/scripts/npm/prepare-scoped-npm.mjs npm-dist
+      - name: Match source and package to the explicit batch request
+        id: request
+        run: node ../_publisher/scripts/npm/check-batch-request.mjs ../_publisher/release/npm/batch-20261107.json
+      - name: Preserve the exact reviewed package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scoped-npm-${{ matrix.repo }}
+          path: source/npm-dist/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Configure only the official npm registry
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          registry-url: 'https://registry.npmjs.org/'
+      - name: Check immutable registry version and tarball digest
+        id: registry
+        run: node ../_publisher/scripts/npm/check-registry.mjs
+      - name: Publish the exact reviewed tarball
+        if: steps.request.outputs.publish == 'true' && steps.registry.outputs.exists != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TARBALL: ${{ steps.registry.outputs.filename }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$NODE_AUTH_TOKEN" || { echo 'NPM_TOKEN repository secret is missing'; exit 1; }
+          npm publish "./npm-dist/$NPM_TARBALL" --access public --tag latest --ignore-scripts --provenance=false
+      - name: Verify public npm integrity without credentials
+        if: steps.request.outputs.publish == 'true'
+        run: node ../_publisher/scripts/npm/check-registry.mjs --require-present

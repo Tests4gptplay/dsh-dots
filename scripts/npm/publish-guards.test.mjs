@@ -59,3 +59,9 @@ test('artifact tampering is refused before any registry request', () => {
   const result = f.run('check-registry.mjs', { bootstrap: 'globalThis.fetch=async()=>{throw Error("should not fetch")}' })
   assert.notEqual(result.status, 0); assert.doesNotMatch(result.stderr, /should not fetch/)
 })
+
+test('a valid manifest marked validation-only cannot publish', () => {
+  const f = fixture(); writeFileSync(join(f.cwd, 'release/npm/1.0.11.json'), JSON.stringify({ ...f.manifest, publish: false }))
+  assert.equal(f.run('check-publish-request.mjs').status, 0)
+  assert.match(readFileSync(join(f.cwd, 'outputs'), 'utf8'), /publish=false/)
+})
