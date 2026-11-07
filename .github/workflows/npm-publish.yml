@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       publish: ${{ steps.request.outputs.publish }}
+      verify: ${{ steps.request.outputs.verify }}
       artifact-id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +67,7 @@ jobs:
           compression-level: 0
   publish:
     needs: prepare
-    if: needs.prepare.outputs.publish == 'true'
+    if: needs.prepare.outputs.publish == 'true' || needs.prepare.outputs.verify == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/setup-node@v4
@@ -82,7 +83,7 @@ jobs:
         id: registry
         run: node npm-dist/check-registry.mjs
       - name: Publish the verified tarball with the short-lived secret
-        if: steps.registry.outputs.exists != 'true'
+        if: needs.prepare.outputs.publish == 'true' && steps.registry.outputs.exists != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TARBALL: ${{ steps.registry.outputs.filename }}

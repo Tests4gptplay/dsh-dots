@@ -7,14 +7,15 @@ assert.match(actual.version, /^\d+\.\d+\.\d+$/)
 assert.equal(actual.filename, `${actual.name.replace('@', '').replace('/', '-')}-${actual.version}.tgz`)
 assert.equal(createHash('sha256').update(readFileSync(`npm-dist/${actual.filename}`)).digest('hex'), actual.sha256)
 const requirePresent = process.argv.includes('--require-present')
-const url = `https://registry.npmjs.org/${encodeURIComponent(actual.name)}/${actual.version}`
+const url = `https://registry.npmjs.org/${actual.name.replace('/', '%2f')}/${actual.version}`
 let published = false
-for (let attempt = 0; attempt < (requirePresent ? 6 : 1); attempt++) {
+const maxAttempts = requirePresent ? 61 : 1
+for (let attempt = 0; attempt < maxAttempts; attempt++) {
   const response = await fetch(url, { signal: AbortSignal.timeout(30000), redirect: 'error' })
   if (response.status === 404) {
     if (!requirePresent) break
-    if (attempt < 5) { await new Promise(resolve => setTimeout(resolve, 10000)); continue }
-    throw new Error('Published version did not appear in the public registry within one minute')
+    if (attempt < maxAttempts - 1) { await new Promise(resolve => setTimeout(resolve, 10000)); continue }
+    throw new Error('Published version did not appear in the public registry within ten minutes')
   }
   assert.ok(response.ok, `Registry lookup failed: HTTP ${response.status}; do not publish on an uncertain lookup`)
   const info = await response.json()
