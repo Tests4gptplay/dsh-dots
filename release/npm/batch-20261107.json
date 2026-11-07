@@ -41,5 +41,5 @@
       "tag": "latest"
     }
   ],
-  "publish": true
+  "publish": false
 }
