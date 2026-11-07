@@ -29,10 +29,11 @@ jobs:
           gh api "repos/$GH_REPO/releases/tags/v1.0.11" > "$RUNNER_TEMP/release-before.json"
           jq -e '.tag_name == "v1.0.11" and .draft == false and .prerelease == false' "$RUNNER_TEMP/release-before.json"
           jq -r .body "$RUNNER_TEMP/release-before.json" > "$RUNNER_TEMP/body-before.md"
-          test "$(sha256sum "$RUNNER_TEMP/body-before.md" | cut -d' ' -f1)" = '2b4e08d2acced22ed25eddb832e42a250074dd84f9a0974f557b59243ae1fd28'
+          test "$(sha256sum "$RUNNER_TEMP/body-before.md" | cut -d' ' -f1)" = 'df8bbd9866871cbcb6505eab0b52ddc4708e348b97ae12ab4d48585458f77ca6'
           jq '[.assets[] | {id, name, size, digest}]' "$RUNNER_TEMP/release-before.json" > "$RUNNER_TEMP/assets-before.json"
           gh api "repos/$GH_REPO/git/ref/tags/v1.0.11" > "$RUNNER_TEMP/tag-before.json"
           test "$(jq -r .object.sha "$RUNNER_TEMP/tag-before.json")" = '4f7d7151b486865d6532d88d2d9656ca64b82c38'
+          test "$(sha256sum scripts/release-display-v1.0.11/NOTES.md | cut -d' ' -f1)" = 'c1c91d676daf459ea021608be5c8f293f18090d619d5ce4677e24ceb5967f7c4'
           gh release edit v1.0.11 --notes-file scripts/release-display-v1.0.11/NOTES.md
           gh api "repos/$GH_REPO/releases/tags/v1.0.11" > "$RUNNER_TEMP/release-after.json"
           jq '[.assets[] | {id, name, size, digest}]' "$RUNNER_TEMP/release-after.json" > "$RUNNER_TEMP/assets-after.json"
