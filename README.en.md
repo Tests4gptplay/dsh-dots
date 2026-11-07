@@ -43,6 +43,8 @@ Current version: **1.0.11**. The fixed tag and installation package include runt
 github:Tests4gptplay/dsh-dots#v1.0.11
 ```
 
+**npm installation:** You can also enter `@tests4gptplay/dsh-dots@1.0.11` in **Package name or address**.
+
 **Updating:** Use the same dialog with the new versioned source above, verify the installed version and enable it. Retain existing settings and user files. If DSH reports that it is already installed or requires removal first, follow that message to remove only the plugin entry and install the new version; do not clear DSH data or manually delete plugin directories. Restart only when DSH asks you to; fully quit and reopen it, including the Desktop tray process.
 
 After enabling, open Dots from the sidebar. Login persistence depends on the website and host storage partition; the separate Windows persistence companion is not automatically applied by installing this plugin.
