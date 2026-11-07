@@ -1,0 +1,94 @@
+name: Publish verified scoped npm package
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/npm-publish.yml'
+      - 'scripts/npm/**'
+      - 'release/npm/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: scoped-npm-publication
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main' && github.repository == 'Tests4gptplay/dsh-dots'
+    runs-on: ubuntu-24.04
+    outputs:
+      publish: ${{ steps.request.outputs.publish }}
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Use the verified pack toolchain
+        run: npm install --global npm@11.9.0 --ignore-scripts
+      - name: Checkout official DSH interface fixtures
+        uses: actions/checkout@v4
+        with:
+          repository: deepseek-ai/deepseek-harness
+          ref: dsh-v0.2.1-rc.3
+          path: _dsh-host-source
+          persist-credentials: false
+          sparse-checkout: |
+            packages/client/ui-schedule/src/client
+            packages/client/ui-sidebar-browser
+            apps/desktop/src/browser-guests.ts
+            apps/desktop/src/preload-browser.ts
+      - name: Run existing Dots tests and package whitelist
+        env:
+          DSH_SOURCE_DIR: _dsh-host-source
+        run: |
+          npm test
+          npm run pack:check
+          git diff --exit-code -- lib
+      - name: Test publication safety gates
+        run: node --test scripts/npm/publish-guards.test.mjs
+      - name: Build scoped payload and verify every production byte
+        run: node scripts/npm/prepare-scoped-npm.mjs npm-dist
+      - name: Require an exact reviewed publication manifest
+        id: request
+        run: node scripts/npm/check-publish-request.mjs
+      - name: Include credential-free verification utility
+        run: cp scripts/npm/check-registry.mjs npm-dist/check-registry.mjs
+      - uses: actions/upload-artifact@v4
+        id: upload
+        with:
+          name: scoped-npm-package
+          path: npm-dist/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+  publish:
+    needs: prepare
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+          registry-url: 'https://registry.npmjs.org/'
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ needs.prepare.outputs.artifact-id }}
+          path: npm-dist
+      - name: Check exact tarball and immutable registry version
+        id: registry
+        run: node npm-dist/check-registry.mjs
+      - name: Publish the verified tarball with the short-lived secret
+        if: steps.registry.outputs.exists != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TARBALL: ${{ steps.registry.outputs.filename }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$NODE_AUTH_TOKEN" || { echo 'NPM_TOKEN repository secret is missing'; exit 1; }
+          npm publish "./npm-dist/$NPM_TARBALL" --access public --tag latest --ignore-scripts --provenance=false
+      - name: Verify public npm integrity without credentials
+        run: node npm-dist/check-registry.mjs --require-present
