@@ -66,6 +66,8 @@ jobs:
           set -euo pipefail
           case "$PLUGIN_REPO" in
             dsh-video-vision)
+              sudo apt-get update
+              sudo apt-get install --no-install-recommends -y ffmpeg
               npm ci --ignore-scripts --no-audit --no-fund
               npm test
               ;;
