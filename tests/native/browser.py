@@ -1,5 +1,5 @@
 """Real DSH Web UI and installed production Client; no simulated app or screenshots."""
-import os,json,re
+import os,json,re,traceback
 from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
 out=Path(os.environ['DSH_TEST_OUTPUT']);out.mkdir(parents=True,exist_ok=True)
@@ -23,7 +23,8 @@ with sync_playwright() as p:
         panel=page.get_by_test_id('dots-mcp-settings');expect(panel).to_be_visible()
         switch=panel.get_by_role('switch');expect(switch).not_to_be_checked();expect(switch).to_be_enabled()
         page.screenshot(path=str(out/'native-settings-off.png'),full_page=True)
-        switch.check();expect(switch).to_be_checked()
+        # The controlled switch follows the completed native RPC, not an optimistic DOM flip.
+        switch.click();expect(switch).to_be_checked()
         expect(panel.get_by_test_id('dots-mcp-state')).to_have_text(re.compile(r'Running|运行'))
         panel.get_by_role('button',name=re.compile(r'Check local connection|检查本地连接')).click()
         expect(panel).to_contain_text(re.compile(r'Local MCP tool discovery passed|本地 MCP 工具发现已通过'))
@@ -31,7 +32,9 @@ with sync_playwright() as p:
         links=panel.locator('a').evaluate_all('(nodes)=>nodes.map(n=>n.href)')
         assert len(links)==4 and all('openai.com' in link for link in links)
         page.screenshot(path=str(out/'native-settings-on.png'),full_page=True)
-        switch.uncheck();expect(switch).not_to_be_checked()
+        switch.click();expect(switch).not_to_be_checked()
+        expect(switch).to_be_enabled()
+        expect(panel.get_by_test_id('dots-mcp-state')).to_have_text(re.compile(r'^Off$|已关闭'))
         page.reload(wait_until='domcontentloaded')
         # Native model onboarding is deliberately deferred, so it reappears on reload.
         page.get_by_role('button',name=re.compile(r'^(Add API Key|添加 API Key)$')).click()
@@ -42,6 +45,7 @@ with sync_playwright() as p:
         expect(page.get_by_test_id('dots-mcp-settings').get_by_role('switch')).not_to_be_checked()
         (out/'browser-report.json').write_text(json.dumps({'result':'passed','engine':'Chromium','checks':['same Dots settings entry','default off','enable','real local MCP check','masked connection URL','four official guide links','disable','reload retains choice'],'pageErrors':errors},ensure_ascii=False,indent=2))
     except Exception:
+        (out/'browser-traceback.txt').write_text(traceback.format_exc())
         page.screenshot(path=str(out/'native-browser-failure.png'),full_page=True)
         (out/'browser-failure.txt').write_text(page.locator('body').inner_text())
         (out/'browser-errors.json').write_text(json.dumps(errors,indent=2))
