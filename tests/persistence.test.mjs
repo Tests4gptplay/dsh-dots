@@ -4,6 +4,7 @@ import { mkdtemp, readFile, writeFile, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
 import {
   ORIGINAL, PATCHED, rewriteArchive, inspect, applyPersistence, restorePersistence,
   locateArchive,
@@ -130,7 +131,7 @@ test('one-shot after-exit helper waits for IPC disconnect, then applies once and
     await writeFile(stage, patched)
     await writeFile(manifest, JSON.stringify({ archive, stage, expectedSha: sha(source), resultSha: sha(patched), status: 'scheduled' }))
     assert.equal((await inspect({ override: archive })).state, 'scheduled')
-    const child = spawn(process.execPath, [new URL('../src/persistence-after-exit.mjs', import.meta.url).pathname, manifest],
+    const child = spawn(process.execPath, [fileURLToPath(new URL('../src/persistence-after-exit.mjs', import.meta.url)), manifest],
       { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] })
     await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject) })
     assert.equal(sha(await readFile(archive)), sha(source), 'not modified before parent quits')
