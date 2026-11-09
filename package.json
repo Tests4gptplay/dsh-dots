@@ -1,6 +1,6 @@
 {
   "name": "dsh-dots",
-  "version": "1.0.12-review.3",
+  "version": "1.0.12",
   "description": "在 DeepSeek Harness 中使用 ChatGPT Dots，支持预加载、页面状态保留、主题适配和 Desktop 登录保持设置。",
   "type": "module",
   "main": "./lib/host.js",
