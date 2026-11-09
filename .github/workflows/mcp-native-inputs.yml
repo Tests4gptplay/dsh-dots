@@ -1,0 +1,29 @@
+name: Native DSH integration inputs
+on:
+  push:
+    branches: ['2.0.0']
+    paths: ['.github/workflows/mcp-native-inputs.yml']
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install actual native DSH runtime in isolated directory
+        run: |
+          mkdir native-dsh
+          cd native-dsh
+          npm init -y
+          npm install --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1 @deepseek-ai/dsh-client-connection@0.2.2-rc.1 @deepseek-ai/dsh-api-gateway@0.2.2-rc.1 @deepseek-ai/dsh-api-session-controller@0.2.2-rc.1 @deepseek-ai/dsh-api-remote-access@0.2.2-rc.1 @deepseek-ai/dsh-typert-registry@0.2.2-rc.1
+          cp "$(command -v node)" ./node
+          ./node node_modules/@deepseek-ai/dsh/lib/bin.js --help > cli-help.txt
+          cd ..
+          tar -czf native-dsh.tar.gz native-dsh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-dsh-runtime
+          path: native-dsh.tar.gz
+          retention-days: 3
