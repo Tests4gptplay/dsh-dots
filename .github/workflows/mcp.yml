@@ -1,0 +1,39 @@
+name: Dots MCP development and verification
+on:
+  push:
+    branches: ['2.0.0']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify preserved baseline
+        run: npm test
+      - name: Obtain public DSH interface reference
+        uses: actions/checkout@v4
+        with:
+          repository: deepseek-ai/deepseek-harness
+          path: _host-reference
+          persist-credentials: false
+      - name: Prepare official MCP SDK and test dependencies
+        run: |
+          mkdir -p _mcp-development
+          cd _mcp-development
+          npm init -y
+          npm install --no-audit --no-fund @modelcontextprotocol/server @modelcontextprotocol/client @modelcontextprotocol/node zod esbuild react react-dom jsdom
+      - name: Archive isolated development inputs
+        run: |
+          git rev-parse HEAD > _mcp-development/plugin-commit.txt
+          git -C _host-reference rev-parse HEAD > _mcp-development/host-commit.txt
+          tar --exclude='./.git' --exclude='./_host-reference/.git' -czf /tmp/dsh-dots-development.tar.gz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-dots-development-inputs
+          path: /tmp/dsh-dots-development.tar.gz
+          retention-days: 3
