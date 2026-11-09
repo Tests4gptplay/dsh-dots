@@ -1,0 +1,118 @@
+name: Record verified bridge acceptance
+on:
+  push:
+    branches: ['2.0.0']
+    paths: ['.github/workflows/mcp-bridge-evidence.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          name: dots-2.0.0-verification-ubuntu-latest
+          run-id: 42697875721
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/verified-bridge
+      - name: Retain native evidence and update user-facing notes
+        env:
+          EVIDENCE_ROOT: ${{ runner.temp }}/verified-bridge
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os,json,hashlib,shutil
+          root=Path(os.environ['EVIDENCE_ROOT'])
+          native=json.loads(next(root.rglob('native-report.json')).read_text())
+          browser=json.loads(next(root.rglob('browser-report.json')).read_text())
+          package=next(root.rglob('dsh-dots-2.0.0.tgz'))
+          package_hash=hashlib.sha256(package.read_bytes()).hexdigest()
+          assert native['status']=='passed' and len(native['checks'])==26 and all(x['passed'] for x in native['checks'])
+          assert browser['result']=='passed' and not browser['pageErrors']
+          assert package_hash=='62efe7a519aab7833f9c4fd45ff20da7379a727b8a6cdbaa6a1c1d00df0c02be'
+          image=next(root.rglob('native-check-pending.png'))
+          target=Path('docs/screenshots/v2.0.0/native-check-pending.png')
+          shutil.copyfile(image,target)
+          record={'testedCommit':'0b853582c0699dd6bf2c7679ed9a3e36064e7e54','runtimeCommit':'8e7e917f4924275ca3f6ebffe86cb669f2947fd9','ciRun':'https://github.com/Tests4gptplay/dsh-dots/actions/runs/42697875721','unitTests':{'Windows':{'passed':99,'failed':0},'Ubuntu':{'passed':99,'failed':0}},'native':native,'browser':browser,'package':{'file':'dsh-dots-2.0.0.tgz','bytes':package.stat().st_size,'sha256':package_hash,'files':18},'screenshots':[{'file':'../../screenshots/v2.0.0/native-check-pending.png','sha256':hashlib.sha256(image.read_bytes()).hexdigest()}]}
+          Path('docs/releases/v2.0.0/bridge-verification.json').write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n')
+          page=Path('docs/testing/v2.0.0-bridge.md')
+          text=page.read_text()
+          text=text.replace('[返回更新记录](../releases/v2.0.0.md)','[返回更新记录](../releases/v2.0.0.md) · [English](v2.0.0-bridge.en.md)')
+          text=text.replace('新增的同组 27 项连接与界面回归在修复包中全部通过；完整源码与回归测试为 99 项，Node 22 和 Node 24 均通过。真实 DSH 后端验收通过 25 项。','新增的同组 27 项连接与界面回归全部通过；完整源码与回归测试为 99 项，Windows 与 Ubuntu 各通过 99 项，另在 Linux Node 22 和 Node 24 复测通过。真实 DSH 与 Chromium 共通过 26 项原生验收，浏览器页面异常为 0。\n\n[完整 CI](https://github.com/Tests4gptplay/dsh-dots/actions/runs/42697875721) · [结构化验证记录](../releases/v2.0.0/bridge-verification.json)\n\n### 连接检查期间仍可操作服务开关\n\n下图来自实际 DSH Web 与 Chromium：本地诊断暂未返回时，启用开关仍可操作。浏览器验收随后关闭服务，并核对刷新后仍保持关闭。连接地址在界面中保持遮罩。\n\n![真实 DSH：诊断进行中，开关仍可操作](../screenshots/v2.0.0/native-check-pending.png)')
+          page.write_text(text)
+          Path('docs/testing/v2.0.0-bridge.en.md').write_text('''# DSH Dots 2.0.0: bridge compatibility verification
+
+          [Release notes](../releases/v2.0.0.en.md) · [中文](v2.0.0-bridge.md)
+
+          ## Environment and results
+
+          The candidate package was installed in DSH 0.2.2-rc.1 on Linux with Node 24.22.2. Windows and Ubuntu each passed all 99 source and regression tests, compiled-output checks, and npm/pnpm installation checks. The actual DSH and Chromium acceptance suite passed 26 checks with no browser page errors. Linux Node 22.16.0 also passed all 99 source and regression tests.
+
+          [CI run](https://github.com/Tests4gptplay/dsh-dots/actions/runs/42697875721) · [Structured results](../releases/v2.0.0/bridge-verification.json)
+
+          ## Session and file operations
+
+          Native `afterSeq: -1` and `throughSeq: -1` calls completed successfully. Session extension fields and combined text/content blocks were forwarded intact. A 5,242,899-byte file was written through the native DSH file tool and verified byte for byte on disk. Session creation, discovery, cancellation, text/image results, service toggles and full host restart checks also passed.
+
+          ## Transport checks
+
+          The packaged HTTP service accepted JSON bodies of 4 MiB + 1 byte, 5 MiB and 16 MiB. The web-standard handler and the 2026-07-28 protocol were also tested with 5 MiB bodies. Legacy batches of 101 and 256 messages returned all corresponding results. The modern protocol accepted 1,025 subscriptions and closed them successfully. Text results larger than 5 MiB were preserved.
+
+          These transport tests use controlled native API responses to inspect arguments and protocol behavior; the file and session operations above run against actual DSH. The listed sizes are test inputs, not product limits.
+
+          ## Settings and service lifecycle
+
+          Diagnostics can remain pending while the service is disabled, suspended or unloaded. API loading and recovery do not require restarting the MCP listener. HTTPS deployment prefixes and existing connection keys were retained correctly.
+
+          This screenshot shows actual DSH Settings in Chromium while a diagnostic is pending. The service switch remains available; the browser test then disables the service and confirms that the disabled preference survives a page reload. Connection URLs remain masked.
+
+          ![Actual DSH Settings: pending diagnostic and available switch](../screenshots/v2.0.0/native-check-pending.png)
+
+          ## Reproduce
+
+          ```sh
+          npm ci --legacy-peer-deps
+          npm test
+          npm run pack:check
+          npm pack --ignore-scripts
+          ```
+
+          `tests/native/verify.mjs` installs and tests the candidate in an isolated real DSH profile. Set `DSH_BROWSER_TEST=1` to include Chromium Settings acceptance. Build artifacts include the package, source, screenshots, test records and SHA-256 checksums.
+          '''.replace('\n          ','\n'))
+          additions={
+            'docs/releases/v2.0.0.md':('## 验证记录\n','## 验证记录\n\n### 2026-11-10：连接兼容性复检\n\nWindows、Ubuntu 各 **99 项测试通过**；实际 DSH 与 Chromium 共 **26 项原生验收通过**，页面异常为 **0**。覆盖原生负游标、超过 5 MiB 的真实文件写入、较大请求与批量消息，以及连接检查进行中关闭服务。\n\n[完整方法、结果与新增实机截图](../testing/v2.0.0-bridge.md) · [验证数据](v2.0.0/bridge-verification.json) · [CI 记录](https://github.com/Tests4gptplay/dsh-dots/actions/runs/42697875721)\n\n### 初版功能基线\n'),
+            'docs/releases/v2.0.0.en.md':('## Verification record\n','## Verification record\n\n### 2026-11-10: bridge compatibility verification\n\nWindows and Ubuntu each passed **99 tests**. Actual DSH and Chromium passed **26 native acceptance checks**, with **0** page errors. Coverage includes native negative cursors, a real file write above 5 MiB, large requests, batch messages and disabling the service while diagnostics are pending.\n\n[Methods, results and new screenshot](../testing/v2.0.0-bridge.en.md) · [Verification data](v2.0.0/bridge-verification.json) · [CI record](https://github.com/Tests4gptplay/dsh-dots/actions/runs/42697875721)\n\n### Initial feature baseline\n')}
+          for name,(old,new) in additions.items():
+              p=Path(name);s=p.read_text();assert s.count(old)==1;p.write_text(s.replace(old,new,1))
+          PY
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - run: npm test
+      - run: npm run pack:check
+      - name: Confirm the tested runtime package is unchanged
+        run: |
+          git diff --exit-code -- lib THIRD-PARTY-NOTICES.txt README.md README.en.md SPONSOR.md
+          npm pack --ignore-scripts
+          echo '62efe7a519aab7833f9c4fd45ff20da7379a727b8a6cdbaa6a1c1d00df0c02be  dsh-dots-2.0.0.tgz' | sha256sum -c -
+      - name: Commit verified user documentation
+        run: |
+          git rm .github/workflows/mcp-bridge-evidence.yml
+          git add docs/releases docs/testing/v2.0.0-bridge.md docs/testing/v2.0.0-bridge.en.md docs/screenshots/v2.0.0/native-check-pending.png
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs: add verified bridge compatibility results and native diagnostic screenshot'
+          git push origin HEAD:refs/heads/2.0.0
+          git archive --format=zip --output=dsh-dots-2.0.0-source.zip HEAD
+          sha256sum dsh-dots-2.0.0.tgz dsh-dots-2.0.0-source.zip > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dots-2.0.0-bridge-final
+          path: |
+            dsh-dots-2.0.0.tgz
+            dsh-dots-2.0.0-source.zip
+            SHA256SUMS.txt
+          retention-days: 14
