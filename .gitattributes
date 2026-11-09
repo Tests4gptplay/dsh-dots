@@ -1,0 +1,3 @@
+# Preserve the exact recorded experiment input and output on every platform.
+/docs/releases/v2.0.0/input.csv -text
+/docs/releases/v2.0.0/report.txt -text
