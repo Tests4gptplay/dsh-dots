@@ -1,0 +1,109 @@
+name: Dots 2.0.0 verified source import
+on:
+  push:
+    branches: ['2.0.0']
+    paths: ['.github/workflows/mcp-import.yml']
+permissions:
+  contents: write
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '2.0.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Restore the tested source patch from repository blobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import subprocess,json,base64,lzma,hashlib,pathlib
+          shas=['52792bc18d3e0e3499de971691ed458525118558','cec7f1ddc9d5dc10a951836f7c567d47f8205aa9','d799f3c288740bcbc63c1717d135b1ce0c82ab87']
+          pieces=[]
+          for sha in shas:
+              data=json.loads(subprocess.check_output(['gh','api',f'repos/Tests4gptplay/dsh-dots/git/blobs/{sha}']))
+              pieces.append(base64.b64decode(data['content']))
+          compressed=base64.b64decode(b''.join(pieces),validate=True)
+          assert hashlib.sha256(compressed).hexdigest()=='acecdf1982d74dd35ec2d3063121326f9fb0da799a4cc2d563b2c5c2bef9c594'
+          patch=lzma.decompress(compressed)
+          subprocess.run(['git','apply','--exclude=.github/workflows/*','-'],input=patch,check=True)
+          PY
+      - name: Build, test and inspect production package
+        run: |
+          npm install --legacy-peer-deps --no-audit --no-fund
+          npm test
+          npm run pack:check
+          npm pack --ignore-scripts
+      - name: Commit source and matching generated files to 2.0.0 only
+        id: commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .gitignore CHANGELOG.md README.md README.en.md docs/development locale package.json package-lock.json scripts src tests lib THIRD-PARTY-NOTICES.txt
+          git commit -m 'feat: implement optional Dots MCP with native DSH tools and guided setup'
+          git push origin HEAD:2.0.0
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git archive --format=zip --output=dsh-dots-2.0.0-source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dots-2.0.0-source-and-package
+          path: |
+            dsh-dots-2.0.0.tgz
+            dsh-dots-2.0.0-source.zip
+          retention-days: 14
+  verify:
+    needs: source
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.source.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - run: npm test
+      - run: npm run pack:check
+      - run: npm pack --ignore-scripts
+      - name: Verify compiled output matches committed source
+        run: git diff --exit-code -- lib THIRD-PARTY-NOTICES.txt
+      - name: Install native DSH and candidate package
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/dsh-native"
+          cd "$RUNNER_TEMP/dsh-native"
+          npm init -y
+          npm install --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1 @deepseek-ai/dsh-client-connection@0.2.2-rc.1 @deepseek-ai/dsh-api-gateway@0.2.2-rc.1 @deepseek-ai/dsh-api-session-controller@0.2.2-rc.1 @deepseek-ai/dsh-api-remote-access@0.2.2-rc.1 @deepseek-ai/dsh-typert-registry@0.2.2-rc.1
+          mkdir -p node_modules/dsh-dots
+          tar -xzf "$GITHUB_WORKSPACE/dsh-dots-2.0.0.tgz" --strip-components=1 -C node_modules/dsh-dots
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Real DSH and Chromium acceptance
+        if: runner.os == 'Linux'
+        env:
+          DSH_NATIVE_ROOT: ${{ runner.temp }}/dsh-native
+          DSH_TEST_OUTPUT: ${{ runner.temp }}/dots-native-evidence
+          DSH_BROWSER_TEST: '1'
+        run: node tests/native/verify.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dots-2.0.0-verification-${{ matrix.os }}
+          path: |
+            dsh-dots-2.0.0.tgz
+            ${{ runner.temp }}/dots-native-evidence
+          if-no-files-found: error
+          retention-days: 14
