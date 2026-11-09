@@ -1,4 +1,5 @@
 /** DSH Dots: original browser panel plus user-invoked Desktop login persistence maintenance. */
+import { createMcpController, registerMcpTransport } from './mcp-control.mjs'
 import { inspect, applyPersistence, restorePersistence } from './persistence.mjs'
 
 export const name = 'dsh-dots'
@@ -44,5 +45,16 @@ export function registerPersistenceTransport(connection, service = { inspect, ap
 export function apply(ctx) {
   ctx.inject(['connection'], scoped => {
     scoped.effect(() => registerPersistenceTransport(scoped.connection), 'dsh-dots: persistence settings RPC')
+    const controller = createMcpController(scoped)
+    scoped.effect(() => {
+      const unregister = registerMcpTransport(scoped.connection, controller)
+      // Startup failures remain visible in Settings; no background retry loop.
+      void controller.initialize().catch(() => {})
+      return async () => { await unregister(); await controller.dispose() }
+    }, 'dsh-dots: optional MCP settings and lifetime')
+    scoped.inject(['typertGateway', 'typert'], runtime => {
+      void controller.initialize().catch(() => {})
+      runtime.effect(() => () => controller.suspend(), 'dsh-dots: native MCP capability lifetime')
+    })
   })
 }

@@ -1,0 +1,4 @@
+node_modules/
+*.tgz
+npm-dist/
+native-evidence/

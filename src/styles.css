@@ -22,3 +22,19 @@ body[data-ds-dark-theme] .dotsPage { color-scheme:dark; }
 
 /* Fallback host: keeps the proven in-slot page filling the native center column. */
 .dotsFallbackHost { box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 0; min-height:0; min-width:0; width:100%; position:relative; }
+
+/* Dots settings use the existing DSH theme; no global selectors. */
+.dotsSettings { width: 100%; overflow: auto; }
+.dotsMcpSettings { padding: 16px; max-width: 760px; line-height: 1.5; }
+.dotsMcpSettings h3 { margin-top: 0; }
+.dotsMcpSettings p { overflow-wrap: anywhere; }
+.dotsMcpSwitch, .dotsMcpRow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.dotsMcpSwitch { cursor: pointer; }
+.dotsMcpField { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+.dotsMcpField input { min-width: 0; flex: 1; padding: 8px; color: inherit; background: transparent; border: 1px solid var(--dsw-alias-border-l3, #8886); border-radius: 7px; }
+.dotsMcpButton { padding: 8px 12px; color: inherit; background: transparent; border: 1px solid var(--dsw-alias-border-l3, #8886); border-radius: 7px; cursor: pointer; }
+.dotsMcpButton:disabled { opacity: .5; cursor: default; }
+.dotsMcpHint { opacity: .75; font-size: .92em; }
+.dotsMcpLinks { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.dotsMcpLinks a { color: inherit; text-decoration: underline; }
+.dotsMcpSettings details { margin-top: 16px; }

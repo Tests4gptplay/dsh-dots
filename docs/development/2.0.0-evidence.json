@@ -1,0 +1,106 @@
+{
+  "environment": {
+    "platform": "linux",
+    "node": "v24.22.2",
+    "dsh": "0.2.2-rc.1",
+    "plugin": "2.0.0"
+  },
+  "checks": [
+    {
+      "name": "Packed plugin starts with MCP off",
+      "passed": true
+    },
+    {
+      "name": "Official MCP client discovers 16 tools",
+      "passed": true
+    },
+    {
+      "name": "Native API registry discovered",
+      "passed": true,
+      "apiCount": 144,
+      "namespaces": 30
+    },
+    {
+      "name": "Native Session created",
+      "passed": true
+    },
+    {
+      "name": "Native Session listed",
+      "passed": true
+    },
+    {
+      "name": "Reflected API schema and generic invocation",
+      "passed": true
+    },
+    {
+      "name": "Native stream snapshot and subscription cleanup",
+      "passed": true
+    },
+    {
+      "name": "Native session tool catalog",
+      "passed": true,
+      "nativeTools": 31
+    },
+    {
+      "name": "Native file write verified on disk",
+      "passed": true
+    },
+    {
+      "name": "Native file read returns actual contents",
+      "passed": true
+    },
+    {
+      "name": "Native image becomes MCP image content",
+      "passed": true
+    },
+    {
+      "name": "Settings local discovery check",
+      "passed": true
+    },
+    {
+      "name": "Native errors retain MCP error semantics",
+      "passed": true
+    },
+    {
+      "name": "Native cancel command",
+      "passed": true
+    },
+    {
+      "name": "Off switch releases listening endpoint",
+      "passed": true
+    },
+    {
+      "name": "Reenable preserves connection URL and DSH session",
+      "passed": true
+    },
+    {
+      "name": "Off preference survives real host restart",
+      "passed": true
+    }
+  ],
+  "status": "passed",
+  "unitTests": {
+    "total": 71,
+    "passed": 71,
+    "failed": 0
+  },
+  "liveModelIntegration": {
+    "provider": "current-chatgpt",
+    "method": "Live current ChatGPT conversation answering DSH requests through a temporary local OpenAI-compatible relay",
+    "completedTurns": 2,
+    "nativeToolCalls": [
+      "write",
+      "read",
+      "read",
+      "write"
+    ],
+    "mcpOffDuringSecondTurn": true,
+    "resumedConnectionReadCompletedResult": true,
+    "cancelledPendingModelRequest": true
+  },
+  "remainingAcceptance": [
+    "ChatGPT official Dot registration and phone remote connection",
+    "Windows/macOS Desktop installation and login retention on the user device"
+  ],
+  "hostEnvironmentObservation": "The working container does not supply DSH workspace-write command confinement; native bash returned its own sandbox-unavailable error and MCP propagated it."
+}

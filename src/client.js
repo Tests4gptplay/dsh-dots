@@ -331,7 +331,7 @@ function DotsPage({ t, openExternal }) {
 
 
 /** DSH Settings section: maintenance stays outside the Dots main page and Plugins page. */
-function DotsPersistenceSettings({ t, rpc }) {
+function DotsPersistenceSettings({ t, rpc, mcpRpc, desktop = true }) {
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -344,7 +344,7 @@ function DotsPersistenceSettings({ t, rpc }) {
   useEffect(() => {
     alive.current = true
     const controller = new AbortController()
-    void check(controller.signal).catch(error => { if (!controller.signal.aborted && alive.current) setMessage(t('persistenceError') + String(error.message || error)) })
+    if (desktop) void check(controller.signal).catch(error => { if (!controller.signal.aborted && alive.current) setMessage(t('persistenceError') + String(error.message || error)) })
     return () => { alive.current = false; controller.abort() }
   }, [])
   const act = async endpoint => {
@@ -372,7 +372,7 @@ function DotsPersistenceSettings({ t, rpc }) {
     style: { border: '1px solid var(--dsw-alias-border-l3, #8886)', borderRadius: 7,
       padding: '8px 12px', background: 'transparent', color: 'inherit', cursor: 'pointer' },
   }, t(key))
-  return h('section', { 'data-testid': 'dots-persistence-settings', style: { padding: 16, maxWidth: 760 } },
+  const persistence = h('section', { 'data-testid': 'dots-persistence-settings', style: { padding: 16, maxWidth: 760 } },
     h('h3', { style: { marginTop: 0 } }, t('persistenceTitle')),
     h('p', null, t('persistenceDescription')),
     h('p', { 'data-testid': 'dots-persistence-status' }, summary),
@@ -383,6 +383,7 @@ function DotsPersistenceSettings({ t, rpc }) {
       button('persistenceApply', () => { void act('apply') }, state === 'available'),
       button('persistenceRestore', () => { void act('restore') }, state === 'applied' && status?.canRestore === true)),
     message ? h('p', { role: 'status' }, message) : null)
+  return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc }) : null)
 }
 
 exports.name = 'dsh-dots-client'
@@ -413,7 +414,7 @@ exports.apply = function apply(ctx) {
     return true
   }
   const persistent = Boolean(desktopBrowserBridge())
-  if (persistent) {
+  {
     const rpc = async (endpoint, signal) => {
       const connection = ctx.get?.('connection') ?? ctx.connection
       if (!connection?.rpc) throw new Error('DSH connection is not available')
@@ -421,9 +422,16 @@ exports.apply = function apply(ctx) {
       if (!response?.ok) throw new Error(response?.error?.message || 'Dots persistence request failed')
       return response.value
     }
+    const mcpRpc = async (endpoint, payload = {}, signal) => {
+      const connection = ctx.get?.('connection') ?? ctx.connection
+      if (!connection?.rpc) throw new Error('DSH connection is not available')
+      const response = await connection.rpc.call('/api', 'dsh-dots-mcp/' + endpoint, payload, signal)
+      if (!response?.ok) throw new Error(response?.error?.message || 'Dots MCP request failed')
+      return response.value
+    }
     ctx.slots.inject('settings.section', () => ctx.slots.register({
       name: 'settings.section', id: 'dsh-dots-login-retention', order: 25,
-      locale: NAMESPACE, label: () => t('persistenceNav'), inject: () => ({ t, rpc }),
+      locale: NAMESPACE, label: () => t('persistenceNav'), inject: () => ({ t, rpc, mcpRpc, desktop: persistent }),
     }, DotsPersistenceSettings))
   }
   let persistentPage

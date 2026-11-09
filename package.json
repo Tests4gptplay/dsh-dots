@@ -1,7 +1,7 @@
 {
   "name": "dsh-dots",
-  "version": "1.0.12",
-  "description": "在 DeepSeek Harness 中使用 ChatGPT Dots，支持预加载、页面状态保留、主题适配和 Desktop 登录保持设置。",
+  "version": "2.0.0",
+  "description": "在 DeepSeek Harness 中使用 ChatGPT Dots，并通过可选 MCP 连接让 Dot 操作 DSH 会话、工具与工作区。",
   "type": "module",
   "main": "./lib/host.js",
   "exports": {
@@ -23,7 +23,11 @@
     "README.md",
     "README.en.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "lib/mcp-control.mjs",
+    "lib/mcp-adapter.mjs",
+    "lib/mcp-server.mjs",
+    "THIRD-PARTY-NOTICES.txt"
   ],
   "dsh": {
     "bundle": {
@@ -76,10 +80,20 @@
     "chatgpt",
     "dots",
     "browser",
-    "webview"
+    "webview",
+    "mcp"
   ],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/server": "2.4.0",
+    "@modelcontextprotocol/client": "2.4.0",
+    "@modelcontextprotocol/node": "2.1.2",
+    "esbuild": "0.28.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "jsdom": "31.0.0"
   }
 }
