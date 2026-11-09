@@ -23,6 +23,7 @@
     "README.md",
     "README.en.md",
     "CHANGELOG.md",
+    "SPONSOR.md",
     "LICENSE",
     "lib/mcp-control.mjs",
     "lib/mcp-adapter.mjs",

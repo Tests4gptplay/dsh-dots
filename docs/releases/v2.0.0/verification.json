@@ -1,0 +1,167 @@
+{
+  "version": "2.0.0",
+  "verificationDate": "2026-11-09",
+  "testedCommit": "c3fe5905aa029a9d658d8e71d6c22fd503c70059",
+  "ciRun": "https://github.com/Tests4gptplay/dsh-dots/actions/runs/42632878019",
+  "environment": {
+    "platform": "linux",
+    "node": "v24.22.2",
+    "dsh": "0.2.2-rc.1",
+    "plugin": "2.0.0"
+  },
+  "automatedTests": {
+    "Windows": {
+      "passed": 71,
+      "failed": 0
+    },
+    "Ubuntu": {
+      "passed": 71,
+      "failed": 0
+    }
+  },
+  "installationChecks": {
+    "Windows": [
+      "npm",
+      "pnpm"
+    ],
+    "Ubuntu": [
+      "npm",
+      "pnpm"
+    ]
+  },
+  "nativeChecks": [
+    {
+      "name": "Packed plugin starts with MCP off",
+      "passed": true
+    },
+    {
+      "name": "Official MCP client discovers 16 tools",
+      "passed": true
+    },
+    {
+      "name": "Native API registry discovered",
+      "passed": true,
+      "apiCount": 144,
+      "namespaces": 30
+    },
+    {
+      "name": "Native Session created",
+      "passed": true
+    },
+    {
+      "name": "Native Session listed",
+      "passed": true
+    },
+    {
+      "name": "Reflected API schema and generic invocation",
+      "passed": true
+    },
+    {
+      "name": "Native stream snapshot and subscription cleanup",
+      "passed": true
+    },
+    {
+      "name": "Native session tool catalog",
+      "passed": true,
+      "nativeTools": 31
+    },
+    {
+      "name": "Native file write verified on disk",
+      "passed": true
+    },
+    {
+      "name": "Native file read returns actual contents",
+      "passed": true
+    },
+    {
+      "name": "Native image becomes MCP image content",
+      "passed": true
+    },
+    {
+      "name": "Settings local discovery check",
+      "passed": true
+    },
+    {
+      "name": "Native errors retain MCP error semantics",
+      "passed": true
+    },
+    {
+      "name": "Native cancel command",
+      "passed": true
+    },
+    {
+      "name": "Off switch releases listening endpoint",
+      "passed": true
+    },
+    {
+      "name": "Reenable preserves connection URL and DSH session",
+      "passed": true
+    },
+    {
+      "name": "On preference and connection URL survive real host restart",
+      "passed": true
+    },
+    {
+      "name": "Persisted native session remains available after host restart",
+      "passed": true
+    },
+    {
+      "name": "Off preference survives real host restart",
+      "passed": true
+    },
+    {
+      "name": "Native Chromium Settings acceptance",
+      "passed": true
+    }
+  ],
+  "browser": {
+    "result": "passed",
+    "engine": "Chromium",
+    "checks": [
+      "same Dots settings entry",
+      "default off",
+      "enable",
+      "real local MCP check",
+      "masked connection URL",
+      "four official guide links",
+      "disable",
+      "reload retains choice"
+    ],
+    "pageErrors": []
+  },
+  "testedPackage": {
+    "filename": "dsh-dots-2.0.0.tgz",
+    "sha256": "4dcc1258094840fcaea2eeff5104fc740b287efa9c5b5e6af0691b812143d937",
+    "productionFileCount": 17
+  },
+  "scope": {
+    "connection": "Official MCP client to local DSH Web",
+    "modelTasks": "Interactive model test interface with real DSH file tools",
+    "accountAndDeviceAcceptance": [
+      "Official ChatGPT Dot registration",
+      "Phone-to-home connection",
+      "Windows/macOS Desktop login retention"
+    ]
+  },
+  "hostCommandObservation": {
+    "result": "sandbox-unavailable",
+    "detail": "The command sandbox was unavailable in the Linux test container; the adapter returned the native error."
+  },
+  "screenshots": [
+    {
+      "file": "../../screenshots/v2.0.0/native-settings-off.png",
+      "sha256": "7c912b6e2fbcade5027361865750a82389e6cd5c35881ed0b9886d4323026ee4",
+      "source": "Actual DSH Web in Chromium; connection URLs masked in the UI"
+    },
+    {
+      "file": "../../screenshots/v2.0.0/native-settings-on.png",
+      "sha256": "8a0ea1587720b8b2a5d47d7d8183b352fb8f0820bb6da9e528bb582c2d8607e1",
+      "source": "Actual DSH Web in Chromium; connection URLs masked in the UI"
+    },
+    {
+      "file": "../../screenshots/v2.0.0/native-connection-guide.png",
+      "sha256": "8307de9721080eda0f2552e67367205100bb1b007829aba8ece29735739419e7",
+      "source": "Actual DSH Web in Chromium; connection URLs masked in the UI"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+Item subtotals
+widget-A: 8 x 12 = 96
+widget-B: 6 x 40 = 240
+widget-C: 6 x 23 = 138
+Grand total: 474
+Total quantity: 20

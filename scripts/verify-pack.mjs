@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 const root = fileURLToPath(new URL('..', import.meta.url))
 const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
 const expected = [
-  'LICENSE', 'THIRD-PARTY-NOTICES.txt', 'README.en.md', 'README.md', 'CHANGELOG.md',
+  'LICENSE', 'THIRD-PARTY-NOTICES.txt', 'README.en.md', 'README.md', 'CHANGELOG.md', 'SPONSOR.md',
   'assets/dots-ring.svg', 'cordis.patch.yml',
   'lib/mcp-adapter.mjs', 'lib/mcp-control.mjs', 'lib/mcp-server.mjs', 'lib/client.js', 'lib/host.js', 'lib/persistence.mjs', 'lib/persistence-after-exit.mjs', 'locale/en.json', 'locale/zh.json',
   'package.json',

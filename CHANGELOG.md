@@ -2,12 +2,11 @@
 
 ## 2.0.0（2026-11-09）
 
-- 新增可选 MCP Server：默认关闭，按 DSH 配置保存启用状态。
-- 在原 Dots 设置页面统一管理 MCP、连接地址、访问密钥、本地检查、最近调用、工具清单及官方接入指南。
-- 提供 16 个 MCP 工具，复用 DSH 原生会话、模型、API、工作区和工具执行能力；图片结果保留为可供模型查看的 MCP 图片。
-- 支持任务接续、原生状态/事件/结果读取与取消；关闭 MCP 不主动取消既有会话任务。
-- 保留网页预加载、切换保留、主题适配与 v1.0.12 登录保持。
-- 协议使用官方 MCP SDK，支持现代无状态调用与旧版 Streamable HTTP 客户端。
+新增 MCP 连接，让 Dot 在对话中使用 DSH 的会话、工具和工作区：创建任务、追加指令、查看结果、取消执行，并读取文件与图片结果。
+
+MCP 默认关闭，与登录保持统一放在「设置 → Dots」。同页提供连接地址、复制、本地检查、调用状态和官方接入指南；开关选择随 DSH 配置保存。保留原有网页预加载、切换保留、主题适配及 Desktop 登录保持。
+
+[完整更新、实机截图与验证记录](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.md) · [English release notes](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.en.md)
 
 ## 1.0.12（2026-11-09）
 

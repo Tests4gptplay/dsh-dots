@@ -1,31 +1,60 @@
-# DSH Dots
+# DSH Dots 2.0.0
 
-在 DeepSeek Harness 内直接使用 [ChatGPT Dots](https://chatgpt.com/dots/home)，并通过 MCP 让真实 Dot 操作 DSH 的会话、工具和工作区。
+**在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
-桌面版启动时预加载 Dots，切换面板时保留网页与页面状态。工具栏与圆环图标随 DSH 明暗主题变化，支持中英文、刷新和在系统浏览器中打开。ChatGPT 账号在官方网页登录。
+[English](README.en.md) · [2.0.0 更新记录与实机展示](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.md) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues)
 
-## 设置
+DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harness。你可以在 DSH 内与自己的 Dot 对话，也可以开启 MCP，让 Dot 使用 DSH 的 AI 会话、工具和工作区，提交任务并取回结果。
 
-在 **DSH → 设置 → Dots** 统一管理：
+## 2.0.0 带来了什么
 
-- **登录保持（Desktop）**：沿用 v1.0.12 的状态检查、一键应用及恢复功能。
-- **MCP Server**：默认关闭，按需启用；选择保存在当前 DSH 配置中，重启后继续生效。
-- **连接与引导**：服务状态、可复制的连接地址、本地检查、最近一次调用、工具清单，以及官方注册与隧道指南。
+这一版从网页入口扩展到 **Dot 与 DSH 之间的双向协作**：在 DSH 中使用 Dot，同时让 Dot 调用这台电脑上的 DSH。
 
-关闭 MCP 会停止外部接入，已经提交给 DSH 的会话任务继续由 DSH 管理。
+| 新能力 | 可以怎样使用 |
+| --- | --- |
+| MCP 连接 | 将 DSH 注册为 Dot 可用的工具服务，在对话中下达任务。 |
+| 会话与任务管理 | 创建或继续会话、追加要求、查看进度和结果，也可以取消执行。 |
+| 工作区与工具 | 读取和修改文件、取得图片结果，使用当前 DSH 已启用的命令及插件能力。 |
+| 同页设置 | 在「设置 → Dots」管理 MCP 开关、连接地址、调用状态和登录保持。 |
+| 完整接入引导 | 复制实际连接信息、检查本地服务，并通过官方指南完成注册和首次调用。 |
 
-## 让 Dot 连接 DSH
+**MCP 默认关闭，按需开启。** 开关状态和连接设置随当前 DSH 配置保存，重启后继续生效。关闭 MCP 会结束外部接入；已经交给 DSH 的任务继续执行，取消任务则使用单独的取消操作。
 
-在设置页开启 MCP 并检查本地连接，然后选择接入方式：按 [官方 Secure MCP Tunnel 指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) 将隧道 HTTP 目标指向页面中的本机 MCP 地址；或将已有 HTTPS 转发指向本地端口，保留完整 MCP 路径，并保存对应的 HTTPS 地址。
+原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。
 
-按 [官方中文注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)，在 ChatGPT 网页的 **Plugins → + → Add custom MCP server** 选择隧道或填写 HTTPS MCP 地址。本服务以完整地址中的访问密钥授权连接，注册表单选择 **No authentication**。连接地址具有当前 DSH 环境的操作权限，应仅交给获授权的客户端；设置页可更新密钥撤销旧地址。
+## 安装 2.0.0 分支
 
-创建并安装连接后，在 [Dot 的插件配置](https://help.openai.com/en/articles/20001530-getting-started-with-your-dot) 中启用它。先让 Dot 调用 `dsh_status` 并列出会话，再创建会话、下达任务，通过状态、事件和结果继续交互。账户与工作区权限以官方配置页面为准。
+在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
-## MCP 能力
+```text
+github:Tests4gptplay/dsh-dots#2.0.0
+```
 
-提供 16 个工具：环境与会话查询、创建会话、发送或追加指令、读取状态/事件/结果、取消、模型查询与选择，以及 DSH 原生 API 的发现、参数描述、调用、流式快照和原生工具调用。文件、命令、工作区及插件管理通过当前 DSH 已加载的原生能力执行，图片结果以 MCP 图片内容返回。
+本页对应 `2.0.0` 开发分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
 
-任务、会话记录、执行器和操作授权由 DSH 管理。桌面内嵌 Dot 与远程 Dot 使用同一套连接；远程使用时保持 DSH 与接入服务运行。
+安装后，从侧栏打开 **DSH Dots**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
 
-[项目主页](https://github.com/Tests4gptplay/dsh-dots) · [更新记录](https://github.com/Tests4gptplay/dsh-dots/releases) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues)
+## 连接自己的 Dot
+
+1. **启用服务。** 打开 MCP 开关，点击「检查本地连接」，复制设置页提供的本机 MCP 地址。
+2. **接通访问。** 按 [官方 Secure MCP Tunnel 指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) 将隧道目标设为该地址；或使用已有 HTTPS 转发，保留完整 MCP 路径，在设置页保存转发域名并复制生成的注册地址。
+3. **在 ChatGPT 注册。** 按 [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt) 打开网页版 **Plugins → + → Add custom MCP server**，选择隧道或填写 HTTPS 地址。本插件使用完整地址中的访问密钥，表单中的认证方式选择 **No authentication**。
+4. **交给 Dot 使用。** 创建并安装连接，在 [Dot 的插件设置](https://help.openai.com/en/articles/20001530-getting-started-with-your-dot) 中启用它。先让 Dot 查询 DSH 状态和已有会话，再提交第一项任务；设置页会显示实际收到的工具调用。
+
+连接地址带有当前 DSH 的访问权限，请仅交给获授权的客户端。需要更换访问凭据时，可在设置页更新连接密钥。ChatGPT 账户与工作区的可用选项以官方注册页面为准。
+
+## 日常使用
+
+连接完成后，可以让 Dot「在指定工作区读取数据，整理成报告并保存」，也可以在同一会话中追加要求、查看执行结果或取消任务。可用工具由这台 DSH 的配置决定。
+
+在 DSH 内嵌页面或手机 ChatGPT 中使用 Dot，都可以通过已配置的远程连接访问同一台 DSH；远程使用时，保持电脑上的 DSH 和隧道或 HTTPS 服务运行。
+
+## 更新与反馈
+
+实机截图、原生环境验证和两轮文件任务实验，集中在 [2.0.0 更新记录](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.md)。其他版本见 [更新记录索引](CHANGELOG.md)。
+
+遇到问题可在 [Issues](https://github.com/Tests4gptplay/dsh-dots/issues) 提交 DSH 版本、系统和错误提示；连接密钥请从截图与日志中移除。
+
+## 支持项目
+
+感谢支持 DSH Dots 的开发与维护。[捐赠与赞助](SPONSOR.md) · [Ko-fi](https://ko-fi.com/kou392350) · [支付宝](SPONSOR.md#alipay--支付宝)
