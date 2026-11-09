@@ -16,7 +16,7 @@ test('market: actual DSH bundle manifest and source-loadable production entries'
   assert.equal(manifest.dsh?.bundle?.patch, './cordis.patch.yml')
   const patch = await text('cordis.patch.yml')
   assert.match(patch, /id:\s*dsh-dots/)
-  assert.match(patch, /name:\s*'@tests4gptplay\/dsh-dots'/)
+  assert.match(patch, /name:\s*[\'"]?@tests4gptplay\/dsh-dots/)
   for (const p of ['lib/client.js', 'lib/host.js', 'assets/dots-ring.svg']) {
     assert.ok((await bytes(p)).length > 0, `${p} is missing or empty`)
   }

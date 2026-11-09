@@ -6,4 +6,6 @@ const wrapper = `window.__ModuleLoader__.load({ id: '@tests4gptplay/dsh-dots', f
 const host = await readFile('src/host.mjs', 'utf8')
 await writeFile('lib/client.js', wrapper)
 await writeFile('lib/host.js', host)
+await writeFile('lib/persistence.mjs', await readFile('src/persistence.mjs', 'utf8'))
+await writeFile('lib/persistence-after-exit.mjs', await readFile('src/persistence-after-exit.mjs', 'utf8'))
 console.log('DSH Dots: generated native host/client bundles.')

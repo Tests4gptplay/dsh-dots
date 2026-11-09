@@ -9,7 +9,7 @@ const manifest = JSON.parse(await readFile(new URL('../package.json', import.met
 const expected = [
   'LICENSE', 'README.en.md', 'README.md', 'CHANGELOG.md',
   'assets/dots-ring.svg', 'cordis.patch.yml',
-  'lib/client.js', 'lib/host.js', 'locale/en.json', 'locale/zh.json',
+  'lib/client.js', 'lib/host.js', 'lib/persistence.mjs', 'lib/persistence-after-exit.mjs', 'locale/en.json', 'locale/zh.json',
   'package.json', 'scripts/enable-desktop-persistence.py',
 ].sort()
 const proc = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm',

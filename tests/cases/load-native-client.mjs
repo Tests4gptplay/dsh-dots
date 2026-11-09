@@ -33,7 +33,7 @@ function createNode(tag, created) {
 }
 
 /** Executes the actual production client bundle behind a fake DSH Slot Host. */
-export async function loadNativeClient({ language = 'zh', browserAvailable = true, registryAvailable = true, desktopBridge, onUpdate } = {}) {
+export async function loadNativeClient({ language = 'zh', browserAvailable = true, registryAvailable = true, desktopBridge, onUpdate, connection } = {}) {
   const runtime = createTestReact(onUpdate)
   const slots = []
   let dictionaries = {}
@@ -58,7 +58,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   } } : undefined
   let client
   const sandbox = {
-    URL,
+    URL, AbortController,
     getComputedStyle(node) { return { display: node.style.display || 'block' } },
     ResizeObserver: class { observe() {} disconnect() {} },
     MutationObserver: class { observe() {} disconnect() {} },
@@ -84,7 +84,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   const compiled = await readFile(new URL('../../lib/client.js', import.meta.url), 'utf8')
   vm.runInNewContext(compiled, sandbox, { filename: 'lib/client.js' })
   const ctx = {
-    layout,
+    layout, connection,
     effect(callback) { const dispose = callback(); if (typeof dispose === 'function') disposers.push(dispose) },
     locale: {
       subscribe(fn) { localeListeners.add(fn); return () => localeListeners.delete(fn) },
