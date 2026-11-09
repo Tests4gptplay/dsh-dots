@@ -1,6 +1,8 @@
 DSH Dots 2.0.0 — bundled third-party licenses
 The MCP protocol module bundles the packages below. DSH Dots source remains under its repository LICENSE.
 
+Build adaptation: the SDK legacy batch-count constant uses Number.MAX_SAFE_INTEGER. Protocol parsing is unchanged.
+
 
 ========================================================================
 @hono/node-server 2.1.6

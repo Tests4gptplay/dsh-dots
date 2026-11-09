@@ -6,6 +6,8 @@
 
 MCP 默认关闭，与登录保持统一放在「设置 → Dots」。同页提供连接地址、复制、本地检查、调用状态和官方接入指南；开关选择随 DSH 配置保存。保留原有网页预加载、切换保留、主题适配及 Desktop 登录保持。
 
+改进原生参数与大文件请求的传递、带路径前缀的 HTTPS 接入，以及连接检查期间的开关操作。
+
 [完整更新、实机截图与验证记录](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.md) · [English release notes](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.en.md)
 
 ## 1.0.12（2026-11-09）

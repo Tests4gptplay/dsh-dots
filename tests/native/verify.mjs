@@ -1,5 +1,6 @@
 /** Real shipped DSH profile + packed plugin. Set DSH_NATIVE_ROOT to an isolated npm installation of @deepseek-ai/dsh. */
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { mkdtemp,mkdir,readFile,writeFile,symlink,rm,copyFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join,resolve } from 'node:path'
@@ -38,17 +39,28 @@ try{
  const native=await call('dsh_status');assert.ok(native.nativeApiCount>0);pass('Native API registry discovered',{apiCount:native.nativeApiCount,namespaces:native.namespaces.length})
  const created=await call('dsh_session_create',{cwd:workspace}),id=created.sessionId;assert.ok(id);pass('Native Session created')
  const sessions=await call('dsh_sessions');assert.ok(JSON.stringify(sessions).includes(id));pass('Native Session listed')
+ const wait=await call('dsh_session_wait',{sessionId:id,afterSeq:-1,timeoutMs:1000});assert.equal(wait.state.running,false);pass('Native wait accepts afterSeq minus one')
+ const emptyEvents=await call('dsh_session_events',{sessionId:id,throughSeq:-1});assert.equal(emptyEvents.cursor,-1);pass('Native history accepts throughSeq minus one')
+ const invalid=await client.callTool({name:'dsh_session_wait',arguments:{sessionId:id,afterSeq:-2}});assert.equal(invalid.isError,true);assert.equal(invalid.structuredContent.error.code,'gateway/bad-request');pass('Native parameter rejection retains its original error code')
+ assert.equal(list.tools.find(t=>t.name==='dsh_session_create').annotations.destructiveHint,false);assert.equal(list.tools.find(t=>t.name==='dsh_tools').annotations.destructiveHint,false);pass('Tool hints distinguish native creation and inspection')
  const description=await call('dsh_api_describe',{namespace:'session',method:'list'});const wire=Object.keys(description.inputSchema.properties)[0]
  const generic=await call('dsh_api_call',{namespace:'session',method:'list',args:{[wire]:{}}});assert.ok(JSON.stringify(generic).includes(id));pass('Reflected API schema and generic invocation')
  const snapshot=await call('dsh_api_snapshot',{namespace:'workspace',method:'follow',args:{}});assert.equal(snapshot.value.type,'baseline');pass('Native stream snapshot and subscription cleanup')
  const tools=await call('dsh_tools',{sessionId:id});assert.ok(tools.tools.some(t=>t.name==='write'));pass('Native session tool catalog',{nativeTools:tools.tools.length})
  await call('dsh_tool_call',{sessionId:id,name:'write',arguments:{file_path:'native-file.txt',content:'PACKED_NATIVE_DSH_MCP_OK\n'}})
  assert.equal(await readFile(join(workspace,'native-file.txt'),'utf8'),'PACKED_NATIVE_DSH_MCP_OK\n');pass('Native file write verified on disk')
+ const large='DSH MCP large file\n'+'x'.repeat(5*1024*1024)
+ await call('dsh_tool_call',{sessionId:id,name:'write',arguments:{file_path:'large-file.txt',content:large}})
+ const stored=await readFile(join(workspace,'large-file.txt'));assert.equal(stored.toString(),large)
+ pass('Native file write over five MiB verified byte-for-byte',{bytes:stored.length,sha256:createHash('sha256').update(stored).digest('hex')})
  const read=await call('dsh_tool_call',{sessionId:id,name:'read',arguments:{file_path:'native-file.txt'}});assert.ok(JSON.stringify(read).includes('PACKED_NATIVE_DSH_MCP_OK'));pass('Native file read returns actual contents')
  await copyFile(join(repository,'assets/dots-market-icon.png'),join(workspace,'native-image.png'))
  const image=await client.callTool({name:'dsh_tool_call',arguments:{sessionId:id,name:'read_image',arguments:{file_path:'native-image.png'}}})
  assert.notEqual(image.isError,true,JSON.stringify(image));assert.ok(image.content.some(c=>c.type==='image'));pass('Native image becomes MCP image content')
  assert.equal((await rpc('check')).lastCheck.ok,true);pass('Settings local discovery check')
+ const payload=JSON.stringify(Array.from({length:101},(_,i)=>({jsonrpc:'2.0',id:i+1,method:'ping'})))
+ const batch=await fetch(firstUrl,{method:'POST',headers:{'content-type':'application/json',accept:'application/json, text/event-stream','MCP-Protocol-Version':'2025-11-25'},body:payload})
+ assert.equal(batch.status,200);const replies=(await batch.text()).split('\n').filter(l=>l.startsWith('data: ')).map(l=>JSON.parse(l.slice(6))).flat();assert.equal(replies.length,101);pass('Packed native MCP completes 101-message legacy batch')
  const missing=await client.callTool({name:'dsh_session_state',arguments:{sessionId:'does-not-exist'}});assert.equal(missing.isError,true);pass('Native errors retain MCP error semantics')
  const cancelled=await call('dsh_session_cancel',{sessionId:id});assert.equal(cancelled.accepted,true);pass('Native cancel command')
  await client.close();client=undefined;await rpc('configure',{enabled:false});await assert.rejects(fetch(firstUrl));pass('Off switch releases listening endpoint')

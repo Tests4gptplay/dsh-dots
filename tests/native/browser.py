@@ -34,8 +34,20 @@ with sync_playwright() as p:
         page.screenshot(path=str(out/'native-settings-on.png'),full_page=True)
         panel.get_by_role('heading',name=re.compile(r'Connect your ChatGPT Dot|连接到 ChatGPT Dot')).scroll_into_view_if_needed()
         page.screenshot(path=str(out/'native-connection-guide.png'),full_page=True)
+        # Delay only the diagnostic request to exercise the real UI cancellation path.
+        held=[]
+        def hold_check(route):
+            held.append(route)
+        page.route('**/api/dsh-dots-mcp/check',hold_check)
+        with page.expect_request('**/api/dsh-dots-mcp/check'):
+            panel.get_by_role('button',name=re.compile(r'Check local connection|检查本地连接')).click()
+        expect(switch).to_be_enabled()
+        page.screenshot(path=str(out/'native-check-pending.png'),full_page=True)
         switch.click();expect(switch).not_to_be_checked()
         expect(switch).to_be_enabled()
+        for route in held:
+            route.abort()
+        page.unroute('**/api/dsh-dots-mcp/check',hold_check)
         expect(panel.get_by_test_id('dots-mcp-state')).to_have_text(re.compile(r'^Off$|已关闭'))
         page.reload(wait_until='domcontentloaded')
         # Native model onboarding is deliberately deferred, so it reappears on reload.
@@ -45,7 +57,7 @@ with sync_playwright() as p:
         page.get_by_role('menuitem',name=re.compile(r'^(Settings|设置)')).click()
         page.get_by_role('button',name='Dots',exact=True).click()
         expect(page.get_by_test_id('dots-mcp-settings').get_by_role('switch')).not_to_be_checked()
-        (out/'browser-report.json').write_text(json.dumps({'result':'passed','engine':'Chromium','checks':['same Dots settings entry','default off','enable','real local MCP check','masked connection URL','four official guide links','disable','reload retains choice'],'pageErrors':errors},ensure_ascii=False,indent=2))
+        (out/'browser-report.json').write_text(json.dumps({'result':'passed','engine':'Chromium','checks':['same Dots settings entry','default off','enable','real local MCP check','masked connection URL','four official guide links','disable during delayed diagnostic','reload retains choice'],'pageErrors':errors},ensure_ascii=False,indent=2))
     except Exception:
         (out/'browser-traceback.txt').write_text(traceback.format_exc())
         page.screenshot(path=str(out/'native-browser-failure.png'),full_page=True)

@@ -5,6 +5,9 @@ import { McpServer, createMcpHandler, fromJsonSchema } from '@modelcontextprotoc
 import { toNodeHandler, hostHeaderValidation, originValidation } from '@modelcontextprotocol/node'
 
 export const VERSION = '2.0.0'
+// The SDK requires a finite byte count. Use the JavaScript counting boundary,
+// not a product-specific file/message quota, in both HTTP layers.
+const maxRequestBodySize = Number.MAX_SAFE_INTEGER
 export function resultOf(value) {
   const normalized = JSON.parse(JSON.stringify(value ?? null, (_k, v) => typeof v === 'bigint' ? String(v) : v))
   const data = normalized !== null && !Array.isArray(normalized) && typeof normalized === 'object' ? normalized : { value: normalized }
@@ -35,26 +38,26 @@ export function makeHandler(adapter, { onCall = () => {}, onError = () => {} } =
       })
     }
     return server
-  }, { legacy: 'stateless', keepAliveMs: 0, onerror: onError })
+  }, { legacy: 'stateless', keepAliveMs: 0, maxSubscriptions: Infinity, maxRequestBodySize, onerror: onError })
 }
 
 export async function startMcpServer({ adapter, token, port = 0, publicOrigin = '', onCall, onError = () => {} }) {
   const path = `/mcp/${token}`
+  const paths = [path, ...(publicOrigin ? [new URL(publicOrigin).pathname.replace(/\/+$/, '') + path] : [])].map(value => Buffer.from(value))
   const allowedHosts = ['127.0.0.1', 'localhost', '[::1]']
   if (publicOrigin) allowedHosts.push(new URL(publicOrigin).hostname)
   const checkHost = hostHeaderValidation(allowedHosts)
   const checkOrigin = originValidation(allowedHosts)
   const handler = makeHandler(adapter, { onCall, onError })
-  const nodeHandler = toNodeHandler(handler)
+  const nodeHandler = toNodeHandler(handler, { maxRequestBodySize })
   const sockets = new Set()
   let closed = false
-  const http = createServer(async (req, res) => {
+  const http = createServer({ requestTimeout: 0 }, async (req, res) => {
     res.setHeader('Cache-Control', 'no-store')
     let requested
     try { requested = new URL(req.url, 'http://localhost').pathname } catch { res.writeHead(400).end(); return }
     const received = Buffer.from(requested)
-    const expected = Buffer.from(path)
-    if (closed || received.length !== expected.length || !timingSafeEqual(received, expected)) {
+    if (closed || !paths.some(expected => received.length === expected.length && timingSafeEqual(received, expected))) {
       res.writeHead(404).end('Not found'); return
     }
     if (!checkHost(req, res) || !checkOrigin(req, res)) return

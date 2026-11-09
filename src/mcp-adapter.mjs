@@ -3,8 +3,10 @@ import { randomUUID } from 'node:crypto'
 
 const str = { type: 'string' }
 const obj = { type: 'object', additionalProperties: true }
-const integer = { type: 'integer', minimum: 0 }
-const schema = (properties = {}, required = []) => ({ type: 'object', properties, required, additionalProperties: false })
+// Numeric domains belong to the native API (for example, cursors can be -1).
+const integer = { type: 'integer' }
+const schema = (properties = {}, required = [], additionalProperties = false) => ({ type: 'object', properties, required, additionalProperties })
+const nativeSchema = (properties = {}, required = []) => schema(properties, required, true)
 const session = { sessionId: { ...str, description: 'Native DSH Session ID returned by create/list.' } }
 const apiArgs = { namespace: str, method: str, args: { ...obj, description: 'Exact named wire arguments from dsh_api_describe.' } }
 export const getService = (ctx, name) => ctx.get?.(name) ?? ctx[name]
@@ -42,45 +44,46 @@ export function createDshAdapter(ctx, peer) {
     return invoke('session', method, { [parameter?.wire ?? (method === 'list' ? '_request' : 'request')]: value }, signal)
   }
   const tools = []
+  // Hints describe the operation; the native host and MCP client own approvals.
+  const openExecution = new Set(['dsh_session_prompt', 'dsh_api_call', 'dsh_api_snapshot', 'dsh_tool_call'])
   const add = (name, description, inputSchema, readOnly, run) => tools.push({
     name, description, inputSchema,
-    annotations: { readOnlyHint: readOnly, destructiveHint: !readOnly, idempotentHint: readOnly, openWorldHint: true },
+    annotations: { readOnlyHint: readOnly, destructiveHint: openExecution.has(name), idempotentHint: readOnly, openWorldHint: openExecution.has(name) },
     run,
   })
   add('dsh_status', 'Inspect the connected DSH environment and available native API namespaces. This does not start a task.', schema(), true,
     async () => ({ plugin: 'dsh-dots', version: '2.0.0',
       namespaces: [...new Set(registry().map(d => d.namespace))].sort(),
-      nativeApiCount: registry().length, toolsAvailable: Boolean(getService(ctx, 'tools')) }))
-  add('dsh_sessions', 'List existing DSH conversations. Use an existing sessionId to continue work.', schema(), true,
-    (_a, signal) => request('list', {}, signal))
+      nativeApiCount: registry().length, nativeApiAvailable: Boolean(getService(ctx, 'typertGateway')), toolsAvailable: Boolean(getService(ctx, 'tools')) }))
+  add('dsh_sessions', 'List existing DSH conversations. Use an existing sessionId to continue work.', nativeSchema(), true,
+    (a, signal) => request('list', a, signal))
   add('dsh_session_create', 'Create a native DSH conversation in a workspace or directory. Returns its sessionId; DSH owns its lifetime.',
-    schema({ workspaceId: str, cwd: str, sessionId: str, agentPreset: str }), false,
+    nativeSchema({ workspaceId: str, cwd: str, sessionId: str, agentPreset: str }), false,
     (a, signal) => request('create', a, signal))
   add('dsh_session_prompt', 'Send or append instructions to a DSH session. queue adds a next turn; steer gives input to the current turn. Returns acceptance, not completion. Use state/wait/events for results. Empty content requests native retry.',
-    schema({ ...session, text: str, content: { type: 'array', items: obj }, mode: { enum: ['queue', 'steer'] }, requestId: str, clientTimeZone: str }, ['sessionId']), false,
+    nativeSchema({ ...session, text: { ...str, description: 'Convenience text, prepended to content when both are supplied.' }, content: { type: 'array', items: obj }, mode: { ...str, description: 'Native delivery mode; queue adds a turn, steer updates the current turn.' }, requestId: str, clientTimeZone: str }, ['sessionId']), false,
     async (a, signal) => {
-      if (a.text !== undefined && a.content !== undefined) throw new Error('Supply text or content, not both.')
-      if (a.text === undefined && a.content === undefined) throw new Error('Supply text or content (an empty array explicitly requests retry).')
+      const { text, content, ...native } = a
       const requestId = a.requestId ?? randomUUID()
-      const result = await request('prompt', { sessionId: a.sessionId, requestId, mode: a.mode ?? 'queue',
-        content: a.content ?? [{ type: 'text', text: a.text }],
-        ...(a.clientTimeZone === undefined ? {} : { clientTimeZone: a.clientTimeZone }) }, signal)
+      const parts = text === undefined ? content : [{ type: 'text', text }, ...(content ?? [])]
+      const result = await request('prompt', { ...native, requestId, mode: a.mode ?? 'queue',
+        ...(parts === undefined ? {} : { content: parts }) }, signal)
       return { ...result, sessionId: a.sessionId, requestId }
     })
-  add('dsh_session_state', 'Read the native current state, including running, idle, pending input and errors.', schema(session, ['sessionId']), true,
+  add('dsh_session_state', 'Read the native current state, including running, idle, pending input and errors.', nativeSchema(session, ['sessionId']), true,
     (a, signal) => request('state', a, signal))
   add('dsh_session_wait', 'Wait using DSH native session lifecycle. Returns idle, input-required or timeout with state and output. timeoutMs is the native wait budget; it never cancels the task.',
-    schema({ ...session, timeoutMs: integer, afterSeq: integer, maxMessages: integer }, ['sessionId']), true,
+    nativeSchema({ ...session, timeoutMs: integer, afterSeq: { ...integer, description: 'Native exclusive sequence cursor; -1 starts before the first event.' }, maxMessages: integer }, ['sessionId']), true,
     (a, signal) => request('wait', a, signal))
   add('dsh_session_events', 'Read persisted DSH messages and execution events, using native sequence cursors for paging.',
-    schema({ ...session, throughSeq: integer, beforeSeq: integer, maxMessages: integer, turnWindow: obj }, ['sessionId']), true,
+    nativeSchema({ ...session, throughSeq: { ...integer, description: 'Native inclusive sequence cursor; -1 selects an empty history.' }, beforeSeq: integer, maxMessages: integer, turnWindow: obj }, ['sessionId']), true,
     ({ sessionId, ...rest }, signal) => request('events', { address: { kind: 'session', sessionId }, ...rest }, signal))
-  add('dsh_session_cancel', 'Explicitly cancel the named native session turn. Turning off the MCP connection does not call this tool.', schema(session, ['sessionId']), false,
+  add('dsh_session_cancel', 'Explicitly cancel the named native session turn. Turning off the MCP connection does not call this tool.', nativeSchema(session, ['sessionId']), false,
     (a, signal) => request('cancel', a, signal))
   add('dsh_model_catalog', 'List provider/model choices offered by the current DSH profile.', schema(), true,
     (_a, signal) => invoke('session', 'modelCatalog', {}, signal))
   add('dsh_session_model', 'Select a native provider, model and optional reasoning effort for future turns of a session.',
-    schema({ ...session, provider: str, model: str, reasoningEffort: str }, ['sessionId', 'provider', 'model']), false,
+    nativeSchema({ ...session, provider: str, model: str, reasoningEffort: str }, ['sessionId', 'provider', 'model']), false,
     (a, signal) => request('selectModel', a, signal))
   add('dsh_api_list', 'Discover all currently registered DSH native API methods, including workspace, files, terminal, jobs, agents, configuration and installed plugins. Filter by namespace or description; then describe the exact method.',
     schema({ namespace: str, query: str }), true,

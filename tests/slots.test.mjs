@@ -94,6 +94,6 @@ test('production host registers persistence and optional MCP through native conn
   let injected
   host.apply({ inject(deps, callback) { injected = deps; callback(scoped) } })
   assert.deepEqual(injected, ['connection'])
-  assert.deepEqual(nested[0], ['typertGateway', 'typert'])
+  assert.deepEqual(nested, [], 'MCP lifetime follows the connection, not native API loading')
   assert.equal(effects.length, 2)
 })

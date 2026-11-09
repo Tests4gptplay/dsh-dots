@@ -124,15 +124,18 @@ test('invalid input is explained without replacing working preferences', async t
  await assert.rejects(control.configure({ port: -1 }), /port/)
  assert.equal(control.status().localUrl, s.localUrl)
  assert.throws(() => validatePreferences({ enabled: 'yes' }), /boolean/)
- assert.throws(() => validatePreferences({ publicOrigin: 'https://example.com/extra' }), /origin/)
+ assert.throws(() => validatePreferences({ publicOrigin: 'http://example.com/extra' }), /HTTPS/)
 })
-test('native gateway availability can recover by retrying the existing switch', async t => {
+test('native gateway availability recovers without restarting the MCP listener', async t => {
  const { control, ctx } = await controller(t)
  const gateway = ctx.typertGateway;delete ctx.typertGateway
- await assert.rejects(control.configure({ enabled: true }), /gateway/)
- assert.equal(control.status().running, false)
+ const status = await control.configure({ enabled: true })
+ assert.equal(status.running, true)
+ const c = await client(t, status.localUrl)
+ assert.equal((await c.callTool({ name: 'dsh_sessions', arguments: {} })).isError, true)
  ctx.typertGateway = gateway
- assert.equal((await control.configure({ enabled: true })).running, true)
+ assert.notEqual((await c.callTool({ name: 'dsh_sessions', arguments: {} })).isError, true)
+ assert.equal(control.status().localUrl, status.localUrl)
 })
 test('reflection preserves actual DSH wire argument names and schemas', async () => {
  const { ctx, calls } = context(), peer = {};const a = createDshAdapter(ctx, peer)
@@ -150,8 +153,8 @@ test('prompt accepts text, queues continuation and preserves idempotency request
  const out = await prompt.run({ sessionId: 's1', text: 'continue', requestId: 'request-1' })
  assert.equal(out.requestId, 'request-1');assert.equal(calls[0].args.request.mode, 'queue')
  assert.deepEqual(calls[0].args.request.content, [{ type: 'text', text: 'continue' }])
- await assert.rejects(prompt.run({ sessionId: 's1' }), /Supply/)
- await prompt.run({ sessionId: 's1', content: [] });assert.deepEqual(calls[1].args.request.content, [])
+ await prompt.run({ sessionId: 's1' });assert.equal('content' in calls[1].args.request, false, 'Native validation owns missing content')
+ await prompt.run({ sessionId: 's1', content: [] });assert.deepEqual(calls[2].args.request.content, [])
 })
 test('native stream snapshots release only their subscription', async () => {
  const { ctx } = context();let released = false
