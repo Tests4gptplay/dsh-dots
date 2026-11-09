@@ -1,0 +1,55 @@
+name: Build verified MCP bridge corrections
+on:
+  push:
+    branches: ['2.0.0']
+    paths: ['.github/workflows/mcp-bridge-repair-build.yml']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply reviewed source changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/Tests4gptplay/dsh-dots/git/blobs/4ebdf4164a390013a0ab35d65200d07181d89474 > "$RUNNER_TEMP/bridge-patch.json"
+          python - <<'PY'
+          import os,json,base64,lzma,hashlib
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          blob=json.loads((root/'bridge-patch.json').read_text())
+          patch=lzma.decompress(base64.b64decode(blob['content']))
+          assert hashlib.sha256(patch).hexdigest()=='0964ee1d4dc60ee19e9c38bbbfacb216ddfcbcca174bb56e4b982040b61954c6'
+          (root/'bridge.patch').write_bytes(patch)
+          PY
+          git apply --index "$RUNNER_TEMP/bridge.patch"
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - run: npm test
+      - run: npm run pack:check
+      - name: Commit source and matching production output
+        run: |
+          git rm .github/workflows/mcp-bridge-repair-build.yml
+          git add src lib scripts tests docs/releases CHANGELOG.md THIRD-PARTY-NOTICES.txt
+          git diff --cached --stat
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: preserve native MCP and DSH contracts across parameters, payloads and lifecycle'
+          git push origin HEAD:refs/heads/2.0.0
+      - name: Candidate package and source
+        run: |
+          npm pack --ignore-scripts
+          git archive --format=zip --output=dsh-dots-2.0.0-source.zip HEAD
+          sha256sum dsh-dots-2.0.0.tgz dsh-dots-2.0.0-source.zip > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dots-2.0.0-bridge-repair-build
+          path: |
+            dsh-dots-2.0.0.tgz
+            dsh-dots-2.0.0-source.zip
+            SHA256SUMS.txt
+          retention-days: 14
