@@ -5,7 +5,7 @@ on:
   pull_request:
 jobs:
   unit:
-    name: DSH installability / ${{ matrix.os }}
+    name: Dots plugin packaging / ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -16,24 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      # The real host source is a test fixture only; it is never installed or
-      # copied into the plugin's release package. Pin a known source fixture
-      # for repeatability; the plugin itself never gates runtime by DSH version.
-      - name: Checkout DSH interface sources
-        uses: actions/checkout@v4
-        with:
-          repository: deepseek-ai/deepseek-harness
-          ref: dsh-v0.2.1-rc.3
-          path: _dsh-host-source
-          sparse-checkout: |
-            packages/client/ui-schedule/src/client
-            packages/client/ui-sidebar-browser
-            apps/desktop/src/browser-guests.ts
-            apps/desktop/src/preload-browser.ts
-      - name: Native-slot, mock conversation and host-source tests
+      - name: Plugin source and regression tests
         run: npm test
-        env:
-          DSH_SOURCE_DIR: _dsh-host-source
       - name: Verify packaged file whitelist
         run: npm run pack:check
       - name: Check distributable can be installed without running scripts

@@ -106,7 +106,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   const main = slots.find(slot => slot.options.name === 'main')
   const icon = slots.find(slot => slot.options.name === 'sidebar.panellist')
   const root = column.children.find(child => child.className?.includes('dotsPersistentPage'))
-  return { client, runtime, slots, styles, main, icon, nativeOpened, props: main.options.inject(), created,
+  return { client, runtime, slots, styles, main, icon, context: ctx, nativeOpened, props: main.options.inject(), created,
     bodyChildren, windowEvents, centerChildren: column.children, root, panelListeners,
     localeListeners,
     setLanguage(value) { language = value; for (const fn of localeListeners) fn() },

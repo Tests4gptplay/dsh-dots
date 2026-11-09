@@ -1,6 +1,6 @@
 # DSH Dots
 
-> **1.0.12-review.1 review candidate** · [Changelog](CHANGELOG.md) · [Acceptance and scope](https://github.com/Tests4gptplay/dsh-dots/blob/f3bc47068bfc52565b573a48549e90d49590880f/docs/testing/ACCEPTANCE.md).
+> **1.0.12-review.2 review candidate** · [Changelog](CHANGELOG.md) · [Acceptance and scope](https://github.com/Tests4gptplay/dsh-dots/blob/f3bc47068bfc52565b573a48549e90d49590880f/docs/testing/ACCEPTANCE.md).
 
 
 ## Use Dots inside DSH
@@ -29,11 +29,11 @@ Open [ChatGPT Dots](https://chatgpt.com/dots/home) in a native DeepSeek Harness 
 
 Open Dots from DSH on Desktop or Web; use Open in browser if the website restricts embedded display.
 
-Review candidate: **1.0.12-review.1**. Current public release: **1.0.11**.
+Review candidate: **1.0.12-review.2**. Current public release: **1.0.11**.
 
 ## Install or update
 
-The installation instructions below refer to public release **1.0.11**. Install candidate **1.0.12-review.1** using the `.tgz` delivered for review.
+The installation instructions below refer to public release **1.0.11**. Install candidate **1.0.12-review.2** using the `.tgz` delivered for review.
 
 **First installation (Desktop):** Open **Plugins → Add plugin** in the sidebar (or **Install a third-party plugin** in the arrow menu). Paste the complete line below into **Package name or address**, click **Install**, check the version and click **Enable now**.
 

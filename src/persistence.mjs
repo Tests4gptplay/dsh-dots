@@ -15,7 +15,7 @@ const unlink = promisify(fileSystem.unlink)
 const readdir = promisify(fileSystem.readdir)
 const stat = promisify(fileSystem.stat)
 import { createHash } from 'node:crypto'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { execFileSync, spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
@@ -33,7 +33,7 @@ function asarHeader(bytes) {
   const headerSize = bytes.readUInt32LE(4)
   const jsonSize = bytes.readUInt32LE(12)
   const base = 8 + headerSize
-  if (headerSize < 8 || headerSize > 64 * 1024 * 1024 || jsonSize < 2 || 16 + jsonSize > base || base > bytes.length) {
+  if (headerSize < 8 || jsonSize < 2 || 16 + jsonSize > base || base > bytes.length) {
     throw new Error('DSH Desktop app.asar 文件头长度异常')
   }
   let header
@@ -50,19 +50,26 @@ function asarHeader(bytes) {
   }
   return { header, entry, start, end, module: bytes.subarray(start, end).toString('utf8') }
 }
-function once(source, needle) { return source.split(needle).length - 1 }
-/** Require the bundled DesktopBrowserGuests source and its session allocator context. */
-function moduleState(source) {
+// Match the precise allocator assignment while tolerating harmless compiled whitespace changes.
+// The owning class, session allocation, and workspace registration must still agree.
+const ORIGINAL_CODE = /\bpartition\s*=\s*`dsh-sidebar-browser-\$\{\s*randomUUID\s*\(\s*\)\s*\}`\s*;?/gu
+const PATCHED_CODE = /\bpartition\s*=\s*workspace\s*===\s*["']dsh-dots:personal-browser["']\s*\?\s*["']persist:dsh-dots-personal-browser["']\s*:\s*`dsh-sidebar-browser-\$\{\s*randomUUID\s*\(\s*\)\s*\}`\s*;?/gu
+function allocator(source) {
   const start = source.search(/(?:var\s+DesktopBrowserGuests\s*=\s*class|class\s+DesktopBrowserGuests)\b/u)
-  if (start === -1) return 'incompatible'
+  if (start < 0) return { state: 'incompatible' }
   const endMarker = source.indexOf('//#endregion', start)
-  const body = source.slice(start, endMarker > start ? endMarker : start + 14_000)
-  const original = once(body, ORIGINAL)
-  const patched = once(body, PATCHED)
-  const context = body.includes('this.partitions.set(workspace, partition)') && body.includes('session.fromPartition(partition)')
-  if (!context || original + patched !== 1) return 'incompatible'
-  return patched === 1 ? 'applied' : 'available'
+  const body = source.slice(start, endMarker > start ? endMarker : undefined)
+  const context = /this\s*\.\s*partitions\s*\.\s*set\s*\(\s*workspace\s*,\s*partition\s*\)/u.test(body)
+    && /session\s*\.\s*fromPartition\s*\(\s*partition\s*\)/u.test(body)
+  if (!context) return { state: 'incompatible' }
+  const originals = [...body.matchAll(ORIGINAL_CODE)]
+  const patches = [...body.matchAll(PATCHED_CODE)]
+  if (originals.length + patches.length !== 1) return { state: 'incompatible' }
+  const matched = originals[0] ?? patches[0]
+  return { state: patches.length === 1 ? 'applied' : 'available',
+    offset: start + matched.index, matched: matched[0] }
 }
+function moduleState(source) { return allocator(source).state }
 function refreshIntegrity(entry, bytes) {
   if (entry.integrity) {
     const size = entry.integrity.blockSize
@@ -86,13 +93,12 @@ function shiftedHeader(header, selectedEntry, delta) {
 /** Rebuild an entire ASAR using its existing entries and one exact module change. */
 export function rewriteArchive(bytes, direction = 'apply') {
   const { header, entry, start, end, module } = asarHeader(bytes)
-  const state = moduleState(module)
-  const from = direction === 'apply' ? ORIGINAL : PATCHED
-  const to = direction === 'apply' ? PATCHED : ORIGINAL
-  if (state !== (direction === 'apply' ? 'available' : 'applied')) {
+  const match = allocator(module)
+  if (match.state !== (direction === 'apply' ? 'available' : 'applied')) {
     throw new Error('DSH Desktop 浏览器分区代码与修复目标不匹配')
   }
-  const changed = Buffer.from(module.replace(from, to))
+  const to = direction === 'apply' ? PATCHED : ORIGINAL
+  const changed = Buffer.from(module.slice(0, match.offset) + to + module.slice(match.offset + match.matched.length))
   const delta = changed.length - entry.size
   entry.size = changed.length
   refreshIntegrity(entry, changed)
@@ -164,8 +170,28 @@ export async function inspect(options = {}) {
 }
 function pendingPath(path) { return `${path}.dots-persistence-pending.json` }
 async function readPending(path) {
-  try { return JSON.parse(await readFile(pendingPath(path), 'utf8')) }
+  let contents
+  try { contents = await readFile(pendingPath(path), 'utf8') }
   catch (error) { if (error.code === 'ENOENT') return null; throw error }
+  try {
+    const data = JSON.parse(contents)
+    return data && typeof data === 'object' && !Array.isArray(data) ? data : { status: 'invalid' }
+  } catch (error) {
+    if (error instanceof SyntaxError) return { status: 'invalid' }
+    throw error
+  }
+}
+async function clearPending(path, record) {
+  // Only remove this plugin's own staged archives, never application or user files.
+  const stages = record?.status === 'invalid'
+    ? (await readdir(dirname(path))).filter(name => name.startsWith(`${basename(path)}.dots-persistence-stage-`)
+      && /\.dots-persistence-stage-[a-f0-9]{16}$/u.test(name)).map(name => join(dirname(path), name))
+    : record && typeof record.expectedSha === 'string' && /^[a-f0-9]{64}$/u.test(record.expectedSha)
+      && record.stage === `${path}.dots-persistence-stage-${record.expectedSha.slice(0, 16)}` ? [record.stage] : []
+  for (const stage of stages) {
+    await unlink(stage).catch(error => { if (error.code !== 'ENOENT') throw error })
+  }
+  await unlink(pendingPath(path)).catch(error => { if (error.code !== 'ENOENT') throw error })
 }
 /** Schedule one operation when Windows keeps the active ASAR open. An IPC disconnect
  * from the DSH Host triggers it after application exit, without a polling service. */
@@ -174,17 +200,16 @@ async function scheduleAfterExit(path, expected, payload) {
   const stage = `${path}.dots-persistence-stage-${sha.slice(0, 16)}`
   const pending = { archive: path, stage, expectedSha: sha, resultSha: digest(payload), status: 'scheduled' }
   const existing = await readPending(path)
-  if (existing) {
-    if (existing.status === 'scheduled' && existing.expectedSha === sha && existing.resultSha === pending.resultSha) {
+  if (existing?.status === 'scheduled' && existing.expectedSha === sha) {
+    if (existing.resultSha === pending.resultSha) {
       return { state: 'scheduled', archive: path, changed: false, restartRequired: true, canRestore: false }
     }
-    if (existing.status === 'failed' && existing.expectedSha === sha) {
-      await unlink(existing.stage).catch(() => {})
-      await unlink(pendingPath(path))
-    } else {
-      throw new Error('存在另一项未完成的 DSH 安装文件修复，请先检查之前操作的结果')
-    }
+    // A different operation against this very same archive may still be waiting for exit.
+    throw new Error('已有一项针对当前 DSH 安装文件的操作排队等待退出')
   }
+  if (existing) await clearPending(path, existing)
+  // A previous interrupted write may have left its own staged file behind.
+  await unlink(stage).catch(error => { if (error.code !== 'ENOENT') throw error })
   await writeFile(stage, payload, { flag: 'wx' })
   try {
     if (digest(await readArchive(stage)) !== pending.resultSha) throw new Error('延后应用文件校验失败')
@@ -225,24 +250,37 @@ async function ensureWritableMac(options) {
   } catch { return } // Unsigned developer build
   throw new Error('此 macOS 应用带有系统代码签名，修改 app.asar 会使签名失效')
 }
-async function replaceAndVerify(path, expected, payload) {
+export async function replaceAndVerify(path, expected, payload, verifyInstalled = readArchive) {
   const staged = `${path}.dots-stage-${process.pid}-${Date.now()}`
   const displaced = `${path}.dots-replaced-${process.pid}-${Date.now()}`
-  let moved = false
+  let originalMoved = false
+  let replacementMoved = false
+  let installed = false
   try {
     await writeFile(staged, payload, { flag: 'wx' })
     if (digest(await readArchive(staged)) !== digest(payload)) throw new Error('临时文件写入校验失败')
     if (digest(await readArchive(path)) !== digest(expected)) throw new Error('DSH 安装文件已变动，未执行替换')
-    await rename(path, displaced); moved = true
-    try { await rename(staged, path); moved = false }
-    catch (error) {
-      await rename(displaced, path).catch(() => {})
-      throw error
+    await rename(path, displaced)
+    originalMoved = true
+    await rename(staged, path)
+    replacementMoved = true
+    if (digest(await verifyInstalled(path)) !== digest(payload)) throw new Error('安装文件替换后的校验失败')
+    installed = true
+  } catch (error) {
+    if (originalMoved) {
+      try {
+        if (replacementMoved) await unlink(path)
+        await rename(displaced, path)
+        originalMoved = false
+      } catch (restoreError) {
+        // Keep the displaced original and its path available for recovery.
+        throw new AggregateError([error, restoreError], `安装文件替换失败，原版保存在 ${displaced}`)
+      }
     }
-    if (digest(await readArchive(path)) !== digest(payload)) throw new Error('安装文件替换后的校验失败')
+    throw error
   } finally {
     await unlink(staged).catch(() => {})
-    if (!moved) await unlink(displaced).catch(() => {})
+    if (installed) await unlink(displaced).catch(() => {})
   }
 }
 export async function applyPersistence(options = {}) {
@@ -264,6 +302,8 @@ export async function applyPersistence(options = {}) {
     }
     throw error
   }
+  const oldPending = await readPending(archive)
+  if (oldPending) await clearPending(archive, oldPending)
   return { state: 'applied', archive, backup, canRestore: true, changed: true, restartRequired: true }
 }
 export async function restorePersistence(options = {}) {
@@ -281,5 +321,7 @@ export async function restorePersistence(options = {}) {
     }
     throw error
   }
+  const oldPending = await readPending(archive)
+  if (oldPending) await clearPending(archive, oldPending)
   return { state: 'available', archive, backup, canRestore: false, changed: true, restartRequired: true }
 }

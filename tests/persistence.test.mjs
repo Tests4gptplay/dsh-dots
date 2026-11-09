@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import {
   ORIGINAL, PATCHED, rewriteArchive, inspect, applyPersistence, restorePersistence,
-  locateArchive,
+  locateArchive, replaceAndVerify,
 } from '../src/persistence.mjs'
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex')
@@ -159,5 +159,94 @@ test('after-exit operation refuses to replace an upgraded archive', async () => 
     await writeFile(archive, upgraded)
     await assert.rejects(finishScheduled(manifest), /DSH 已更新/)
     assert.equal(sha(await readFile(archive)), sha(upgraded))
+  })
+})
+
+test('harmless whitespace in allocator context still permits Dots-only adaptation', async () => {
+  await withArchive(async ({ archive }) => {
+    const spaced = main.replace('this.partitions.set(workspace, partition)', 'this.partitions.set(workspace,partition)')
+    await writeFile(archive, makeAsar(spaced))
+    assert.equal((await inspect({ override: archive })).state, 'available')
+    const applied = await applyPersistence({ override: archive })
+    assert.equal(applied.state, 'applied')
+    await restorePersistence({ override: archive })
+    assert.equal((await readFile(archive)).toString('hex'), makeAsar(spaced).toString('hex'))
+  })
+})
+
+test('a partial pending record cannot prevent inspection or a subsequent repair', async () => {
+  await withArchive(async ({ archive }) => {
+    const orphan = `${archive}.dots-persistence-stage-${sha(await readFile(archive)).slice(0, 16)}`
+    await writeFile(orphan, Buffer.from('interrupted stage'))
+    await writeFile(`${archive}.dots-persistence-pending.json`, '{"status":')
+    assert.equal((await inspect({ override: archive })).state, 'available')
+    assert.equal((await applyPersistence({ override: archive })).state, 'applied')
+    await assert.rejects(readFile(`${archive}.dots-persistence-pending.json`), { code: 'ENOENT' })
+    await assert.rejects(readFile(orphan), { code: 'ENOENT' })
+  })
+})
+
+test('failed exit helper returns a failure exit code and retains a readable failure record', async () => {
+  const { spawn } = await import('node:child_process')
+  await withArchive(async ({ dir, archive, source }) => {
+    const patched = rewriteArchive(source)
+    const stage = join(dir, 'stage.asar')
+    const manifest = `${archive}.dots-persistence-pending.json`
+    await writeFile(stage, patched)
+    await writeFile(manifest, JSON.stringify({ archive, stage,
+      expectedSha: sha(Buffer.from('a different DSH version')), resultSha: sha(patched), status: 'scheduled' }))
+    const child = spawn(process.execPath,
+      [fileURLToPath(new URL('../src/persistence-after-exit.mjs', import.meta.url)), manifest],
+      { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] })
+    await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject) })
+    child.disconnect()
+    const code = await new Promise(resolve => child.once('exit', resolve))
+    assert.equal(code, 1)
+    const status = JSON.parse(await readFile(manifest, 'utf8'))
+    assert.equal(status.status, 'failed')
+    assert.equal(sha(await readFile(archive)), sha(source))
+  })
+})
+
+
+test('failed post-install verification restores the displaced original, preserving the user installation', async () => {
+  await withArchive(async ({ dir, archive, source }) => {
+    const patched = rewriteArchive(source)
+    await assert.rejects(replaceAndVerify(archive, source, patched, async () => Buffer.from('damaged')),
+      /安装文件替换后的校验失败/)
+    assert.equal(sha(await readFile(archive)), sha(source), 'original is restored after failed verification')
+    const names = await readdir(dir)
+    assert.equal(names.some(name => name.includes('.dots-replaced-')), false)
+    assert.equal(names.some(name => name.includes('.dots-stage-')), false)
+  })
+})
+
+test('outdated scheduled state is cleared after a successful current-version repair', async () => {
+  await withArchive(async ({ dir, archive, source }) => {
+    const record = `${archive}.dots-persistence-pending.json`
+    const oldSha = sha(Buffer.from('previous version'))
+    const stage = `${archive}.dots-persistence-stage-${oldSha.slice(0, 16)}`
+    await writeFile(stage, Buffer.from('old pending data'))
+    await writeFile(record, JSON.stringify({ archive, stage, expectedSha: oldSha,
+      resultSha: sha(Buffer.from('old pending data')), status: 'scheduled' }))
+    assert.equal((await inspect({ override: archive })).state, 'available')
+    assert.equal((await applyPersistence({ override: archive })).state, 'applied')
+    await assert.rejects(readFile(record), { code: 'ENOENT' })
+    await assert.rejects(readFile(stage), { code: 'ENOENT' })
+    assert.equal((await inspect({ override: archive })).state, 'applied')
+  })
+})
+
+test('compiled allocator formatting and long method bodies do not create arbitrary repair gates', async () => {
+  await withArchive(async ({ archive }) => {
+    const alt = main.replace(ORIGINAL, 'partition  =  `dsh-sidebar-browser-${ randomUUID ( ) }` ;')
+      .replace('session.fromPartition(partition)', 'session.fromPartition( partition )')
+      .replace('this.partitions.set(workspace, partition)', 'this.partitions.set( workspace , partition )')
+      .replace('  acquire(owner, workspace)', ' '.repeat(17000) + '  acquire(owner, workspace)')
+    await writeFile(archive, makeAsar(alt))
+    assert.equal((await inspect({ override: archive })).state, 'available')
+    assert.equal((await applyPersistence({ override: archive })).state, 'applied')
+    await restorePersistence({ override: archive })
+    assert.equal(sha(await readFile(archive)), sha(makeAsar(alt)))
   })
 })

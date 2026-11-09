@@ -95,3 +95,38 @@ test('Host registers exactly three authenticated DSH endpoints, no new listening
   await dispose()
   assert.equal(endpoints.size,0)
 })
+
+test('settings entry survives connection service becoming available later', async () => {
+  const opts = setup({ state: 'available', archive: '/test/app.asar', canRestore: false })
+  const page = await loadNativeClient({ desktopBridge: opts.desktopBridge })
+  const slot = sectionOf(page)
+  assert.ok(slot, 'settings slot is independent of connection readiness')
+  page.context.connection = opts.connection
+  page.runtime.mount(slot.component, slot.options.inject())
+  await tick()
+  assert.ok(opts.calls.some(x => x.method.endsWith('/status')))
+  page.runtime.unmount()
+  await page.dispose()
+})
+
+test('queued restore is reported as queued, not already restored', async () => {
+  const opts = setup({ state: 'applied', archive: '/test/app.asar', canRestore: true })
+  opts.connection.rpc.call = async (_path, method) => {
+    opts.calls.push({ method })
+    if (method.endsWith('/status')) return { ok: true, value: { state: 'applied', canRestore: true, archive: '/test/app.asar' } }
+    return { ok: true, value: { state: 'scheduled', archive: '/test/app.asar', changed: true, restartRequired: true } }
+  }
+  const page = await loadNativeClient(opts)
+  const slot = sectionOf(page)
+  page.runtime.mount(slot.component, slot.options.inject())
+  await tick()
+  const view = () => flatten(page.runtime.mount(slot.component, slot.options.inject()))
+  const restore = view().find(n => n.type === 'button' && n.props?.children === '恢复原版')
+  restore.props.onClick()
+  await tick()
+  const messages = view().filter(n => n.props?.role === 'status').map(n => n.props.children).join(' ')
+  assert.match(messages, /已安排/)
+  assert.doesNotMatch(messages, /已恢复原版/)
+  page.runtime.unmount()
+  await page.dispose()
+})
