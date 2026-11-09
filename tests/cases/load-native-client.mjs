@@ -33,7 +33,7 @@ function createNode(tag, created) {
 }
 
 /** Executes the actual production client bundle behind a fake DSH Slot Host. */
-export async function loadNativeClient({ language = 'zh', browserAvailable = true, registryAvailable = true, desktopBridge, onUpdate } = {}) {
+export async function loadNativeClient({ language = 'zh', browserAvailable = true, registryAvailable = true, desktopBridge, onUpdate, connection } = {}) {
   const runtime = createTestReact(onUpdate)
   const slots = []
   let dictionaries = {}
@@ -58,7 +58,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   } } : undefined
   let client
   const sandbox = {
-    URL,
+    URL, AbortController,
     getComputedStyle(node) { return { display: node.style.display || 'block' } },
     ResizeObserver: class { observe() {} disconnect() {} },
     MutationObserver: class { observe() {} disconnect() {} },
@@ -66,7 +66,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
       addEventListener(k, fn) { windowEvents.set(k, fn) },
       removeEventListener(k) { windowEvents.delete(k) },
       dshDesktop: desktopBridge,
-      __ModuleLoader__: { load({ id, factory }) { if (id !== '@tests4gptplay/dsh-dots') throw new Error('Wrong module'); client = factory(id => {
+      __ModuleLoader__: { load({ id, factory }) { if (id !== 'dsh-dots') throw new Error('Wrong module'); client = factory(id => {
         if (id === 'react') return runtime.React
         throw new Error(`Unexpected dependency ${id}`)
       }) } },
@@ -84,7 +84,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   const compiled = await readFile(new URL('../../lib/client.js', import.meta.url), 'utf8')
   vm.runInNewContext(compiled, sandbox, { filename: 'lib/client.js' })
   const ctx = {
-    layout,
+    layout, connection,
     effect(callback) { const dispose = callback(); if (typeof dispose === 'function') disposers.push(dispose) },
     locale: {
       subscribe(fn) { localeListeners.add(fn); return () => localeListeners.delete(fn) },
@@ -106,7 +106,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
   const main = slots.find(slot => slot.options.name === 'main')
   const icon = slots.find(slot => slot.options.name === 'sidebar.panellist')
   const root = column.children.find(child => child.className?.includes('dotsPersistentPage'))
-  return { client, runtime, slots, styles, main, icon, nativeOpened, props: main.options.inject(), created,
+  return { client, runtime, slots, styles, main, icon, context: ctx, nativeOpened, props: main.options.inject(), created,
     bodyChildren, windowEvents, centerChildren: column.children, root, panelListeners,
     localeListeners,
     setLanguage(value) { language = value; for (const fn of localeListeners) fn() },

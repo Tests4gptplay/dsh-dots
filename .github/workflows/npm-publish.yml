@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/npm-publish.yml'
       - 'scripts/npm/**'
-      - 'release/npm/1.0.11.json'
+      - 'release/npm/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -29,21 +29,7 @@ jobs:
           node-version: '24.22.1'
       - name: Use the verified pack toolchain
         run: npm install --global npm@11.9.0 --ignore-scripts
-      - name: Checkout official DSH interface fixtures
-        uses: actions/checkout@v4
-        with:
-          repository: deepseek-ai/deepseek-harness
-          ref: dsh-v0.2.1-rc.3
-          path: _dsh-host-source
-          persist-credentials: false
-          sparse-checkout: |
-            packages/client/ui-schedule/src/client
-            packages/client/ui-sidebar-browser
-            apps/desktop/src/browser-guests.ts
-            apps/desktop/src/preload-browser.ts
       - name: Run existing Dots tests and package whitelist
-        env:
-          DSH_SOURCE_DIR: _dsh-host-source
         run: |
           npm test
           npm run pack:check

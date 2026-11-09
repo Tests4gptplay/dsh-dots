@@ -12,11 +12,11 @@ const bytes = path => readFile(new URL(path, root))
 
 test('market: actual DSH bundle manifest and source-loadable production entries', async () => {
   const manifest = JSON.parse(await text('package.json'))
-  assert.equal(manifest.name, '@tests4gptplay/dsh-dots')
+  assert.equal(manifest.name, 'dsh-dots')
   assert.equal(manifest.dsh?.bundle?.patch, './cordis.patch.yml')
   const patch = await text('cordis.patch.yml')
   assert.match(patch, /id:\s*dsh-dots/)
-  assert.match(patch, /name:\s*'@tests4gptplay\/dsh-dots'/)
+  assert.match(patch, /name:\s*[\'"]?dsh-dots/)
   for (const p of ['lib/client.js', 'lib/host.js', 'assets/dots-ring.svg']) {
     assert.ok((await bytes(p)).length > 0, `${p} is missing or empty`)
   }
@@ -29,7 +29,7 @@ test('market: actual DSH bundle manifest and source-loadable production entries'
   assert.equal(manifest.repository?.url, 'git+https://github.com/Tests4gptplay/dsh-dots.git')
 })
 
-test('market: Chinese + English metadata and transparent attribution of browser-only feature', async () => {
+test('market: Chinese + English metadata and concise user-facing features', async () => {
   const zh = JSON.parse(await text('locale/zh.json'))
   const en = JSON.parse(await text('locale/en.json'))
   for (const locale of [zh,en]) {
@@ -40,8 +40,10 @@ test('market: Chinese + English metadata and transparent attribution of browser-
   const english = await text('README.en.md')
   assert.match(readme, /https:\/\/chatgpt\.com\/dots\/home/)
   assert.match(english, /https:\/\/chatgpt\.com\/dots\/home/)
-  assert.match(readme, /模拟|嵌入|iframe/i)
-  assert.match(english, /mock|embedding|iframe/i)
+  assert.match(readme, /预加载/)
+  assert.match(readme, /登录保持/)
+  assert.match(english, /preload/i)
+  assert.match(english, /login retention/i)
 })
 
 test('market: GitHub-hostable raster tile is square and mock screenshots are not advertised as real Dots', async () => {

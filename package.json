@@ -1,7 +1,7 @@
 {
-  "name": "@tests4gptplay/dsh-dots",
-  "version": "1.0.11",
-  "description": "在 DSH 中使用 ChatGPT Dots，支持启动预加载、页面切换保留、中英文主题适配、刷新和外部浏览器打开；提供需单独应用的 Windows 登录态持久化配套工具。",
+  "name": "dsh-dots",
+  "version": "1.0.12",
+  "description": "在 DeepSeek Harness 中使用 ChatGPT Dots，支持预加载、页面状态保留、主题适配和 Desktop 登录保持设置。",
   "type": "module",
   "main": "./lib/host.js",
   "exports": {
@@ -15,14 +15,15 @@
   "files": [
     "lib/host.js",
     "lib/client.js",
+    "lib/persistence.mjs",
+    "lib/persistence-after-exit.mjs",
     "assets/dots-ring.svg",
     "cordis.patch.yml",
     "locale/*.json",
     "README.md",
     "README.en.md",
     "CHANGELOG.md",
-    "LICENSE",
-    "scripts/enable-desktop-persistence.py"
+    "LICENSE"
   ],
   "dsh": {
     "bundle": {
@@ -31,7 +32,9 @@
     "client": {
       "platform": "web",
       "inject": [
+        "@deepseek-ai/dsh-client-connection",
         "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-settings",
         "@deepseek-ai/dsh-client-ui-layout",
         "@deepseek-ai/dsh-client-ui-sidebar",
         "@deepseek-ai/dsh-client-ui-renderer",
@@ -52,7 +55,9 @@
     "@deepseek-ai/dsh-client-ui-primitives": "*",
     "@deepseek-ai/dsh-client-ui-renderer": "*",
     "@deepseek-ai/dsh-client-ui-sidebar": "*",
-    "react": "*"
+    "react": "*",
+    "@deepseek-ai/dsh-client-connection": "*",
+    "@deepseek-ai/dsh-client-ui-settings": "*"
   },
   "repository": {
     "type": "git",

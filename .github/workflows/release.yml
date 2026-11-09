@@ -23,20 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Checkout DSH interface contract sources
-        uses: actions/checkout@v4
-        with:
-          repository: deepseek-ai/deepseek-harness
-          ref: dsh-v0.2.1-rc.3
-          path: _dsh-host-source
-          sparse-checkout: |
-            packages/client/ui-schedule/src/client
-            packages/client/ui-sidebar-browser
-            apps/desktop/src/browser-guests.ts
-            apps/desktop/src/preload-browser.ts
       - name: Validate production and mock-test boundaries
-        env:
-          DSH_SOURCE_DIR: _dsh-host-source
         run: |
           npm test
           npm run pack:check

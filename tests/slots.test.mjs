@@ -81,9 +81,11 @@ test('system browser entry targets only the official Dots webpage', async () => 
   assert.doesNotMatch(JSON.stringify(render(page)), /模拟 Dot · 仅供测试/)
 })
 
-test('production host contains no account bridging or background task loop', async () => {
+test('production host exposes only user-invoked persistence maintenance', async () => {
   const host = await import('../lib/host.js')
   assert.equal(host.name, 'dsh-dots')
   assert.deepEqual(host.inject, [])
-  assert.equal(host.apply(), undefined)
+  let injected
+  host.apply({ inject(deps, callback) { injected = deps; callback({effect(register) { return register() }, connection: { fetch: { register() { return async () => {} } } }}) } })
+  assert.deepEqual(injected, ['connection'])
 })

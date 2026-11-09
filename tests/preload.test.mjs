@@ -59,3 +59,22 @@ test('Web profile keeps the original main-panel iframe', async () => {
   assert.equal(page.created.filter(node => node.tag === 'webview').length, 0)
   await page.dispose()
 })
+
+test('a temporarily zero-height Dots panel preserves its preloaded guest', async () => {
+  const calls = { release: 0 }
+  const bridge = {
+    async acquire() { return { lease: 'transient', partition: 'dots' } },
+    async release() { calls.release++ },
+  }
+  const page = await loadNativeClient({ desktopBridge: { browser: bridge } })
+  await tick()
+  const view = page.created.find(node => node.tag === 'webview')
+  page.root.getBoundingClientRect = () => ({ width: 800, height: 0 })
+  page.runtime.mount(page.main.component, page.props)
+  assert.equal(view.removed, false, 'layout timing must not destroy the guest')
+  assert.equal(calls.release, 0, 'zero height is not a failed guest')
+  assert.equal(page.root.style.display, 'flex')
+  page.runtime.unmount()
+  await page.dispose()
+  assert.equal(calls.release, 1)
+})
