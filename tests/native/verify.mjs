@@ -54,6 +54,9 @@ try{
  await client.close();client=undefined;await rpc('configure',{enabled:false});await assert.rejects(fetch(firstUrl));pass('Off switch releases listening endpoint')
  state=await rpc('configure',{enabled:true});assert.equal(state.localUrl,firstUrl);client=await open(state.localUrl)
  assert.ok(JSON.stringify(await call('dsh_sessions')).includes(id));pass('Reenable preserves connection URL and DSH session')
+ await client.close();client=undefined;await stop()
+ await login(await start());state=await rpc('status');assert.equal(state.enabled,true);assert.equal(state.running,true);assert.equal(state.localUrl,firstUrl);pass('On preference and connection URL survive real host restart')
+ client=await open(state.localUrl);assert.ok(JSON.stringify(await call('dsh_sessions')).includes(id));pass('Persisted native session remains available after host restart')
  await client.close();client=undefined;await rpc('configure',{enabled:false});await stop()
  const resumedUrl=await start();await login(resumedUrl);state=await rpc('status');assert.equal(state.enabled,false);assert.equal(state.running,false);pass('Off preference survives real host restart')
  if(process.env.DSH_BROWSER_TEST==='1'){

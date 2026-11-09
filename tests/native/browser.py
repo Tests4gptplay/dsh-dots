@@ -4,15 +4,20 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
 out=Path(os.environ['DSH_TEST_OUTPUT']);out.mkdir(parents=True,exist_ok=True)
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True)
+    launch={'headless': True}
+    if os.environ.get('DSH_CHROMIUM_PATH'):
+        launch['executable_path']=os.environ['DSH_CHROMIUM_PATH']
+    browser=p.chromium.launch(**launch)
     page=browser.new_page(viewport={'width':1440,'height':1050},locale='en-US')
     errors=[]
     page.on('pageerror',lambda error: errors.append(str(error)))
     try:
         page.goto(os.environ['DSH_TEST_URL'],wait_until='domcontentloaded')
-        settings=page.get_by_role('button',name=re.compile(r'^(Settings|设置)$')).first
-        settings.wait_for(state='visible',timeout=45000)
-        settings.click()
+        # A fresh real DSH profile presents onboarding before the application.
+        page.get_by_role('button',name=re.compile(r'^(Continue|继续)$')).click(timeout=45000)
+        page.get_by_role('button',name=re.compile(r'^(Configure later|稍后配置)$')).click()
+        page.get_by_role('button',name=re.compile(r'^(Account menu|账号菜单)$')).click()
+        page.get_by_role('menuitem',name=re.compile(r'^(Settings|设置)$')).click()
         page.get_by_role('button',name='Dots',exact=True).click()
         panel=page.get_by_test_id('dots-mcp-settings');expect(panel).to_be_visible()
         switch=panel.get_by_role('switch');expect(switch).not_to_be_checked();expect(switch).to_be_enabled()
@@ -27,8 +32,9 @@ with sync_playwright() as p:
         page.screenshot(path=str(out/'native-settings-on.png'),full_page=True)
         switch.uncheck();expect(switch).not_to_be_checked()
         page.reload(wait_until='domcontentloaded')
-        settings=page.get_by_role('button',name=re.compile(r'^(Settings|设置)$')).first
-        settings.wait_for(state='visible');settings.click();page.get_by_role('button',name='Dots',exact=True).click()
+        page.get_by_role('button',name=re.compile(r'^(Account menu|账号菜单)$')).click()
+        page.get_by_role('menuitem',name=re.compile(r'^(Settings|设置)$')).click()
+        page.get_by_role('button',name='Dots',exact=True).click()
         expect(page.get_by_test_id('dots-mcp-settings').get_by_role('switch')).not_to_be_checked()
         (out/'browser-report.json').write_text(json.dumps({'result':'passed','engine':'Chromium','checks':['same Dots settings entry','default off','enable','real local MCP check','masked connection URL','four official guide links','disable','reload retains choice'],'pageErrors':errors},ensure_ascii=False,indent=2))
     except Exception:
