@@ -1,0 +1,10 @@
+{
+  "name": "@tests4gptplay/dsh-dots",
+  "version": "1.0.12",
+  "filename": "tests4gptplay-dsh-dots-1.0.12.tgz",
+  "sha256": "e03ef368dafcb71368421653148198128aba583461d245a1c755540555aefe9b",
+  "integrity": "sha512-SGvdAYg58RaePIRLbf6YYZsBZ1KAC8xp02NmNR9KkU02iOOfEgfqV1zg1peh+0O9mcQB0c3gzO6xT1PVxYFhUA==",
+  "access": "public",
+  "tag": "latest",
+  "publish": true
+}
