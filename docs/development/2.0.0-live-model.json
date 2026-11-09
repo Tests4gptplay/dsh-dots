@@ -1,0 +1,30 @@
+{
+  "method":"The current ChatGPT assistant answered actual DSH model requests interactively through a temporary local OpenAI-completions transport relay. Native DSH executed the requested tools and returned their outputs for the assistant to read. The relay supplied transport only, not scripted model decisions.",
+  "environment":{"dsh":"0.2.2-rc.1","node":"24.22.2","platform":"Linux","plugin":"2.0.0"},
+  "inputCsv":"item,quantity,unit_price\nwidget-A,8,12\nwidget-B,6,40\nwidget-C,6,23\n",
+  "firstTurn":{
+    "request":"Read the input CSV, calculate item subtotals and grand total, save report.txt, then read it back to verify.",
+    "nativeToolSequence":["read input.csv","write report.txt","read report.txt"],
+    "verifiedSubtotals":[96,240,138],"verifiedGrandTotal":474,
+    "nativeWait":{"reason":"idle","state":{"cursor":32,"active":true,"running":false,"queue":[],"pendingInput":[]}}
+  },
+  "secondTurn":{
+    "request":"Continue the same session, read report.txt, add the total quantity, save and read it back.",
+    "nativeToolSequence":["read report.txt","write report.txt","read report.txt"],
+    "mcpDisabledDuringExecution":true,
+    "verifiedQuantity":20,
+    "reply":"Updated report.txt and read it back successfully. The total quantity is 20 (8 + 6 + 6), and the grand total remains 474.",
+    "retrievedAfterReenable":true,
+    "nativeWait":{"reason":"idle","state":{"cursor":56,"active":true,"running":false,"queue":[],"pendingInput":[]}}
+  },
+  "explicitCancellation":{
+    "pendingModelRequestObserved":true,
+    "before":{"cursor":61,"active":true,"running":true,"queue":[],"pendingInput":[]},
+    "accepted":true,
+    "after":{"cursor":64,"active":true,"running":false,"queue":[],"pendingInput":[]}
+  },
+  "verifiedReport":"Item subtotals\nwidget-A: 8 x 12 = 96\nwidget-B: 6 x 40 = 240\nwidget-C: 6 x 23 = 138\nGrand total: 474\nTotal quantity: 20\n",
+  "reportSha256":"7fb069ecf2aee2a5ef91e2e15a8bef5a0a14c66f95126c8aa6c31ec0dd112624",
+  "cleanup":"Native DSH, relay and test control server stopped after verification.",
+  "separateAcceptance":"Official ChatGPT Dot registration and phone remote invocation remain account-level acceptance."
+}

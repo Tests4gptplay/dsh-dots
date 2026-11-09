@@ -32,6 +32,8 @@ with sync_playwright() as p:
         links=panel.locator('a').evaluate_all('(nodes)=>nodes.map(n=>n.href)')
         assert len(links)==4 and all('openai.com' in link for link in links)
         page.screenshot(path=str(out/'native-settings-on.png'),full_page=True)
+        panel.get_by_role('heading',name=re.compile(r'Connect your ChatGPT Dot|连接到 ChatGPT Dot')).scroll_into_view_if_needed()
+        page.screenshot(path=str(out/'native-connection-guide.png'),full_page=True)
         switch.click();expect(switch).not_to_be_checked()
         expect(switch).to_be_enabled()
         expect(panel.get_by_test_id('dots-mcp-state')).to_have_text(re.compile(r'^Off$|已关闭'))
