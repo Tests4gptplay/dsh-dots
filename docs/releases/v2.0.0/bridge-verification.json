@@ -1,0 +1,162 @@
+{
+  "testedCommit": "0b853582c0699dd6bf2c7679ed9a3e36064e7e54",
+  "runtimeCommit": "8e7e917f4924275ca3f6ebffe86cb669f2947fd9",
+  "ciRun": "https://github.com/Tests4gptplay/dsh-dots/actions/runs/42697875721",
+  "unitTests": {
+    "Windows": {
+      "passed": 99,
+      "failed": 0
+    },
+    "Ubuntu": {
+      "passed": 99,
+      "failed": 0
+    }
+  },
+  "native": {
+    "environment": {
+      "platform": "linux",
+      "node": "v24.22.2",
+      "dsh": "0.2.2-rc.1",
+      "plugin": "2.0.0"
+    },
+    "checks": [
+      {
+        "name": "Packed plugin starts with MCP off",
+        "passed": true
+      },
+      {
+        "name": "Official MCP client discovers 16 tools",
+        "passed": true
+      },
+      {
+        "name": "Native API registry discovered",
+        "passed": true,
+        "apiCount": 144,
+        "namespaces": 30
+      },
+      {
+        "name": "Native Session created",
+        "passed": true
+      },
+      {
+        "name": "Native Session listed",
+        "passed": true
+      },
+      {
+        "name": "Native wait accepts afterSeq minus one",
+        "passed": true
+      },
+      {
+        "name": "Native history accepts throughSeq minus one",
+        "passed": true
+      },
+      {
+        "name": "Native parameter rejection retains its original error code",
+        "passed": true
+      },
+      {
+        "name": "Tool hints distinguish native creation and inspection",
+        "passed": true
+      },
+      {
+        "name": "Reflected API schema and generic invocation",
+        "passed": true
+      },
+      {
+        "name": "Native stream snapshot and subscription cleanup",
+        "passed": true
+      },
+      {
+        "name": "Native session tool catalog",
+        "passed": true,
+        "nativeTools": 31
+      },
+      {
+        "name": "Native file write verified on disk",
+        "passed": true
+      },
+      {
+        "name": "Native file write over five MiB verified byte-for-byte",
+        "passed": true,
+        "bytes": 5242899,
+        "sha256": "aa5da7eada66dab13d5e9cb3b078b2a064cfeb2e7c7a9b0e1a9651883e65876e"
+      },
+      {
+        "name": "Native file read returns actual contents",
+        "passed": true
+      },
+      {
+        "name": "Native image becomes MCP image content",
+        "passed": true
+      },
+      {
+        "name": "Settings local discovery check",
+        "passed": true
+      },
+      {
+        "name": "Packed native MCP completes 101-message legacy batch",
+        "passed": true
+      },
+      {
+        "name": "Native errors retain MCP error semantics",
+        "passed": true
+      },
+      {
+        "name": "Native cancel command",
+        "passed": true
+      },
+      {
+        "name": "Off switch releases listening endpoint",
+        "passed": true
+      },
+      {
+        "name": "Reenable preserves connection URL and DSH session",
+        "passed": true
+      },
+      {
+        "name": "On preference and connection URL survive real host restart",
+        "passed": true
+      },
+      {
+        "name": "Persisted native session remains available after host restart",
+        "passed": true
+      },
+      {
+        "name": "Off preference survives real host restart",
+        "passed": true
+      },
+      {
+        "name": "Native Chromium Settings acceptance",
+        "passed": true
+      }
+    ],
+    "status": "passed"
+  },
+  "browser": {
+    "result": "passed",
+    "engine": "Chromium",
+    "checks": [
+      "same Dots settings entry",
+      "default off",
+      "enable",
+      "real local MCP check",
+      "masked connection URL",
+      "four official guide links",
+      "disable during delayed diagnostic",
+      "reload retains choice"
+    ],
+    "pageErrors": []
+  },
+  "package": {
+    "file": "dsh-dots-2.0.0.tgz",
+    "bytes": 169693,
+    "sha256": "62efe7a519aab7833f9c4fd45ff20da7379a727b8a6cdbaa6a1c1d00df0c02be",
+    "files": 18
+  },
+  "screenshots": [
+    {
+      "file": "../../screenshots/v2.0.0/native-check-pending.png",
+      "sha256": "8d8a673985f28fbb95044105b4023abcdff101a1dd53cb4cc8cd29cbc1e88265"
+    }
+  ]
+}
