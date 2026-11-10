@@ -1,8 +1,8 @@
 /** Owns only the official tunnel-client installation and processes launched by this plugin. */
 import { createHash, randomUUID } from 'node:crypto'
 import { spawn } from 'node:child_process'
-import { access, chmod, mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
+import { access, chmod, mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { unzipSync } from 'fflate'
 
 const RELEASE_URL = 'https://api.github.com/repos/openai/tunnel-client/releases/latest'
@@ -41,6 +41,35 @@ export function extractTunnelArchive(bytes, destination) {
     }
   })()
 }
+/** Remove only directories created by the Dots installer; keep the active client and one previous copy.
+ * An executable currently used by a running tunnel also stays until that process stops.
+ */
+const managedClientName = /^v\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?-(?:win32|linux|darwin)-(?:x64|arm64)-[0-9a-f]{8}$/
+function managedClientDirectory(executable, root) {
+  if (!executable || !['tunnel-client', 'tunnel-client.exe'].includes(basename(executable))) return ''
+  const folder = dirname(resolve(executable))
+  return dirname(folder) === resolve(root) && managedClientName.test(basename(folder)) ? folder : ''
+}
+export async function pruneTunnelInstallations(root, current, previous = '', running = '') {
+  const base = resolve(root)
+  const keep = new Set([current, previous, running].map(path => managedClientDirectory(path, base)).filter(Boolean))
+  let entries
+  try { entries = await readdir(base, { withFileTypes: true }) }
+  catch (cause) { if (cause.code === 'ENOENT') return []; throw cause }
+  const removed = []
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !managedClientName.test(entry.name)) continue
+    const folder = join(base, entry.name)
+    if (keep.has(folder)) continue
+    // A matching directory must contain an official tunnel executable before removal.
+    const executable = join(folder, entry.name.includes('-win32-') ? 'tunnel-client.exe' : 'tunnel-client')
+    try { await access(executable) } catch { continue }
+    await rm(folder, { recursive: true, force: true })
+    removed.push(folder)
+  }
+  return removed
+}
+
 async function replaceJSON(path, value) {
   await mkdir(dirname(path), { recursive: true, mode: 0o700 })
   const temporary = `${path}.${randomUUID()}.tmp`
@@ -52,7 +81,7 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
   platform = process.platform, arch = process.arch, environment = process.env } = {}) {
   const root = resolve(dataDir), configFile = join(root, 'tunnel.json'), profileDir = join(root, 'tunnel-profiles')
   const profileFile = join(profileDir, 'dsh-dots.yaml')
-  let prefs = { installDirectory: join(root, 'tunnel-client'), executable: '', tunnelId: '' }
+  let prefs = { installDirectory: join(root, 'tunnel-client'), executable: '', previousExecutable: '', tunnelId: '' }
   let loaded, secret = '', runtime, operation, error = '', lastDiagnosis = null, health = null, disposed = false
   const clean = text => redactTunnelText(text, [secret, mcp.status().localUrl])
   const load = () => loaded ??= (async () => {
@@ -84,6 +113,12 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     if (typeof patch.apiKey === 'string' && patch.apiKey.trim()) secret = patch.apiKey.trim()
     error = ''
     return status()
+  }
+  // Clean only after a successful download or after the old process exits.
+  // Cleanup errors are reported, without undoing a successfully installed client.
+  async function prune() {
+    try { await pruneTunnelInstallations(prefs.installDirectory, prefs.executable, prefs.previousExecutable, runtime?.executable) }
+    catch (cause) { error = clean('Old tunnel-client cleanup failed: ' + (cause.message ?? cause)) }
   }
   const env = () => ({ ...environment, CONTROL_PLANE_API_KEY: secret || environment.CONTROL_PLANE_API_KEY || '' })
   function command(executable, args, signal) {
@@ -147,9 +182,11 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
         const destination = join(prefs.installDirectory, `${release.tag_name}-${platform}-${arch}-${randomUUID().slice(0, 8)}`)
         signal.throwIfAborted()
         await rename(temporary, destination)
-        const next = { ...prefs, executable: join(destination, executableName) }
+        const previousExecutable = managedClientDirectory(prefs.executable, prefs.installDirectory) ? prefs.executable : ''
+        const next = { ...prefs, executable: join(destination, executableName), previousExecutable }
         try { await replaceJSON(configFile, next); prefs = next }
         catch (cause) { await rm(destination, { recursive: true, force: true }); throw cause }
+        await prune()
         lastDiagnosis = { kind: 'installation', ok: true, output: tested.output, at: new Date().toISOString(), sha256: digest }
         return status()
       } finally { await rm(temporary, { recursive: true, force: true }) }
@@ -177,7 +214,7 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
       const healthFile = join(profileDir, `health-${randomUUID()}.url`)
       const child = spawnImpl(prefs.executable, ['run', '--profile-file', profileFile, '--health.url-file', healthFile],
         { env: env(), windowsHide: true, shell: false, detached: platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] })
-      const current = { child, healthFile, closed: null, stopping: false }
+      const current = { child, healthFile, closed: null, stopping: false, executable: prefs.executable }
       runtime = current; health = null; lastDiagnosis = null
       // Streams are drained. Details are read from the official client's health/doctor commands.
       let lastLine = ''
@@ -213,6 +250,7 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     }
     await current.closed
     if (runtime === current) runtime = undefined
+    await prune()
     health = null; lastDiagnosis = null
   }
   async function stop() { await stopProcess(); return status() }
