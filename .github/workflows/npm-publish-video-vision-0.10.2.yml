@@ -1,0 +1,83 @@
+name: Publish verified Video Vision 0.10.2 to npm
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/npm-publish-video-vision-0.10.2.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: scoped-npm-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org/
+      - name: Download and verify the exact released package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir npm-dist
+          gh release download v0.10.2 --repo Tests4gptplay/dsh-video-vision --pattern dsh-video-vision-0.10.2.tgz --dir npm-dist
+          echo 'aaa433fbf3811717a9bcf1a1247d9bb2e0834a5df2f94916e8ba127e9f106f7c  npm-dist/dsh-video-vision-0.10.2.tgz' | sha256sum -c -
+          python3 - <<'PY'
+          import tarfile,json,pathlib
+          with tarfile.open('npm-dist/dsh-video-vision-0.10.2.tgz') as t:
+              p=json.load(t.extractfile('package/package.json'))
+              assert p['name']=='@tests4gptplay/dsh-video-vision' and p['version']=='0.10.2'
+              assert p['repository']['url']=='git+https://github.com/Tests4gptplay/dsh-video-vision.git'
+              assert not p.get('private',False)
+              readme=t.extractfile('package/README.md').read().decode()
+              assert '@tests4gptplay/dsh-video-vision@0.10.2' in readme
+              assert readme.rfind('## 支持项目') > readme.rfind('## License')
+              assert 'package/SPONSOR.md' in t.getnames()
+          print('Exact release package identity and documentation verified')
+          PY
+      - name: Check immutable version before publishing
+        id: registry
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const data=readFileSync('npm-dist/dsh-video-vision-0.10.2.tgz');
+          const integrity='sha512-'+createHash('sha512').update(data).digest('base64');
+          const r=await fetch('https://registry.npmjs.org/@tests4gptplay%2Fdsh-video-vision/0.10.2');
+          if(r.status===404){appendFileSync(process.env.GITHUB_OUTPUT,'exists=false\n');}
+          else {if(!r.ok)throw Error('Registry HTTP '+r.status);const p=await r.json();if(p.dist.integrity!==integrity)throw Error('Existing version has different bytes');appendFileSync(process.env.GITHUB_OUTPUT,'exists=true\n');}
+          JS
+      - name: Publish exact tarball under latest
+        if: steps.registry.outputs.exists != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$NODE_AUTH_TOKEN" || { echo 'Existing shared NPM_TOKEN is unavailable'; exit 1; }
+          npm publish ./npm-dist/dsh-video-vision-0.10.2.tgz --access public --tag latest --ignore-scripts --provenance=false
+      - name: Verify public version, latest, repository and downloaded bytes
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const local=readFileSync('npm-dist/dsh-video-vision-0.10.2.tgz');
+          const registry='https://registry.npmjs.org/@tests4gptplay%2Fdsh-video-vision';
+          const r=await fetch(registry);if(!r.ok)throw Error('Registry HTTP '+r.status);
+          const meta=await r.json(),p=meta.versions?.['0.10.2'];
+          if(!p||meta['dist-tags'].latest!=='0.10.2')throw Error('Published version/latest mismatch');
+          if(!p.repository?.url?.includes('Tests4gptplay/dsh-video-vision'))throw Error('Repository mapping mismatch');
+          const body=await fetch(p.dist.tarball);if(!body.ok)throw Error('Tarball HTTP '+body.status);
+          const actual=Buffer.from(await body.arrayBuffer());
+          if(!actual.equals(local))throw Error('Public npm tarball differs from released tarball');
+          const result={name:p.name,version:p.version,latest:meta['dist-tags'].latest,publishedAt:meta.time['0.10.2'],repository:p.repository,dist:p.dist,sha256:createHash('sha256').update(actual).digest('hex'),releaseCommit:'6eb506b2f67fcc15d2de5c7f8bd94042bbc012b2',bytes:actual.length};
+          writeFileSync('npm-dist/npm-public-verification.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: video-vision-0.10.2-npm-publication
+          path: npm-dist/
+          if-no-files-found: error
