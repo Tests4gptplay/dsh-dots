@@ -10,6 +10,8 @@ MCP 默认关闭，与登录保持统一放在「设置 → Dots」。同页提�
 
 进一步完善 MCP 开关与配置保存的状态反馈、图片附件回传和 Desktop 浏览器资源释放。连接检查结果随服务启停更新，图片数据通过 MCP 图片内容传输，保留原生附件信息。
 
+根据新版 ChatGPT Plugins 界面更新中英文 MCP 注册与安装引导，覆盖连接创建、授权提示、个人插件安装和 Dot 侧调用。
+
 [完整更新、实机截图与验证记录](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.md) · [English release notes](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.en.md)
 
 ## 1.0.12（2026-11-09）
