@@ -1,10 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm, access, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, readdir, rm, access, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { zipSync, strToU8 } from 'fflate'
-import { createTunnelController, selectTunnelAsset, redactTunnelText, extractTunnelArchive, registerTunnelTransport } from '../lib/tunnel-control.mjs'
+import { createTunnelController, selectTunnelAsset, redactTunnelText, extractTunnelArchive, registerTunnelTransport, pruneTunnelInstallations } from '../lib/tunnel-control.mjs'
 
 async function fixture(t, options = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'dots-tunnel-test-'))
@@ -88,4 +88,26 @@ test('host lifecycle stop does not require parsing tunnel settings', async t => 
   const { dir, controller } = await fixture(t)
   await writeFile(join(dir, 'tunnel.json'), 'invalid json')
   await controller.suspend()
+})
+
+test('installer cleanup keeps current plus one previous copy, preserves a running client until stop, and leaves unrelated folders untouched', async t => {
+  const { dir } = await fixture(t)
+  const root = join(dir, 'tunnel-client')
+  const names = ['v0.0.18-linux-x64-11111111', 'v0.0.19-linux-x64-22222222', 'v0.0.20-linux-x64-33333333', 'v0.0.20-linux-x64-44444444']
+  for (const name of names) {
+    await mkdir(join(root, name), { recursive: true })
+    await writeFile(join(root, name, 'tunnel-client'), 'official-client')
+  }
+  await mkdir(join(root, 'custom-user-directory'))
+  await writeFile(join(root, 'custom-user-directory', 'notes.txt'), 'keep user data')
+  const active = join(root, names[3], 'tunnel-client'), previous = join(root, names[2], 'tunnel-client')
+  const running = join(root, names[1], 'tunnel-client')
+  const removedWhileRunning = await pruneTunnelInstallations(root, active, previous, running)
+  assert.deepEqual(removedWhileRunning.map(p => p.split('/').at(-1)), [names[0]])
+  await access(running)
+  const removedAfterStop = await pruneTunnelInstallations(root, active, previous)
+  assert.deepEqual(removedAfterStop.map(p => p.split('/').at(-1)), [names[1]])
+  const folders = (await readdir(root)).sort()
+  assert.deepEqual(folders, [names[2], names[3], 'custom-user-directory'].sort())
+  assert.equal(await readFile(join(root, 'custom-user-directory', 'notes.txt'), 'utf8'), 'keep user data')
 })
