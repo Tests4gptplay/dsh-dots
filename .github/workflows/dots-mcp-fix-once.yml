@@ -1,0 +1,115 @@
+name: Dots 2.0.0 targeted lifecycle fix (one shot)
+on:
+  push:
+    branches: ['2.0.0']
+    paths:
+      - .github/workflows/dots-mcp-fix-once.yml
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply exact reviewed source corrections
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/mcp-control.mjs')
+          s = p.read_text()
+          assert 'async function save() {' in s
+          s = s.replace('async function save() {', 'async function save(value = prefs) {')
+          assert "JSON.stringify(prefs, null, 2) + '\\n'" in s
+          s = s.replace("JSON.stringify(prefs, null, 2) + '\\n'", "JSON.stringify(value, null, 2) + '\\n'")
+          old = '  async function stop() {\n    for (const check of checks) check.abort()'
+          assert old in s
+          s = s.replace(old, '  async function stop() {\n    lastCheck = null\n    for (const check of checks) check.abort()')
+          old = """      const next = validatePreferences(patch, prefs)
+                const restart = next.port !== prefs.port || next.publicOrigin !== prefs.publicOrigin
+                prefs = next
+                await save()
+                if (restart || !prefs.enabled) await stop()
+                error = ''
+                await reconcile()
+                return status()
+          """.replace('                ', '      ')
+          new = """      const next = validatePreferences(patch, prefs)
+                const restart = next.port !== prefs.port || next.publicOrigin !== prefs.publicOrigin
+                // A requested disable closes the live listener even when saving is unavailable.
+                if (!next.enabled) await stop()
+                try { await save(next) } catch (cause) {
+                  if (!next.enabled) {
+                    prefs = { ...prefs, enabled: false }
+                    throw new Error('MCP is off, but saving this setting failed. The previous choice may be restored after DSH restarts.', { cause })
+                  }
+                  throw cause
+                }
+                prefs = next
+                if (restart && prefs.enabled) await stop()
+                error = ''
+                await reconcile()
+                return status()
+          """.replace('                ', '      ')
+          assert old in s
+          s = s.replace(old, new)
+          p.write_text(s)
+          p = Path('src/mcp-server.mjs')
+          s = p.read_text()
+          old = """  if (typeof data.data === 'string' && data.attachment?.mediaType?.startsWith('image/')) {
+              media.push({ type: 'image', data: data.data, mimeType: data.attachment.mediaType })
+            }
+          """.replace('            ', '  ')
+          new = """  if (typeof data.data === 'string' && data.attachment?.mediaType?.startsWith('image/')) {
+              media.push({ type: 'image', data: data.data, mimeType: data.attachment.mediaType })
+              // The MCP image block carries these bytes; keep the attachment metadata in text/structured output.
+              delete data.data
+            }
+          """.replace('            ', '  ')
+          assert old in s
+          s = s.replace(old,new)
+          p.write_text(s)
+          p = Path('src/client.js')
+          s = p.read_text()
+          needle = '/** Plain-DOM ring used by the persistent page; the React icon stays for the Web panel. */'
+          assert needle in s
+          s = s.replace(needle, """/** Report release failures at the UI boundary, after disposal has already been requested. */
+          function disposeDesktopGuest(guest) {
+            if (guest) void guest.dispose().catch(error => console.error('DSH Dots: desktop browser release failed', error))
+          }
+
+          """ + needle)
+          assert '      guest?.dispose()\n      page?.remove()' in s
+          s = s.replace('      guest?.dispose()\n      page?.remove()', '      disposeDesktopGuest(guest)\n      page?.remove()')
+          assert '    return () => { owner.current = null; void mounted.dispose() }' in s
+          s = s.replace('    return () => { owner.current = null; void mounted.dispose() }',
+                        '    return () => { owner.current = null; disposeDesktopGuest(mounted) }')
+          p.write_text(s)
+          p = Path('src/mcp-settings.js')
+          s = p.read_text()
+          old = "!status ? t('mcpLoading') : status.running ? t('mcpRunning') : status.error ? t('mcpError') : t('mcpOff')"
+          new = "!status ? t('mcpLoading') : status.running ? t('mcpRunning') : !status.enabled ? t('mcpOff') : status.error ? t('mcpError') : t('mcpOff')"
+          assert old in s
+          p.write_text(s.replace(old,new))
+          PY
+      - name: Compile and verify original test suite
+        run: |
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          npm test
+          npm run pack:check
+      - name: Commit source and compiled distribution, remove one-shot helper
+        shell: bash
+        run: |
+          rm .github/workflows/dots-mcp-fix-once.yml
+          git add src/mcp-control.mjs src/mcp-server.mjs src/client.js src/mcp-settings.js lib/mcp-control.mjs lib/mcp-server.mjs lib/client.js THIRD-PARTY-NOTICES.txt .github/workflows/dots-mcp-fix-once.yml
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(mcp): resolve shutdown persistence, image payloads and browser cleanup'
+          git push origin HEAD:2.0.0
