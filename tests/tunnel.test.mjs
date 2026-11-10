@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtemp, mkdir, readFile, readdir, rm, access, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { zipSync, strToU8 } from 'fflate'
 import { createTunnelController, selectTunnelAsset, redactTunnelText, extractTunnelArchive, registerTunnelTransport, pruneTunnelInstallations } from '../lib/tunnel-control.mjs'
@@ -103,10 +103,10 @@ test('installer cleanup keeps current plus one previous copy, preserves a runnin
   const active = join(root, names[3], 'tunnel-client'), previous = join(root, names[2], 'tunnel-client')
   const running = join(root, names[1], 'tunnel-client')
   const removedWhileRunning = await pruneTunnelInstallations(root, active, previous, running)
-  assert.deepEqual(removedWhileRunning.map(p => p.split('/').at(-1)), [names[0]])
+  assert.deepEqual(removedWhileRunning.map(basename), [names[0]])
   await access(running)
   const removedAfterStop = await pruneTunnelInstallations(root, active, previous)
-  assert.deepEqual(removedAfterStop.map(p => p.split('/').at(-1)), [names[1]])
+  assert.deepEqual(removedAfterStop.map(basename), [names[1]])
   const folders = (await readdir(root)).sort()
   assert.deepEqual(folders, [names[2], names[3], 'custom-user-directory'].sort())
   assert.equal(await readFile(join(root, 'custom-user-directory', 'notes.txt'), 'utf8'), 'keep user data')
