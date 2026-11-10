@@ -1,4 +1,4 @@
-# DSH Dots 2.0.0
+# DSH Dots 2.0.1-test.1
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
@@ -27,10 +27,10 @@ DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harne
 在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.0
+github:Tests4gptplay/dsh-dots#2.0.1-test.1
 ```
 
-本页对应 `2.0.0` 开发分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
+本页对应 `2.0.1-test.1` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
 
 安装后，从侧栏打开 **DSH Dots**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
 
