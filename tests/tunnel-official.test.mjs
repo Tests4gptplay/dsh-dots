@@ -3,7 +3,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
 import { readFile, mkdtemp, rm, access } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { createTunnelController, selectTunnelAsset } from '../lib/tunnel-control.mjs'
 import { startMcpServer } from '../lib/mcp-server.mjs'
@@ -58,7 +58,16 @@ test('official client installs, initializes, forwards MCP, reports health and st
     assert.ok(profile.includes(mcpServer.localUrl)); assert.ok(profile.includes('env:CONTROL_PLANE_API_KEY')); assert.ok(!profile.includes(key))
     const health = await controller.refresh(); assert.equal(health.running, true)
     assert.equal(health.health.ok, true, JSON.stringify(health.health))
+    // Each click fetches the latest release, and retains just one rollback copy.
+    const updated = await controller.install()
+    const newest = await controller.install()
+    assert.notEqual(updated.executable, installed.executable)
+    assert.notEqual(newest.executable, updated.executable)
+    await access(dirname(installed.executable)) // currently running binary is kept until stop
     const stopped = await controller.stop(); assert.equal(stopped.running, false)
+    await assert.rejects(access(dirname(installed.executable)), { code: 'ENOENT' })
+    await access(dirname(updated.executable))
+    await access(dirname(newest.executable))
     const restarted = await controller.start(); assert.equal(restarted.running, true); assert.notEqual(restarted.pid, started.pid)
     await controller.stop(); mcpOn = false
     await assert.rejects(controller.start(), /Enable MCP/)
