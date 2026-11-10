@@ -1,4 +1,4 @@
-# DSH Dots 2.0.0
+# DSH Dots 2.0.1-test.1
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
@@ -27,10 +27,10 @@ Existing features remain available: startup preload, retained pages across panel
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.0
+github:Tests4gptplay/dsh-dots#2.0.1-test.1
 ```
 
-This page describes the `2.0.0` development branch. Published versions and packages are available under [Releases](https://github.com/Tests4gptplay/dsh-dots/releases).
+This page describes the `2.0.1-test.1` test branch. Published versions and packages are available under [Releases](https://github.com/Tests4gptplay/dsh-dots/releases).
 
 Open **DSH Dots** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dots**.
 
