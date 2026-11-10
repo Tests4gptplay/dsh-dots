@@ -38,10 +38,10 @@ test('official client installs, initializes, forwards MCP, reports health and st
   })
   const api = await listen(remote)
   const mcpServer = await startMcpServer({ token: 'local-test-key', adapter: { tools: [{ name: 'test_echo', description: 'Local transport check', inputSchema: { type: 'object', properties: { value: { type: 'string' } }, required: ['value'] }, run: async ({ value }) => ({ value }) }] } })
-  let mcpOn = true
+  let mcpOn = true, releaseLookups = 0
   const controller = createTunnelController({ dataDir: dir, mcp: { status: () => ({ localUrl: mcpOn ? mcpServer.localUrl : '' }) },
     environment: { ...process.env, CONTROL_PLANE_BASE_URL: api },
-    fetchImpl: async url => url.includes('api.github.com') ? Response.json(release) : new Response(await readFile(join(official, url.split('/').at(-1)))),
+    fetchImpl: async url => url.includes('api.github.com') ? (releaseLookups++, Response.json(release)) : new Response(await readFile(join(official, url.split('/').at(-1)))),
   })
   try {
     const installed = await controller.install()
@@ -63,6 +63,7 @@ test('official client installs, initializes, forwards MCP, reports health and st
     const newest = await controller.install()
     assert.notEqual(updated.executable, installed.executable)
     assert.notEqual(newest.executable, updated.executable)
+    assert.equal(releaseLookups, 3, 'Every install must resolve the latest official GitHub Release')
     await access(dirname(installed.executable)) // currently running binary is kept until stop
     const stopped = await controller.stop(); assert.equal(stopped.running, false)
     await assert.rejects(access(dirname(installed.executable)), { code: 'ENOENT' })
