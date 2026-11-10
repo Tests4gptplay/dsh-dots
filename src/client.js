@@ -131,6 +131,11 @@ function mountDesktopDotGuest(host, bridge, onError, onLoaded) {
   }
 }
 
+/** Report release failures at the UI boundary, after disposal has already been requested. */
+function disposeDesktopGuest(guest) {
+  if (guest) void guest.dispose().catch(error => console.error('DSH Dots: desktop browser release failed', error))
+}
+
 /** Plain-DOM ring used by the persistent page; the React icon stays for the Web panel. */
 function ringSvgNode(size) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -269,7 +274,7 @@ function mountPersistentDotsPage(bridge, t, openExternal) {
     dispose() {
       disposed = true
       observer?.disconnect()
-      guest?.dispose()
+      disposeDesktopGuest(guest)
       page?.remove()
       page = undefined
     },
@@ -285,7 +290,7 @@ function DotsWebSurface({ reloadCount, onFailure, onLoaded, t }) {
     const mounted = mountDesktopDotGuest(container.current, bridge,
       () => onFailure(t('guestFailed')), onLoaded)
     owner.current = mounted
-    return () => { owner.current = null; void mounted.dispose() }
+    return () => { owner.current = null; disposeDesktopGuest(mounted) }
   }, [bridge])
   useEffect(() => {
     if (reloadCount > 0 && bridge) owner.current?.reload()

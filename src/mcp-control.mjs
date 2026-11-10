@@ -60,15 +60,16 @@ export function createMcpController(ctx, options = {}) {
     } catch (cause) { if (cause.code !== 'ENOENT') throw cause }
     loaded = true
   }
-  async function save() {
+  async function save(value = prefs) {
     await mkdir(dirname(configPath), { recursive: true, mode: 0o700 })
     const temporary = `${configPath}.${randomUUID()}.tmp`
     try {
-      await writeFile(temporary, JSON.stringify(prefs, null, 2) + '\n', { mode: 0o600, flag: 'wx' })
+      await writeFile(temporary, JSON.stringify(value, null, 2) + '\n', { mode: 0o600, flag: 'wx' })
       await rename(temporary, configPath)
     } finally { await rm(temporary, { force: true }) }
   }
   async function stop() {
+    lastCheck = null
     for (const check of checks) check.abort()
     checks.clear()
     const old = runtime, oldPeer = peer
@@ -114,9 +115,17 @@ export function createMcpController(ctx, options = {}) {
       if (disposed) throw new Error('Dots MCP plugin has been unloaded.')
       const next = validatePreferences(patch, prefs)
       const restart = next.port !== prefs.port || next.publicOrigin !== prefs.publicOrigin
+      // A requested disable closes the live listener even when saving is unavailable.
+      if (!next.enabled) await stop()
+      try { await save(next) } catch (cause) {
+        if (!next.enabled) {
+          prefs = { ...prefs, enabled: false }
+          throw new Error('MCP is off, but saving this setting failed. The previous choice may be restored after DSH restarts.', { cause })
+        }
+        throw cause
+      }
       prefs = next
-      await save()
-      if (restart || !prefs.enabled) await stop()
+      if (restart && prefs.enabled) await stop()
       error = ''
       await reconcile()
       return status()

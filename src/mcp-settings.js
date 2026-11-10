@@ -122,7 +122,7 @@ function DotsMcpSettings({ t, mcpRpc }) {
     h('label', { className: 'dotsMcpSwitch' }, h('input', { type: 'checkbox', role: 'switch', 'aria-label': t('mcpEnable'),
       checked: status?.enabled === true, disabled: busy || !status,
       onChange: event => { void act('configure', { enabled: event.target.checked }) } }), t('mcpEnable')),
-    h('p', { 'data-testid': 'dots-mcp-state' }, !status ? t('mcpLoading') : status.running ? t('mcpRunning') : status.error ? t('mcpError') : t('mcpOff')),
+    h('p', { 'data-testid': 'dots-mcp-state' }, !status ? t('mcpLoading') : status.running ? t('mcpRunning') : !status.enabled ? t('mcpOff') : status.error ? t('mcpError') : t('mcpOff')),
     h('div', { className: 'dotsMcpField' }, h('label', { htmlFor: 'dots-mcp-port' }, t('mcpPort')),
       h('input', { id: 'dots-mcp-port', type: 'number', min: 0, max: 65535, value: port, disabled: busy,
         onChange: e => setPort(e.target.value) })),

@@ -15,6 +15,8 @@ export function resultOf(value) {
   const media = [...(value?.[Symbol.for('dsh-dots.mcpContent')] ?? [])]
   if (typeof data.data === 'string' && data.attachment?.mediaType?.startsWith('image/')) {
     media.push({ type: 'image', data: data.data, mimeType: data.attachment.mediaType })
+    // The MCP image block carries these bytes; keep the attachment metadata in text/structured output.
+    delete data.data
   }
   return { content: [{ type: 'text', text: JSON.stringify(data) }, ...media], structuredContent: data, ...(isError ? { isError: true } : {}) }
 }
