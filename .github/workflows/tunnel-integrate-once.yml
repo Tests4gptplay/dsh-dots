@@ -1,0 +1,79 @@
+name: Integrate verified Dots tunnel Settings
+on:
+  push:
+    branches: ['2.0.1-test.2']
+    paths: ['.github/workflows/tunnel-integrate-once.yml']
+permissions:
+  contents: write
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply exact verified source patch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          transfer="$RUNNER_TEMP/dots-tunnel.patch.gz"
+          : > "$transfer"
+          for blob in a5c34b395c34c6c77ff5265c2e2992048f8f7a19 73ee8eba8fce7a86642bba1663cb7f2edbe6824d 4df722ded33ec2c711fad49ee49f213187f756de 67352e85303b454aebbaa380383721d6fc138d29 7e1d674ffe563aba91e17da325b199b189cc97a1 98d378a00ed222cf38c87ba22215d9f49c39b223; do
+            gh api "repos/$GITHUB_REPOSITORY/git/blobs/$blob" --jq .content | base64 -d >> "$transfer"
+          done
+          echo "a06a1e20f7f938b3d62f6e96ab0fbee3992ea86cd01562f27576b2fe61481e47  $transfer" | sha256sum --check
+          gzip -dc "$transfer" > "$RUNNER_TEMP/dots-tunnel.patch"
+          git apply --check "$RUNNER_TEMP/dots-tunnel.patch"
+          git apply "$RUNNER_TEMP/dots-tunnel.patch"
+          rm .github/workflows/tunnel-inputs-once.yml .github/workflows/tunnel-integrate-once.yml
+      - name: Prepare official client and build dependencies
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          mkdir -p _official
+          gh api repos/openai/tunnel-client/releases/latest > _official/release.json
+          tag=$(node -p 'require("./_official/release.json").tag_name')
+          gh release download "$tag" --repo openai/tunnel-client --pattern "tunnel-client-$tag-linux-amd64.zip" --dir _official
+      - name: Regression and package verification
+        shell: bash
+        env:
+          DOTS_TUNNEL_OFFICIAL_DIR: ${{ github.workspace }}/_official
+        run: |
+          set -euo pipefail
+          npm test | tee "$RUNNER_TEMP/tunnel-regression.log"
+          npm run pack:check
+          npm pack --ignore-scripts
+          sha256sum dsh-dots-2.0.1-test.2.tgz > SHA256SUMS.txt
+      - name: Commit verified source and compiled production files
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          actual=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/2.0.1-test.2" --jq .object.sha)
+          test "$actual" = "$GITHUB_SHA"
+          git add src scripts tests docs README.md README.en.md CHANGELOG.md package.json package-lock.json lib THIRD-PARTY-NOTICES.txt .github/workflows/ci.yml .github/workflows/tunnel-inputs-once.yml .github/workflows/tunnel-integrate-once.yml
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(dots): manage official tunnel client from native Settings'
+          git push origin HEAD:2.0.1-test.2
+          git archive --format=zip --output=dsh-dots-2.0.1-test.2-source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dots-tunnel-verified-implementation
+          path: |
+            dsh-dots-2.0.1-test.2.tgz
+            dsh-dots-2.0.1-test.2-source.zip
+            SHA256SUMS.txt
+            ${{ runner.temp }}/tunnel-regression.log
+          retention-days: 14
