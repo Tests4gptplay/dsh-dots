@@ -74,7 +74,9 @@ export function createMcpController(ctx, options = {}) {
     checks.clear()
     const old = runtime, oldPeer = peer
     runtime = undefined; peer = undefined
-    try { await old?.close() } finally { await oldPeer?.dispose() }
+    try { await old?.close() } finally {
+      try { await oldPeer?.dispose() } finally { await options.onStop?.() }
+    }
   }
   async function reconcile() {
     if (disposed || !prefs.enabled) { await stop(); return }

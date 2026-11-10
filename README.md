@@ -1,4 +1,4 @@
-# DSH Dots 2.0.1-test.1
+# DSH Dots 2.0.1-test.2
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
@@ -27,21 +27,24 @@ DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harne
 在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.1
+github:Tests4gptplay/dsh-dots#2.0.1-test.2
 ```
 
-本页对应 `2.0.1-test.1` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
+本页对应 `2.0.1-test.2` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
 
 安装后，从侧栏打开 **DSH Dots**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
 
 ## 连接自己的 Dot
 
-1. **启用服务。** 打开 MCP 开关，点击「检查本地连接」，复制设置页提供的本机 MCP 地址。
-2. **接通访问。** 按 [官方 Secure MCP Tunnel 指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) 将隧道目标设为该地址；或使用已有 HTTPS 转发，保留完整 MCP 路径，在设置页保存转发域名并复制生成的注册地址。
-3. **在 ChatGPT 创建 MCP 连接。** 在网页版 [Plugins](https://chatgpt.com/plugins) 选择 **＋ / Add → Add custom MCP server**，输入名称，在 **Connection** 选择完整 HTTPS MCP 地址或 **Tunnel**。本插件的访问密钥位于完整连接地址中，因此 **Authentication** 选 **No authentication**；阅读官方提示并勾选 **I understand and want to continue**，点击 **Create as a plugin**。[官方注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
-4. **安装并交给 Dot 使用。** 在个人 **Plugins** 列表找到刚创建的连接，点击 **＋ 安装**。可以先在 ChatGPT 聊天中用 `@` 选择插件查询 DSH 状态，再打开 Dot 的 **Customize → Plugins** 确认该共享连接可用。[Dot 插件官方指南](https://help.openai.com/en/articles/20001530-getting-started-with-your-dot)
+1. **开启 MCP。** 在「设置 → Dots」打开 MCP，点击「检查本地连接」。
+2. **创建官方 Tunnel。** 打开页面中的 [Tunnel 设置](https://platform.openai.com/settings/organization/tunnels)。名称填 `DSH-Dots`，描述填 `Connect ChatGPT Dot to DeepSeek Harness`，选择自己的组织与工作区。本指南的个人连接方式保持 **Restrict client network access** 未勾选；有组织网络策略时按管理员配置。创建后复制完整 Tunnel ID，并在 [Runtime API Keys](https://platform.openai.com/settings/organization/api-keys) 准备运行密钥。
+3. **在插件里完成本地连接。** 在 **OpenAI Secure MCP Tunnel** 区域确认默认安装目录，或选择自己的位置；点击 **下载并安装官方客户端**。已有客户端可直接填写可执行文件完整路径。填入 Tunnel ID 与 Runtime API Key，点击 **启动隧道**，再点击 **刷新隧道状态**。本地 MCP 地址自动填入官方客户端配置，无需复制命令或保持 PowerShell 窗口。安装位置和 Tunnel ID 会保存；运行密钥仅保留在本次 DSH 运行中。
+4. **在 ChatGPT 注册和安装。** 网页版 [Plugins](https://chatgpt.com/plugins) → **＋ / Add → Add custom MCP server**，Connection 选择 **Tunnel** 并填写完整 Tunnel ID，Authentication 选择 **No authentication**；确认官方提示后点击 **Create as a plugin**，在个人 Plugins 中安装。然后到 Dot 的 **Customize → Plugins** 启用连接。
+5. **做一次实际调用。** 让 Dot 调用 `dsh_status` 并列出会话；返回 DSH 点击「刷新状态」，核对最近一次工具调用。
 
-连接地址带有当前 DSH 的访问权限，请仅交给获授权的客户端。需要更换访问凭据时，可在设置页更新连接密钥。ChatGPT 账户与工作区的可用选项以官方注册页面为准。
+使用已有 HTTPS 转发时，可直接填写上方转发地址并在 ChatGPT 选择 **Server URL**，无须运行隧道。MCP 完整地址中带有访问密钥；截图或反馈日志时隐藏该地址。
+
+[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.2/docs/releases/v2.0.1-test.2.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## 日常使用
 

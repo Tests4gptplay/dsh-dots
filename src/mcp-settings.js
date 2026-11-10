@@ -13,10 +13,10 @@ Object.assign(zh, {
   mcpLastCall: '最近一次 MCP 工具调用', mcpSuccess: '成功', mcpFailure: '失败', mcpNoCall: '尚未收到 MCP 工具调用',
   mcpTools: '提供给 Dot 的工具', mcpGuide: '连接到 ChatGPT Dot',
   mcpStep1: '1. 开启 MCP，点击“检查本地连接”，复制本机 MCP 地址。',
-  mcpStep2: '2. 选择接入方式：按官方指南把 Secure MCP Tunnel 的 HTTP 目标设为本机地址；或将已有 HTTPS 转发指向本地端口，转发时保留 MCP 路径，并在上方保存 HTTPS 转发地址（可含部署路径前缀）。',
-  mcpStep3: '3. 在 ChatGPT 网页版打开 Plugins → ＋ / Add → Add custom MCP server，填写名称。在 Connection 中选择 Server URL（粘贴完整“ChatGPT 注册地址”）或 Tunnel（选择隧道或填写 tunnel_id）；Authentication 选择 No authentication。勾选 I understand and want to continue，然后点击 Create as a plugin。',
-  mcpStep4: '4. 创建成功后，在个人 Plugins 中找到新插件并点击 ＋ 安装。可以先在普通 ChatGPT 聊天中用 @ 选择并测试，再到 Dot → Customize → Plugins 检查连接。',
-  mcpStep5: '5. 让 Dot“调用 dsh_status 查看 DSH，然后列出会话”。确认成功后创建会话、发送任务，并使用 state / wait / events 继续查看结果；执行授权由 DSH 原有机制处理。',
+  mcpStep2: '2. 打开下方 Tunnel 创建页面。Name 填 DSH-Dots，Description 填 Connect ChatGPT Dot to DeepSeek Harness，选择自己的组织和工作区；普通个人连接保持 Restrict client network access 不勾选（组织配置按管理员要求）。创建后复制完整 Tunnel ID，并在 Runtime API Keys 页面准备运行密钥。',
+  mcpStep3: '3. 在下方选择客户端安装目录，点击“下载并安装官方客户端”，或填写已有客户端路径。填入 Tunnel ID 和 Runtime API Key，点击“启动隧道”，再用“刷新隧道状态”检查连接。已有 HTTPS 转发可直接填写上方地址，无需运行隧道。',
+  mcpStep4: '4. 在 ChatGPT 网页版打开 Plugins → ＋ / Add → Add custom MCP server。Connection 选择 Tunnel 并填入 Tunnel ID（或选择 Server URL 并填写完整 HTTPS 地址）；Authentication 选 No authentication。阅读官方提示，勾选 I understand and want to continue，点击 Create as a plugin，然后在个人 Plugins 中安装。',
+  mcpStep5: '5. 在 Dot → Customize → Plugins 中启用连接，先调用 dsh_status，再列出 DSH 会话。当前页面的“刷新状态”可查看收到的实际 MCP 工具调用。',
   mcpOffHelp: '关闭只停止 MCP 接入，不主动取消已提交的 DSH 会话任务。手机上的 Dot 使用相同的已配置连接；DSH 和隧道需保持运行。',
   mcpRegistration: '官方 MCP 注册指南', mcpTunnel: '官方 Secure MCP Tunnel 指南', mcpTunnelSettings: '官方隧道管理与下载', mcpDotGuide: '官方 Dot 与插件指南',
 })
@@ -34,15 +34,15 @@ Object.assign(en, {
   mcpLastCall: 'Last MCP tool call', mcpSuccess: 'Succeeded', mcpFailure: 'Failed', mcpNoCall: 'No MCP tool call received yet',
   mcpTools: 'Tools available to your Dot', mcpGuide: 'Connect your ChatGPT Dot',
   mcpStep1: '1. Enable MCP, run the local connection check, and copy the local MCP URL.',
-  mcpStep2: '2. Choose a connection: follow the official Secure MCP Tunnel guide and set its HTTP target to the local URL; or forward an existing HTTPS endpoint to the local port, preserve the MCP path when forwarding, and save its HTTPS base URL above (a deployment path prefix is supported).',
-  mcpStep3: '3. On ChatGPT web, open Plugins → ＋ / Add → Add custom MCP server, and enter a name. Under Connection, choose Server URL (the complete ChatGPT registration URL) or Tunnel (choose a tunnel or enter its tunnel_id). Set Authentication to No authentication, check I understand and want to continue, then click Create as a plugin.',
-  mcpStep4: '4. Find the new plugin under Personal plugins and select ＋ to install it. Test it first in ChatGPT with an @ mention, then find the shared connection under your Dot → Customize → Plugins.',
-  mcpStep5: '5. Ask your Dot to “call dsh_status and list DSH sessions”. Then create a session, submit a task and use state / wait / events to follow its results. Native DSH approval mechanisms handle execution permissions.',
+  mcpStep2: '2. Open Tunnel settings below. Use DSH-Dots as Name and Connect ChatGPT Dot to DeepSeek Harness as Description; select your organization/workspace. Leave Restrict client network access unchecked for this personal setup, or follow your organization policy. Copy the full Tunnel ID and obtain a runtime key from Runtime API Keys.',
+  mcpStep3: '3. Choose an installation directory below and download the official client, or enter an existing executable. Enter Tunnel ID and Runtime API Key, start the tunnel, then refresh its status. Existing HTTPS forwarding can use the URL above without a tunnel.',
+  mcpStep4: '4. In ChatGPT web, open Plugins → ＋ / Add → Add custom MCP server. Select Tunnel and its Tunnel ID (or Server URL and the full HTTPS endpoint). Choose No authentication, acknowledge I understand and want to continue, select Create as a plugin, then install it under Personal plugins.',
+  mcpStep5: '5. Enable the connection under Dot → Customize → Plugins, call dsh_status and list DSH sessions. Refresh status on this page to inspect received MCP tool calls.',
   mcpOffHelp: 'Turning MCP off stops the connection without actively cancelling accepted DSH session tasks. Your mobile Dot uses the same configured connection; keep DSH and the tunnel running.',
   mcpRegistration: 'Official MCP registration guide', mcpTunnel: 'Official Secure MCP Tunnel guide', mcpTunnelSettings: 'Official tunnel settings and download', mcpDotGuide: 'Official Dot and plugins guide',
 })
 
-function DotsMcpSettings({ t, mcpRpc }) {
+function DotsMcpSettings({ t, mcpRpc, tunnelRpc }) {
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
   const [checking, setChecking] = useState(false)
@@ -146,6 +146,7 @@ function DotsMcpSettings({ t, mcpRpc }) {
     h('h4', null, t('mcpGuide')),
     ...['mcpStep1', 'mcpStep2', 'mcpStep3', 'mcpStep4', 'mcpStep5'].map(key => h('p', { key }, t(key))),
     h('p', { className: 'dotsMcpHint' }, t('mcpOffHelp')),
+    tunnelRpc ? h(DotsTunnelSettings, { t, tunnelRpc, mcpRunning: status?.running === true }) : null,
     h('div', { className: 'dotsMcpLinks' }, link('mcpRegistration', t('mcpOff') === zh.mcpOff ? guides.registrationZh : guides.registration),
       link('mcpTunnel', guides.tunnel), link('mcpTunnelSettings', guides.tunnelSettings), link('mcpDotGuide', guides.dots)),
     h('details', null, h('summary', null, `${t('mcpTools')} (${status?.tools?.length ?? 0})`),

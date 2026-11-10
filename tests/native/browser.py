@@ -30,7 +30,12 @@ with sync_playwright() as p:
         expect(panel).to_contain_text(re.compile(r'Local MCP tool discovery passed|本地 MCP 工具发现已通过'))
         assert panel.locator('input[type=password]').count()>=1
         links=panel.locator('a').evaluate_all('(nodes)=>nodes.map(n=>n.href)')
-        assert len(links)==4 and all('openai.com' in link for link in links)
+        assert any('secure-mcp-tunnels' in link for link in links)
+        assert any('organization/tunnels' in link for link in links)
+        assert any('openai/tunnel-client/releases' in link for link in links)
+        tunnel=page.get_by_test_id('dots-tunnel-settings');expect(tunnel).to_be_visible()
+        expect(tunnel.get_by_role('button',name=re.compile(r'Download and install official client|下载并安装官方客户端'))).to_be_enabled()
+        assert tunnel.locator('input[type=password]').count()==1
         page.screenshot(path=str(out/'native-settings-on.png'),full_page=True)
         panel.get_by_role('heading',name=re.compile(r'Connect your ChatGPT Dot|连接到 ChatGPT Dot')).scroll_into_view_if_needed()
         page.screenshot(path=str(out/'native-connection-guide.png'),full_page=True)
@@ -57,7 +62,7 @@ with sync_playwright() as p:
         page.get_by_role('menuitem',name=re.compile(r'^(Settings|设置)')).click()
         page.get_by_role('button',name='Dots',exact=True).click()
         expect(page.get_by_test_id('dots-mcp-settings').get_by_role('switch')).not_to_be_checked()
-        (out/'browser-report.json').write_text(json.dumps({'result':'passed','engine':'Chromium','checks':['same Dots settings entry','default off','enable','real local MCP check','masked connection URL','four official guide links','disable during delayed diagnostic','reload retains choice'],'pageErrors':errors},ensure_ascii=False,indent=2))
+        (out/'browser-report.json').write_text(json.dumps({'result':'passed','engine':'Chromium','checks':['same Dots settings entry','default off','enable','real local MCP check','masked connection URL','official registration and tunnel links','disable during delayed diagnostic','reload retains choice'],'pageErrors':errors},ensure_ascii=False,indent=2))
     except Exception:
         (out/'browser-traceback.txt').write_text(traceback.format_exc())
         page.screenshot(path=str(out/'native-browser-failure.png'),full_page=True)

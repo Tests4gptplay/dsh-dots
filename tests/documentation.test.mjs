@@ -14,7 +14,7 @@ test('documentation: homepages introduce 2.0.0, link release notes and end with 
     ['README.en.md', 'v2.0.0.en.md', '## Support the project'],
   ]) {
     const content = await text(path)
-    assert.match(content, /^# DSH Dots 2\.0\.0/m)
+    assert.ok(content.startsWith('# DSH Dots ' + JSON.parse(await text('package.json')).version))
     assert.ok(content.includes(repositoryPrefix + 'docs/releases/' + release))
     assert.doesNotMatch(content, /!\[|<img\b/i, 'Screenshots belong on the linked update page')
     assert.equal(content.match(/^## .+$/gm).at(-1), footer)

@@ -11,7 +11,7 @@ const output=resolve(process.env.DSH_TEST_OUTPUT??'native-evidence');await mkdir
 const work=await mkdtemp(join(tmpdir(),'dots-native-')),home=join(work,'home'),workspace=join(work,'workspace')
 await mkdir(workspace,{recursive:true})
 const binary=join(runtime,'node_modules/@deepseek-ai/dsh/lib/bin.js'),env={...process.env,DSH_HOME:home}
-const report={environment:{platform:process.platform,node:process.version,dsh:JSON.parse(await readFile(join(runtime,'node_modules/@deepseek-ai/dsh/package.json'),'utf8')).version,plugin:'2.0.0'},checks:[]}
+const report={environment:{platform:process.platform,node:process.version,dsh:JSON.parse(await readFile(join(runtime,'node_modules/@deepseek-ai/dsh/package.json'),'utf8')).version,plugin:JSON.parse(await readFile(join(repository,'package.json'),'utf8')).version},checks:[]}
 const pass=(name,details={})=>{report.checks.push({name,passed:true,...details});console.log('PASS:',name)}
 let host,client,rawLog='',base,cookie
 function start(){
@@ -33,6 +33,10 @@ try{
  manifest.dependencies['dsh-dots']='file:'+join(runtime,'node_modules/dsh-dots');manifest.dsh.profile.bundles.push('dsh-dots')
  await writeFile(join(profile,'package.json'),JSON.stringify(manifest,null,2));await symlink(join(runtime,'node_modules'),join(profile,'node_modules'),'junction')
  const url=await start();await login(url)
+ const tunnelMethod='dsh-dots-tunnel/status'
+ const tunnelResponse=await fetch(base+'/api/'+tunnelMethod,{method:'POST',headers:{'content-type':'application/json',cookie,origin:base},body:JSON.stringify({type:'client-request',method:tunnelMethod,rpcId:crypto.randomUUID(),payload:{}})})
+ const tunnelState=await tunnelResponse.json();assert.equal(tunnelState.result?.ok,true,JSON.stringify(tunnelState));assert.equal(tunnelState.result.value.running,false)
+ assert.ok(tunnelState.result.value.installDirectory.includes('dsh-dots'));assert.equal(tunnelState.result.value.keyAvailable,false);pass('Native tunnel Settings endpoint starts stopped with a profile-owned path')
  let state=await rpc('status');assert.equal(state.enabled,false);assert.equal(state.running,false);pass('Packed plugin starts with MCP off')
  state=await rpc('configure',{enabled:true});assert.equal(state.running,true);const firstUrl=state.localUrl
  client=await open(firstUrl);const list=await client.listTools();assert.equal(list.tools.length,16);pass('Official MCP client discovers 16 tools')

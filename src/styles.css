@@ -38,3 +38,5 @@ body[data-ds-dark-theme] .dotsPage { color-scheme:dark; }
 .dotsMcpLinks { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
 .dotsMcpLinks a { color: inherit; text-decoration: underline; }
 .dotsMcpSettings details { margin-top: 16px; }
+
+.dotsTunnelSettings{margin:20px 0;padding:16px;border:1px solid var(--dsw-alias-border-l3,#8886);border-radius:8px}.dotsTunnelSettings input{width:100%;box-sizing:border-box}.dotsTunnelSettings h4{margin-top:0}

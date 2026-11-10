@@ -1,4 +1,4 @@
-# DSH Dots 2.0.1-test.1
+# DSH Dots 2.0.1-test.2
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
@@ -27,21 +27,24 @@ Existing features remain available: startup preload, retained pages across panel
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.1
+github:Tests4gptplay/dsh-dots#2.0.1-test.2
 ```
 
-This page describes the `2.0.1-test.1` test branch. Published versions and packages are available under [Releases](https://github.com/Tests4gptplay/dsh-dots/releases).
+This page describes the `2.0.1-test.2` test branch. Published versions and packages are available under [Releases](https://github.com/Tests4gptplay/dsh-dots/releases).
 
 Open **DSH Dots** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dots**.
 
 ## Connect your Dot
 
-1. **Enable the service.** Turn on MCP, select **Check local connection**, and copy the local MCP URL from Settings.
-2. **Connect the endpoint.** Follow the [official Secure MCP Tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) and use that URL as the tunnel target. Alternatively, forward an existing HTTPS endpoint to the local service, preserve the complete MCP path, save the forwarding origin in Settings, and copy the generated registration URL.
-3. **Create the MCP connection in ChatGPT.** On the web, open [Plugins](https://chatgpt.com/plugins), choose **＋ / Add → Add custom MCP server**, and enter a name. Under **Connection**, select the full HTTPS MCP URL or a **Tunnel**. As the DSH access key is included in the full URL, set **Authentication** to **No authentication**. Acknowledge **I understand and want to continue**, then select **Create as a plugin**. [Official registration guide](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt).
-4. **Install and use with your Dot.** Find the new connection in **Personal plugins** and select **＋ Install**. You can first test it in ChatGPT with an `@` mention to request DSH status, then check the shared connection under your Dot's **Customize → Plugins**. [Official Dot guide](https://help.openai.com/en/articles/20001530-getting-started-with-your-dot).
+1. **Enable MCP.** Open Settings → Dots and run **Check local connection**.
+2. **Create a Tunnel.** Open [Tunnel settings](https://platform.openai.com/settings/organization/tunnels), use `DSH-Dots` as the name, and select your organization/workspace. This personal setup leaves **Restrict client network access** unchecked; follow administrator requirements for managed networks. Copy the full Tunnel ID and obtain a runtime key from [Runtime API Keys](https://platform.openai.com/settings/organization/api-keys).
+3. **Set up locally in Dots.** In **OpenAI Secure MCP Tunnel**, keep the default installation directory or select another location, then **Download and install official client**. An existing executable can also be selected by its full path. Enter Tunnel ID and Runtime API Key, **Start tunnel**, then **Refresh tunnel status**. The plugin supplies its current local MCP endpoint to the official client. No terminal window is required. The location and Tunnel ID persist; the key remains in memory for this DSH run.
+4. **Register and install in ChatGPT.** On the web, open [Plugins](https://chatgpt.com/plugins) → **＋ / Add → Add custom MCP server**, choose **Tunnel** and enter its ID. Select **No authentication**, acknowledge the official notice and choose **Create as a plugin**. Install it under Personal plugins and enable it in Dot → **Customize → Plugins**.
+5. **Make a real call.** Ask your Dot to call `dsh_status` and list sessions. Refresh Dots settings to see the received tool call.
 
-The connection URL grants access to the current DSH environment. Share it only with authorized clients; use the connection-key rotation control when replacing access credentials. The official registration page shows the options available for your account and workspace.
+An existing HTTPS forwarding endpoint can instead be entered above and registered using **Server URL**, without a tunnel. The full MCP URL contains an access key; hide it in screenshots and shared logs.
+
+[Update and verification](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.2/docs/releases/v2.0.1-test.2.md) · [Official tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [Official MCP registration](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## Everyday use
 

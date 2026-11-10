@@ -4,7 +4,7 @@ import { build } from 'esbuild'
 import { nativeMcpBatchPolicy } from './mcp-sdk-build.mjs'
 await mkdir('lib', { recursive: true })
 const css = (await readFile('src/styles.css', 'utf8')).replace(/\r\n/g, '\n')
-const client = await readFile('src/client.js', 'utf8') + '\n' + await readFile('src/mcp-settings.js', 'utf8')
+const client = await readFile('src/client.js', 'utf8') + '\n' + await readFile('src/mcp-settings.js', 'utf8') + '\n' + await readFile('src/tunnel-settings.js', 'utf8')
 const packageName = JSON.parse(await readFile('package.json', 'utf8')).name
 const wrapper = `window.__ModuleLoader__.load({ id: ${JSON.stringify(packageName)}, factory: (require) => {\nvar module = { exports: {} }; var exports = module.exports;\nconst __DOTS_CLIENT_CSS__ = ${JSON.stringify(css)};\n${client}\nreturn module.exports; } });\n`
 await writeFile('lib/client.js', wrapper)
@@ -16,8 +16,11 @@ const bundled = await build({ entryPoints: ['src/mcp-server.mjs'], outfile: 'lib
   plugins: [nativeMcpBatchPolicy], bundle: true, platform: 'node', format: 'esm', target: 'node20', minify: true, metafile: true,
   legalComments: 'none', banner: { js: '// Bundled dependencies and licenses: THIRD-PARTY-NOTICES.txt\nimport { createRequire as __dotsCreateRequire } from "node:module"; const require = __dotsCreateRequire(import.meta.url);' },
 })
+const tunnelBundled = await build({ entryPoints: ['src/tunnel-control.mjs'], outfile: 'lib/tunnel-control.mjs',
+  bundle: true, platform: 'node', format: 'esm', target: 'node20', minify: true, metafile: true, legalComments: 'none',
+})
 const packages = new Map()
-for (const input of Object.keys(bundled.metafile.inputs)) {
+for (const input of Object.keys({ ...bundled.metafile.inputs, ...tunnelBundled.metafile.inputs })) {
   if (!input.includes('node_modules/')) continue
   let directory = dirname(resolve(input))
   while (basename(directory) !== 'node_modules' && directory !== dirname(directory)) {
@@ -28,7 +31,7 @@ for (const input of Object.keys(bundled.metafile.inputs)) {
     directory = dirname(directory)
   }
 }
-const notices = ['DSH Dots 2.0.0 — bundled third-party licenses',
+const notices = [`DSH Dots ${JSON.parse(await readFile('package.json', 'utf8')).version} — bundled third-party licenses`,
   'The MCP protocol module bundles the packages below. DSH Dots source remains under its repository LICENSE.\n',
   'Build adaptation: the SDK legacy batch-count constant uses Number.MAX_SAFE_INTEGER. Protocol parsing is unchanged.\n']
 for (const [name, { directory, pkg }] of [...packages].sort(([a], [b]) => a.localeCompare(b))) {
