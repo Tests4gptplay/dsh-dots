@@ -4,7 +4,7 @@ import { timingSafeEqual } from 'node:crypto'
 import { McpServer, createMcpHandler, fromJsonSchema } from '@modelcontextprotocol/server'
 import { toNodeHandler, hostHeaderValidation, originValidation } from '@modelcontextprotocol/node'
 
-export const VERSION = '2.0.0'
+export const VERSION = '2.0.1-test.1'
 // The SDK requires a finite byte count. Use the JavaScript counting boundary,
 // not a product-specific file/message quota, in both HTTP layers.
 const maxRequestBodySize = Number.MAX_SAFE_INTEGER
