@@ -39,9 +39,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _native
-          npm install --prefix _native --no-audit --no-fund \
-            @deepseek-ai/dsh@0.2.2-rc.1 "$PWD/dsh-dots-2.0.1-test.4.tgz"
-          mkdir -p native-evidence
+          npm install --prefix _native --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1
+          mkdir -p _native/node_modules/dsh-dots native-evidence
+          tar -xzf dsh-dots-2.0.1-test.4.tgz -C _native/node_modules/dsh-dots --strip-components=1
           DSH_NATIVE_ROOT="$PWD/_native" DSH_TEST_OUTPUT="$PWD/native-evidence" \
             node tests/native/verify.mjs | tee "$RUNNER_TEMP/native-stream-acceptance.log"
       - name: Commit generated and tested production files
