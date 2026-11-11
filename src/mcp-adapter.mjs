@@ -116,7 +116,7 @@ export function createDshAdapter(ctx, peer) {
         if (iterator?.return) await iterator.return()
       }
     })
-  add('dsh_api_subscribe', 'Continuously forward every event from a DSH native streaming API, using the MCP request progress stream. The MCP caller supplies a progressToken and receives the complete event JSON in each progress message. The subscription ends on native stream completion or caller cancellation; use dsh_api_snapshot for a single event.',
+  add('dsh_api_subscribe', 'Forward events from a DSH native streaming API while this MCP tools/call request stays open. Clients with progress notifications receive event JSON through progressToken. This is a request-scoped stream; Dot event-triggered monitoring uses the separate official MCP Events webhook protocol. Use dsh_api_snapshot for a single event.',
     schema(apiArgs, ['namespace', 'method', 'args']), false,
     async ({ namespace, method, args }, signal, mcpReq) => {
       const progressToken = mcpReq?._meta?.progressToken
