@@ -19,7 +19,7 @@ async function fixture(t, language = 'zh') {
     calls.push({ method, payload })
     if (method === 'install') return new Promise(resolve => { pending = resolve })
     if (method === 'stop') state = { ...state, running: false }
-    if (method === 'start') state = { ...state, running: true, health: null }
+    if (method === 'start') state = { ...state, running: true, runningExecutable: state.executable, pendingClientSwitch: false, health: null }
     if (method === 'configure') state = { ...state, ...payload, apiKey: undefined, keyAvailable: true }
     return state
   }
@@ -28,7 +28,7 @@ async function fixture(t, language = 'zh') {
   const click = async text => act(async () => [...dom.window.document.querySelectorAll('button')].find(b => b.textContent === text).click())
   await mount()
   t.after(async () => { await act(async () => root.unmount()); dom.window.close(); for (const [key, value] of previous) { if (value) Object.defineProperty(globalThis, key, value); else delete globalThis[key] } })
-  return { dom, calls, mount, click, resolveInstall: value => pending(value), text: () => dom.window.document.body.textContent }
+  return { dom, calls, mount, click, resolveInstall: value => pending(value), setState: value => { state = { ...state, ...value } }, text: () => dom.window.document.body.textContent }
 }
 test('tunnel UI contains installation directory, executable, tunnel ID, masked key and official links', async t => {
   const f = await fixture(t)
@@ -61,4 +61,15 @@ test('MCP off still allows client installation while start follows the explicit 
   const buttons = [...f.dom.window.document.querySelectorAll('button')]
   assert.equal(buttons.find(b => b.textContent === 'Start tunnel').disabled, true)
   assert.equal(buttons.find(b => b.textContent === 'Download and install official client').disabled, false)
+})
+
+test('settings shows pending official client switch and clears it after explicit Start', async t => {
+  const f = await fixture(t, 'en')
+  f.setState({ executable: '/profile/dots/tunnel-client/new/tunnel-client', runningExecutable: '/profile/dots/tunnel-client/old/tunnel-client', running: true, pendingClientSwitch: true })
+  await f.click('Refresh tunnel status')
+  assert.match(f.text(), /New client downloaded/)
+  assert.match(f.text(), /previous client is still running/)
+  await f.click('Start tunnel')
+  assert.doesNotMatch(f.text(), /New client downloaded/)
+  assert.equal(f.calls.at(-1).method, 'start')
 })
