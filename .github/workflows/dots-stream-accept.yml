@@ -1,4 +1,5 @@
 name: Dots continuous MCP stream candidate acceptance
+# Native DSH CLI diagnostics rerun.
 on:
   push:
     branches: ['2.0.1-test.4']
