@@ -39,17 +39,28 @@ try{
  assert.ok(tunnelState.result.value.installDirectory.includes('dsh-dots'));assert.equal(tunnelState.result.value.keyAvailable,false);pass('Native tunnel Settings endpoint starts stopped with a profile-owned path')
  let state=await rpc('status');assert.equal(state.enabled,false);assert.equal(state.running,false);pass('Packed plugin starts with MCP off')
  state=await rpc('configure',{enabled:true});assert.equal(state.running,true);const firstUrl=state.localUrl
- client=await open(firstUrl);const list=await client.listTools();assert.equal(list.tools.length,16);pass('Official MCP client discovers 16 tools')
+ client=await open(firstUrl);const list=await client.listTools();assert.equal(list.tools.length,17);pass('Official MCP client discovers 17 tools')
  const native=await call('dsh_status');assert.ok(native.nativeApiCount>0);pass('Native API registry discovered',{apiCount:native.nativeApiCount,namespaces:native.namespaces.length})
  const created=await call('dsh_session_create',{cwd:workspace}),id=created.sessionId;assert.ok(id);pass('Native Session created')
  const sessions=await call('dsh_sessions');assert.ok(JSON.stringify(sessions).includes(id));pass('Native Session listed')
  const wait=await call('dsh_session_wait',{sessionId:id,afterSeq:-1,timeoutMs:1000});assert.equal(wait.state.running,false);pass('Native wait accepts afterSeq minus one')
  const emptyEvents=await call('dsh_session_events',{sessionId:id,throughSeq:-1});assert.equal(emptyEvents.cursor,-1);pass('Native history accepts throughSeq minus one')
  const invalid=await client.callTool({name:'dsh_session_wait',arguments:{sessionId:id,afterSeq:-2}});assert.equal(invalid.isError,true);assert.equal(invalid.structuredContent.error.code,'gateway/bad-request');pass('Native parameter rejection retains its original error code')
- assert.equal(list.tools.find(t=>t.name==='dsh_session_create').annotations.destructiveHint,false);assert.equal(list.tools.find(t=>t.name==='dsh_tools').annotations.destructiveHint,false);pass('Tool hints distinguish native creation and inspection')
+ assert.equal(list.tools.find(t=>t.name==='dsh_tools').annotations.readOnlyHint,true)
+ assert.ok(!list.tools.find(t=>t.name==='dsh_api_call').annotations?.destructiveHint)
+ assert.ok(!list.tools.find(t=>t.name==='dsh_api_subscribe').annotations?.destructiveHint)
+ pass('Native tool metadata avoids invented risk rankings')
  const description=await call('dsh_api_describe',{namespace:'session',method:'list'});const wire=Object.keys(description.inputSchema.properties)[0]
  const generic=await call('dsh_api_call',{namespace:'session',method:'list',args:{[wire]:{}}});assert.ok(JSON.stringify(generic).includes(id));pass('Reflected API schema and generic invocation')
  const snapshot=await call('dsh_api_snapshot',{namespace:'workspace',method:'follow',args:{}});assert.equal(snapshot.value.type,'baseline');pass('Native stream snapshot and subscription cleanup')
+ const subscribeAbort=new AbortController(), continuousEvents=[]
+ const streaming=client.callTool({name:'dsh_api_subscribe',arguments:{namespace:'workspace',method:'follow',args:{}}},{
+   onprogress: event=>{continuousEvents.push(JSON.parse(event.message));subscribeAbort.abort('Received workspace baseline')},
+   signal:subscribeAbort.signal,
+ })
+ await assert.rejects(streaming)
+ assert.equal(continuousEvents[0].type,'baseline')
+ pass('Native continuous workspace stream forwards baseline and aborts with MCP caller')
  const tools=await call('dsh_tools',{sessionId:id});assert.ok(tools.tools.some(t=>t.name==='write'));pass('Native session tool catalog',{nativeTools:tools.tools.length})
  await call('dsh_tool_call',{sessionId:id,name:'write',arguments:{file_path:'native-file.txt',content:'PACKED_NATIVE_DSH_MCP_OK\n'}})
  assert.equal(await readFile(join(workspace,'native-file.txt'),'utf8'),'PACKED_NATIVE_DSH_MCP_OK\n');pass('Native file write verified on disk')
