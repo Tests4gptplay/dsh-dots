@@ -28,7 +28,12 @@ async function rpc(endpoint,payload={}){const method='dsh-dots-mcp/'+endpoint;co
 async function open(url){const c=new Client({name:'packed-plugin-native-validation',version:'2.0.0'});await c.connect(new StreamableHTTPClientTransport(new URL(url)));return c}
 async function call(name,args={}){const r=await client.callTool({name,arguments:args});assert.notEqual(r.isError,true,JSON.stringify(r));return r.structuredContent}
 try{
- execFileSync(process.execPath,[binary,'--profile','dots-acceptance','--from-default-profile','web','--dump-config'],{cwd:workspace,env,stdio:'ignore'})
+ try {
+  execFileSync(process.execPath,[binary,'--profile','dots-acceptance','--from-default-profile','web','--dump-config'],{cwd:workspace,env,encoding:'utf8'})
+ } catch (cause) {
+  const diagnostics = String(cause?.stderr || cause?.stdout || cause?.message || cause).replace(/token=\S+/g,'token=[redacted]')
+  throw new Error('Actual DSH CLI profile preparation failed: '+diagnostics, { cause })
+ }
  const profile=join(home,'profiles/dots-acceptance'),manifest=JSON.parse(await readFile(join(profile,'package.json'),'utf8'))
  manifest.dependencies['dsh-dots']='file:'+join(runtime,'node_modules/dsh-dots');manifest.dsh.profile.bundles.push('dsh-dots')
  await writeFile(join(profile,'package.json'),JSON.stringify(manifest,null,2));await symlink(join(runtime,'node_modules'),join(profile,'node_modules'),'junction')
