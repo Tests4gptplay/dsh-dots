@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _native
-          npm install --prefix _native --legacy-peer-deps --no-audit --no-fund \
+          npm install --prefix _native --no-audit --no-fund \
             @deepseek-ai/dsh@0.2.2-rc.1 "$PWD/dsh-dots-2.0.1-test.4.tgz"
           mkdir -p native-evidence
           DSH_NATIVE_ROOT="$PWD/_native" DSH_TEST_OUTPUT="$PWD/native-evidence" \
