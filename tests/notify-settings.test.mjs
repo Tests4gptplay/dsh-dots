@@ -48,7 +48,7 @@ test('bilingual native Settings notification switch is off by default and saves 
       await act(async () => switchControl.click())
       const current = requests.filter(req => req.method === 'configure').at(-1).payload
       assert.equal(current.enabled, true)
-      assert.deepEqual(current.types, ['dsh.session.turn-ended'])
+      assert.deepEqual(Array.from(current.types), ['dsh.session.turn-ended'])
       assert.deepEqual(current.sessions, ['session-one', 'session-two'])
       await act(async () => switchControl.click())
       assert.equal(requests.filter(req => req.method === 'configure').at(-1).payload.enabled, false)
