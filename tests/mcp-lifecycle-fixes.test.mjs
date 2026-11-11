@@ -40,6 +40,33 @@ test('failed preference save stops MCP and accurately reports persistence failur
   assert.equal(JSON.parse(await readFile(join(store, 'mcp.json'), 'utf8')).enabled, false)
 })
 
+test('tunnel shutdown failure leaves MCP off and persists the disabled preference', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dots-mcp-tunnel-error-'))
+  const configPath = join(root, 'mcp.json')
+  const ctx = { connection: { createPeer() { return { async dispose() {} } } } }
+  let failTunnelStop = true
+  const control = createMcpController(ctx, {
+    configPath,
+    async onStop() { if (failTunnelStop) throw new Error('tunnel child stop failed') },
+  })
+  t.after(async () => { failTunnelStop = false; await control.dispose(); await rm(root, { recursive: true, force: true }) })
+  const started = await control.configure({ enabled: true })
+  assert.equal(started.running, true)
+  await assert.rejects(control.configure({ enabled: false }), /tunnel child stop failed/)
+  const state = control.status()
+  assert.equal(state.enabled, false)
+  assert.equal(state.running, false)
+  assert.match(state.error, /tunnel child stop failed/)
+  assert.equal(JSON.parse(await readFile(configPath, 'utf8')).enabled, false)
+  await assert.rejects(fetch(started.localUrl))
+  failTunnelStop = false
+  const reloaded = createMcpController(ctx, { configPath })
+  t.after(() => reloaded.dispose())
+  const recovered = await reloaded.initialize()
+  assert.equal(recovered.enabled, false)
+  assert.equal(recovered.running, false)
+})
+
 test('closing MCP clears prior successful local connection status', async t => {
   const { controller } = await fixture(t)
   await controller.configure({ enabled: true })
