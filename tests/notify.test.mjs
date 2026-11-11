@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createNotificationController, signWebhook, registerNotificationTransport } from '../lib/notify-control.mjs'
 import { startMcpServer } from '../lib/mcp-server.mjs'
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client'
 
 function fakeDsh() {
   const listeners = new Map(), delivered = [], requests = []
@@ -92,6 +93,12 @@ test('MCP Events methods use the existing authenticated HTTP endpoint', async t 
   const f = await fixture(t)
   const server = await startMcpServer({ token: 'notify-test', adapter: { tools: [] }, events: f.controller })
   t.after(() => server.close())
+  const officialClient = new Client({ name: 'events-capability-regression', version: '1.0' })
+  await officialClient.connect(new StreamableHTTPClientTransport(new URL(server.localUrl)))
+  try {
+    assert.ok(Object.hasOwn(officialClient.getServerCapabilities() ?? {}, 'events'),
+      'Server must advertise events in official MCP initialization capabilities')
+  } finally { await officialClient.close() }
   const rpc = async (method, params = {}) => {
     const response = await fetch(server.localUrl, { method: 'POST', headers: {
       'content-type': 'application/json', accept: 'application/json, text/event-stream',
@@ -116,6 +123,14 @@ test('MCP Events methods use the existing authenticated HTTP endpoint', async t 
       'io.modelcontextprotocol/clientInfo': { name: 'dots-events-verification', version: '1' },
     } },
   }
+  const discover = { ...modern, id: 'discover-notify', method: 'server/discover' }
+  const discovered = await fetch(server.localUrl, {
+    method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json',
+      'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'server/discover' }, body: JSON.stringify(discover),
+  })
+  assert.equal(discovered.status, 200, await discovered.clone().text())
+  const caps = (await discovered.json()).result?.capabilities
+  assert.ok(caps && Object.hasOwn(caps, 'events'), 'Modern server/discover must advertise MCP Events')
   const modernResponse = await fetch(server.localUrl, {
     method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json',
       'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'events/list' }, body: JSON.stringify(modern),
