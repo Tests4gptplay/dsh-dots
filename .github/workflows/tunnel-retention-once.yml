@@ -1,4 +1,5 @@
 name: Verify Dots tunnel retention candidate
+# Rerun after correcting test callback argument handling.
 on:
   push:
     branches: ['2.0.1-test.3']
