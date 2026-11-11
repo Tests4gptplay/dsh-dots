@@ -108,6 +108,21 @@ test('MCP Events methods use the existing authenticated HTTP endpoint', async t 
   const listed = await rpc('events/list')
   assert.equal(listed.status, 200)
   assert.equal(listed.frame.result.events[0].name, 'dsh.session.turn-ended')
+  const modern = {
+    jsonrpc: '2.0', id: 'modern-notify', method: 'events/list',
+    params: { _meta: {
+      'io.modelcontextprotocol/protocolVersion': '2026-07-28',
+      'io.modelcontextprotocol/clientCapabilities': {},
+      'io.modelcontextprotocol/clientInfo': { name: 'dots-events-verification', version: '1' },
+    } },
+  }
+  const modernResponse = await fetch(server.localUrl, {
+    method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json',
+      'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': 'events/list' }, body: JSON.stringify(modern),
+  })
+  assert.equal(modernResponse.status, 200, await modernResponse.clone().text())
+  const modernPayload = await modernResponse.json()
+  assert.equal(modernPayload.result.events[0].name, 'dsh.session.turn-ended', JSON.stringify(modernPayload))
   const subscribed = await rpc('events/subscribe', args(f))
   assert.equal(subscribed.frame.result.id.startsWith('sub_'), true, JSON.stringify(subscribed))
   assert.equal(f.controller.status().subscriptionCount, 1)
