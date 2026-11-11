@@ -42,7 +42,7 @@ Object.assign(en, {
   mcpRegistration: 'Official MCP registration guide', mcpTunnel: 'Official Secure MCP Tunnel guide', mcpTunnelSettings: 'Official tunnel settings and download', mcpDotGuide: 'Official Dot and plugins guide',
 })
 
-function DotsMcpSettings({ t, mcpRpc, tunnelRpc }) {
+function DotsMcpSettings({ t, mcpRpc, tunnelRpc, notifyRpc }) {
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
   const [checking, setChecking] = useState(false)
@@ -146,6 +146,7 @@ function DotsMcpSettings({ t, mcpRpc, tunnelRpc }) {
     h('h4', null, t('mcpGuide')),
     ...['mcpStep1', 'mcpStep2', 'mcpStep3', 'mcpStep4', 'mcpStep5'].map(key => h('p', { key }, t(key))),
     h('p', { className: 'dotsMcpHint' }, t('mcpOffHelp')),
+    notifyRpc ? h(DotsNotifySettings, { t, notifyRpc, mcpRunning: status?.running === true }) : null,
     tunnelRpc ? h(DotsTunnelSettings, { t, tunnelRpc, mcpRunning: status?.running === true }) : null,
     h('div', { className: 'dotsMcpLinks' }, link('mcpRegistration', t('mcpOff') === zh.mcpOff ? guides.registrationZh : guides.registration),
       link('mcpTunnel', guides.tunnel), link('mcpTunnelSettings', guides.tunnelSettings), link('mcpDotGuide', guides.dots)),
