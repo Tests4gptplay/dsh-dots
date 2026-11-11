@@ -7,3 +7,7 @@ The toolbar and ring icon adapt to DSH's light and dark themes, with Chinese and
 **Login retention (Desktop):** Open **DSH Settings → Dots Login Retention** to check status, apply, or restore the Dots-specific persistent browser setup.
 
 [Project and installation](https://github.com/Tests4gptplay/dsh-dots) · [Release notes](https://github.com/Tests4gptplay/dsh-dots/releases) · [Issues](https://github.com/Tests4gptplay/dsh-dots/issues)
+
+## 支持项目 / Support
+
+[GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [支付宝 / Alipay](SPONSOR.md)
