@@ -25,6 +25,14 @@ function start(){
 async function stop(){if(!host||host.exitCode!==null)return;const exited=new Promise(r=>host.once('exit',r));host.kill('SIGTERM');await exited}
 async function login(url){base=new URL(url).origin;const r=await fetch(url,{redirect:'manual'});cookie=r.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');const page=await fetch(new URL(r.headers.get('location')??'/',base),{headers:{cookie}});assert.equal(page.status,200)}
 async function rpc(endpoint,payload={}){const method='dsh-dots-mcp/'+endpoint;const response=await fetch(base+'/api/'+method,{method:'POST',headers:{'content-type':'application/json',cookie,origin:base},body:JSON.stringify({type:'client-request',method,rpcId:crypto.randomUUID(),payload})});const data=await response.json();assert.equal(data.result?.ok,true,JSON.stringify(data));return data.result.value}
+async function notifyRpc(endpoint,payload={}) {
+ const method='dsh-dots-notify/'+endpoint
+ const response=await fetch(base+'/api/'+method,{method:'POST',headers:{'content-type':'application/json',cookie,origin:base},
+  body:JSON.stringify({type:'client-request',method,rpcId:crypto.randomUUID(),payload})})
+ const data=await response.json()
+ assert.equal(data.result?.ok,true,JSON.stringify(data))
+ return data.result.value
+}
 async function open(url){const c=new Client({name:'packed-plugin-native-validation',version:'2.0.0'});await c.connect(new StreamableHTTPClientTransport(new URL(url)));return c}
 async function call(name,args={}){const r=await client.callTool({name,arguments:args});assert.notEqual(r.isError,true,JSON.stringify(r));return r.structuredContent}
 try{
@@ -48,6 +56,16 @@ try{
  const native=await call('dsh_status');assert.ok(native.nativeApiCount>0);pass('Native API registry discovered',{apiCount:native.nativeApiCount,namespaces:native.namespaces.length})
  const created=await call('dsh_session_create',{cwd:workspace}),id=created.sessionId;assert.ok(id);pass('Native Session created')
  const sessions=await call('dsh_sessions');assert.ok(JSON.stringify(sessions).includes(id));pass('Native Session listed')
+ const initialNotify=await notifyRpc('status')
+ assert.equal(initialNotify.enabled,false);assert.equal(initialNotify.subscriptionCount,0)
+ pass('Native proactive notifications start off without subscriptions')
+ const enabledNotify=await notifyRpc('configure',{enabled:true,sessions:[id],types:['dsh.session.turn-ended']})
+ assert.equal(enabledNotify.enabled,true);assert.deepEqual(enabledNotify.sessions,[id]);assert.equal(enabledNotify.subscriptionCount,0)
+ pass('Native notification Settings enables only the explicitly selected Session ID')
+ const disabledNotify=await notifyRpc('configure',{enabled:false})
+ assert.equal(disabledNotify.enabled,false);assert.equal(disabledNotify.subscriptionCount,0)
+ pass('Native notification off switch clears matching event subscriptions')
+
  const wait=await call('dsh_session_wait',{sessionId:id,afterSeq:-1,timeoutMs:1000});assert.equal(wait.state.running,false);pass('Native wait accepts afterSeq minus one')
  const emptyEvents=await call('dsh_session_events',{sessionId:id,throughSeq:-1});assert.equal(emptyEvents.cursor,-1);pass('Native history accepts throughSeq minus one')
  const invalid=await client.callTool({name:'dsh_session_wait',arguments:{sessionId:id,afterSeq:-2}});assert.equal(invalid.isError,true);assert.equal(invalid.structuredContent.error.code,'gateway/bad-request');pass('Native parameter rejection retains its original error code')
