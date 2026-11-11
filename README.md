@@ -1,4 +1,4 @@
-# DSH Dots 2.0.1-test.6
+# DSH Dots 2.0.1-test.7
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
@@ -22,17 +22,23 @@ DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harne
 
 原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。
 
-## 安装 2.0.1-test.6 测试分支
+## 安装 2.0.1-test.7 测试分支
 
 在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.6
+github:Tests4gptplay/dsh-dots#2.0.1-test.7
 ```
 
-本页对应 `2.0.1-test.6` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
+本页对应 `2.0.1-test.7` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
 
 安装后，从侧栏打开 **DSH Dots**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
+
+## 选择性主动通知 Dot
+
+在 **DSH → 设置 → Dots → 主动通知 Dot** 中，可以独立打开或关闭主动通知。首次安装默认关闭；先选定允许通知的 **Session ID**（每行一个），再勾选“会话轮次结束”或“会话执行错误”并保存。Dot 按 [OpenAI MCP Events 官方流程](https://developers.openai.com/plugins/build/mcp-events) 对选定会话建立订阅后，DSH 才通过已验证的官方 Webhook 回调发送对应状态事件。关闭开关会撤销当前订阅；不在允许列表中的会话不会触发通知。
+
+主动事件只携带会话 ID 与事件状态。需要读取任务成果时，Dot 继续使用原有 MCP 工具。MCP 工具连接和主动通知使用独立开关；主动通知不改变 17 个现有工具的能力。
 
 ## 请求内的 DSH 原生事件流
 
@@ -54,7 +60,7 @@ ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议�
 
 使用已有 HTTPS 转发时，可直接填写上方转发地址并在 ChatGPT 选择 **Server URL**，无须运行隧道。MCP 完整地址中带有访问密钥；截图或反馈日志时隐藏该地址。
 
-[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.6/docs/releases/v2.0.1-test.6.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
+[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.7/docs/releases/v2.0.1-test.7.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## 日常使用
 
