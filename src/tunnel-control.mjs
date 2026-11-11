@@ -227,13 +227,16 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
       const output = chunk => { lastLine = clean(chunk.toString().trim().split('\n').at(-1) ?? '') }
       child.stdout?.on('data', output); child.stderr?.on('data', output)
       current.closed = new Promise(resolve => {
-        child.once('close', (code, killedBy) => {
+        child.once('close', async (code, killedBy) => {
           if (runtime === current) {
             runtime = undefined; health = null
             if (!current.stopping && code !== 0) error = lastLine || `Tunnel client exited (${code ?? killedBy}).`
           }
-          void rm(healthFile, { force: true }).catch(() => {})
-          resolve()
+          try {
+            await rm(healthFile, { force: true }).catch(() => {})
+            // A process may exit on its own; run the existing bounded-installation cleanup then too.
+            await prune()
+          } finally { resolve() }
         })
       })
       child.once('error', cause => { if (!current.stopping) error = clean(cause.message); if (runtime === current) runtime = undefined })
@@ -275,7 +278,7 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     const current = runtime
     if (current) {
       try {
-        const result = await command(prefs.executable, ['health', '--url-file', current.healthFile, '--json', '--require-control-plane-poll'])
+        const result = await command(current.executable, ['health', '--url-file', current.healthFile, '--json', '--require-control-plane-poll'])
         if (runtime === current) {
           let details; try { details = JSON.parse(result.output) } catch { details = { message: result.output } }
           health = { ok: result.code === 0, details, at: new Date().toISOString() }
@@ -285,8 +288,9 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     return status()
   }
   return { status, configure, install, start, stop, diagnose, refresh,
+    isRunning: () => Boolean(runtime),
     suspend: () => stopProcess(),
-    async dispose() { disposed = true; await stopProcess(); secret = '' } }
+    async dispose() { disposed = true; try { await stopProcess() } finally { secret = '' } } }
 }
 
 /** The native authenticated Settings transport owns these operations, not the public MCP endpoint. */
