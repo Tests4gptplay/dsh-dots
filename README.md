@@ -7,3 +7,7 @@
 **登录保持（Desktop）**：在 **DSH 设置 → Dots 登录保持** 中，可以查看状态、一键应用或恢复 Dots 专属浏览器的登录保持功能。
 
 [项目主页与安装说明](https://github.com/Tests4gptplay/dsh-dots) · [更新记录](https://github.com/Tests4gptplay/dsh-dots/releases) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues)
+
+## 支持项目 / Support
+
+[GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [支付宝 / Alipay](SPONSOR.md)
