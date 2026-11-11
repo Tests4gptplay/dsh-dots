@@ -90,7 +90,7 @@ test('on/off persists, retains its endpoint, and disposes only the MCP peer', as
  assert.equal(first.running, true)
  const saved = JSON.parse(await readFile(join(dir, 'mcp.json'), 'utf8'))
  assert.equal(saved.enabled, true);assert.equal(saved.port, first.port);assert.equal(saved.token.length, 43)
- assert.equal((await control.check()).lastCheck.toolCount, 16)
+ assert.equal((await control.check()).lastCheck.toolCount, 17)
  await control.configure({ enabled: false });assert.equal(peers[0].disposed, true)
  await assert.rejects(fetch(first.localUrl));assert.equal(calls.length, 0, 'Disabling never calls session/cancel')
  const second = await control.configure({ enabled: true });assert.equal(second.localUrl, first.localUrl)
