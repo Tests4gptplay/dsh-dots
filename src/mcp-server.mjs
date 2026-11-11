@@ -29,9 +29,9 @@ export function makeHandler(adapter, { onCall = () => {}, onError = () => {}, ev
       for (const [method, action] of [
         ['events/list', 'list'], ['events/subscribe', 'subscribe'], ['events/unsubscribe', 'unsubscribe'],
       ]) {
-        server.server.setRequestHandler(z.object({
-          method: z.literal(method), params: z.record(z.string(), z.unknown()).optional(),
-        }), request => events[action](request.params ?? {}))
+        server.server.setRequestHandler(method, {
+          params: z.record(z.string(), z.unknown()), result: z.unknown(),
+        }, params => events[action](params ?? {}))
       }
     }
     for (const tool of adapter.tools) {
