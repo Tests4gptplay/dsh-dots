@@ -175,3 +175,25 @@ test('notification settings RPC is only registered on DSH authenticated settings
   assert.deepEqual(f.controller.status().types, ['dsh.session.error'])
   await undo()
 })
+
+test('failed official webhook verification exposes MCP Events callback error on the HTTP wire', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dots-events-challenge-'))
+  const fake = fakeDsh()
+  const control = createNotificationController(fake.ctx, {
+    dataDir: root, webhookPost: async () => ({ status: 200, body: JSON.stringify({ challenge: 'not-the-issued-challenge' }) }),
+  })
+  t.after(async () => { await control.dispose(); await rm(root, { recursive: true, force: true }) })
+  await control.configure({ enabled: true, sessions: ['s1'], types: ['dsh.session.turn-ended'] })
+  const server = await startMcpServer({ token: 'challenge-test', adapter: { tools: [] }, events: control })
+  t.after(() => server.close())
+  const response = await fetch(server.localUrl, {
+    method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream',
+      'MCP-Protocol-Version': '2025-11-25' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 'verify-fail', method: 'events/subscribe', params: args(fake) }),
+  })
+  const raw = await response.text()
+  const frame = raw.startsWith('{') ? JSON.parse(raw) : JSON.parse(raw.split('\n').find(line => line.startsWith('data: ')).slice(6))
+  assert.equal(frame.error?.code, -32015, JSON.stringify(frame))
+  assert.equal(frame.error?.data?.reason, 'challenge_failed', JSON.stringify(frame))
+  assert.equal(control.status().subscriptionCount, 0)
+})
