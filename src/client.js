@@ -336,7 +336,7 @@ function DotsPage({ t, openExternal }) {
 
 
 /** DSH Settings section: maintenance stays outside the Dots main page and Plugins page. */
-function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, desktop = true }) {
+function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop = true }) {
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -388,7 +388,7 @@ function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, desktop = true }) 
       button('persistenceApply', () => { void act('apply') }, state === 'available'),
       button('persistenceRestore', () => { void act('restore') }, state === 'applied' && status?.canRestore === true)),
     message ? h('p', { role: 'status' }, message) : null)
-  return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc, tunnelRpc }) : null)
+  return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc, tunnelRpc, notifyRpc }) : null)
 }
 
 exports.name = 'dsh-dots-client'
@@ -434,6 +434,13 @@ exports.apply = function apply(ctx) {
       if (!response?.ok) throw new Error(response?.error?.message || 'Dots MCP request failed')
       return response.value
     }
+    const notifyRpc = async (endpoint, payload = {}, signal) => {
+      const connection = ctx.get?.('connection') ?? ctx.connection
+      if (!connection?.rpc) throw new Error('DSH connection is not available')
+      const response = await connection.rpc.call('/api', 'dsh-dots-notify/' + endpoint, payload, signal)
+      if (!response?.ok) throw new Error(response?.error?.message || 'Dots notification request failed')
+      return response.value
+    }
     const tunnelRpc = async (endpoint, payload = {}, signal) => {
       const connection = ctx.get?.('connection') ?? ctx.connection
       if (!connection?.rpc) throw new Error('DSH connection is not available')
@@ -443,7 +450,7 @@ exports.apply = function apply(ctx) {
     }
     ctx.slots.inject('settings.section', () => ctx.slots.register({
       name: 'settings.section', id: 'dsh-dots-login-retention', order: 25,
-      locale: NAMESPACE, label: () => t('persistenceNav'), inject: () => ({ t, rpc, mcpRpc, tunnelRpc, desktop: persistent }),
+      locale: NAMESPACE, label: () => t('persistenceNav'), inject: () => ({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop: persistent }),
     }, DotsPersistenceSettings))
   }
   let persistentPage
