@@ -162,11 +162,11 @@ export function createNotificationController(ctx, { dataDir, canDeliver = () => 
     if (disposed || !prefs.enabled || !ctx.on || !prefs.sessions.length || !prefs.types.length) return
     detach.push(ctx.on('session/event', (session, event) => {
       if (event.type !== 'turn/end') return
-      const sessionId = String(session.id)
+      const sessionId = String(session?.header?.id ?? session?.id ?? '')
       publish('dsh.session.turn-ended', sessionId, { sessionId, turn: event.data.turn, reason: String(event.data.reason?.kind || 'unknown') })
     }, { global: true }))
     detach.push(ctx.on('agent/error', ({ agent }) => {
-      const sessionId = String(agent?.session?.id || agent?.id || '')
+      const sessionId = String(agent?.session?.id ?? agent?.session?.header?.id ?? '')
       publish('dsh.session.error', sessionId, { sessionId })
     }, { global: true }))
   }
