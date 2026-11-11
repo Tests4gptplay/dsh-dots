@@ -103,7 +103,7 @@ test('rotating the MCP key reconnects an already-running tunnel to the new local
   assert.equal(startCount, 1)
   assert.equal(connectedUrl, rotated.localUrl)
   assert.equal(tunnelRunning, true)
-  await assert.rejects(fetch(first.localUrl))
+  assert.equal((await fetch(first.localUrl)).status, 404, 'Old path must no longer access the renewed MCP listener')
   assert.equal((await controller.check()).lastCheck.ok, true)
 })
 
