@@ -1,4 +1,5 @@
 name: Verify optional Dots notifications
+# Verified MCP Events path; rerun after stable UI and shutdown assertions.
 # Recheck SDK v2 event handlers and exact-version documentation.
 on:
   push:
