@@ -34,6 +34,7 @@ export function makeHandler(adapter, { onCall = () => {}, onError = () => {}, ev
         }, params => events[action](params ?? {}))
       }
     }
+    if (events) server.server.registerCapabilities({ events: {} })
     for (const tool of adapter.tools) {
       server.registerTool(tool.name, { description: tool.description, annotations: tool.annotations,
         inputSchema: fromJsonSchema(tool.inputSchema) }, async (args, context) => {
