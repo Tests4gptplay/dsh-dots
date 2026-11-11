@@ -248,7 +248,7 @@ export function createNotificationController(ctx, { dataDir, canDeliver = () => 
         if (!(verified.status >= 200 && verified.status < 300 && expected.length === actual.length && timingSafeEqual(expected, actual))) {
           const failure = new Error('MCP Events callback verification failed.')
           failure.code = -32015
-          failure.details = { reason: 'challenge_failed' }
+          failure.data = { reason: 'challenge_failed' }
           throw failure
         }
       }
