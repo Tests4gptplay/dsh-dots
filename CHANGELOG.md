@@ -1,5 +1,13 @@
 # 更新记录
 
+## 2.0.1-test.4（2026-11-11）
+
+补齐 DSH 原生流式 API 的持续订阅：新增 `dsh_api_subscribe`，通过 MCP 官方请求进度通知连续转发完整事件；原生流结束或客户端停止请求时释放该订阅，`dsh_api_snapshot` 继续承担一次性快照。订阅不附加独立时限、事件数量配额或内容审核。
+
+校准 MCP Tools 元数据：仅对确定的只读操作声明 `readOnlyHint: true`，对通用转发、会话创建和执行类工具省略无法从桥接层确定的危险性与网络范围标签；具体操作及权限仍按 DSH 原生行为执行。
+
+[本版说明](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.4/docs/releases/v2.0.1-test.4.md)
+
 ## 2.0.1-test.3（2026-11-11）
 
 官方 Tunnel Client 继续按每次点击从 OpenAI GitHub Releases 读取最新版本并核对 SHA-256。下载完成后只保留当前客户端与上一份可回退版本，清理更早的插件托管目录；正在运行的旧客户端在停止后清理。插件安装包仍只包含管理代码。
