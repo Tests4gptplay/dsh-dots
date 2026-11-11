@@ -172,7 +172,7 @@ export function createNotificationController(ctx, { dataDir, canDeliver = () => 
   }
   function status() {
     return { enabled: prefs.enabled, sessions: [...prefs.sessions], types: [...prefs.types],
-      active: prefs.enabled && prefs.sessions.length > 0 && prefs.types.length > 0 && Boolean(ctx.on),
+      active: prefs.enabled && prefs.sessions.length > 0 && prefs.types.length > 0 && Boolean(ctx.on) && canDeliver(),
       subscriptionCount: prefs.subscriptions.filter(sub => sub.expiresAt > Date.now()).length,
       lastDelivery, error, events: Object.keys(NOTIFY_EVENTS) }
   }
@@ -194,6 +194,18 @@ export function createNotificationController(ctx, { dataDir, canDeliver = () => 
   return {
     status, initialize: load,
     list: async () => { await load(); return definitions() },
+    revokeConnection: async () => {
+      await load()
+      return store(async () => {
+        epoch++
+        stopListening()
+        const next = { ...prefs, subscriptions: [] }
+        await save(next)
+        prefs = next
+        reconcile()
+        return status()
+      })
+    },
     configure: async patch => {
       await load()
       return store(async () => {
