@@ -4,12 +4,12 @@ import { build } from 'esbuild'
 import { nativeMcpBatchPolicy } from './mcp-sdk-build.mjs'
 await mkdir('lib', { recursive: true })
 const css = (await readFile('src/styles.css', 'utf8')).replace(/\r\n/g, '\n')
-const client = await readFile('src/client.js', 'utf8') + '\n' + await readFile('src/mcp-settings.js', 'utf8') + '\n' + await readFile('src/tunnel-settings.js', 'utf8')
+const client = await readFile('src/client.js', 'utf8') + '\n' + await readFile('src/mcp-settings.js', 'utf8') + '\n' + await readFile('src/tunnel-settings.js', 'utf8') + '\n' + await readFile('src/notify-settings.js', 'utf8')
 const packageName = JSON.parse(await readFile('package.json', 'utf8')).name
 const wrapper = `window.__ModuleLoader__.load({ id: ${JSON.stringify(packageName)}, factory: (require) => {\nvar module = { exports: {} }; var exports = module.exports;\nconst __DOTS_CLIENT_CSS__ = ${JSON.stringify(css)};\n${client}\nreturn module.exports; } });\n`
 await writeFile('lib/client.js', wrapper)
 await writeFile('lib/host.js', await readFile('src/host.mjs', 'utf8'))
-for (const name of ['persistence.mjs', 'persistence-after-exit.mjs', 'mcp-adapter.mjs', 'mcp-control.mjs']) {
+for (const name of ['persistence.mjs', 'persistence-after-exit.mjs', 'mcp-adapter.mjs', 'mcp-control.mjs', 'notify-control.mjs']) {
   await writeFile('lib/' + name, await readFile('src/' + name, 'utf8'))
 }
 const bundled = await build({ entryPoints: ['src/mcp-server.mjs'], outfile: 'lib/mcp-server.mjs',
