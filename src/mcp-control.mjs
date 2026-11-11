@@ -117,17 +117,29 @@ export function createMcpController(ctx, options = {}) {
       if (disposed) throw new Error('Dots MCP plugin has been unloaded.')
       const next = validatePreferences(patch, prefs)
       const restart = next.port !== prefs.port || next.publicOrigin !== prefs.publicOrigin
-      // A requested disable closes the live listener even when saving is unavailable.
-      if (!next.enabled) await stop()
+      // Disable and persist MCP independently of tunnel-process cleanup.
+      let stopFailure
+      if (!next.enabled) {
+        try { await stop() } catch (cause) { stopFailure = cause }
+      }
       try { await save(next) } catch (cause) {
         if (!next.enabled) {
           prefs = { ...prefs, enabled: false }
-          throw new Error('MCP is off, but saving this setting failed. The previous choice may be restored after DSH restarts.', { cause })
+          throw new Error('MCP is off, but saving this setting failed. The previous choice may be restored after DSH restarts.'
+            + (stopFailure ? ' Tunnel cleanup also failed: ' + message(stopFailure) : ''), { cause })
         }
         throw cause
       }
       prefs = next
-      if (restart && prefs.enabled) await stop()
+      if (!prefs.enabled) {
+        if (stopFailure) {
+          throw new Error('MCP has been disabled and its setting saved, but tunnel cleanup failed: ' + message(stopFailure),
+            { cause: stopFailure })
+        }
+        error = ''
+        return status()
+      }
+      if (restart) await stop()
       error = ''
       await reconcile()
       return status()
