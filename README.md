@@ -1,4 +1,4 @@
-# DSH Dots 2.0.1-test.5
+# DSH Dots 2.0.1-test.6
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
@@ -22,21 +22,23 @@ DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harne
 
 原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。
 
-## 安装 2.0.1-test.5 测试分支
+## 安装 2.0.1-test.6 测试分支
 
 在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.5
+github:Tests4gptplay/dsh-dots#2.0.1-test.6
 ```
 
-本页对应 `2.0.1-test.5` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
+本页对应 `2.0.1-test.6` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
 
 安装后，从侧栏打开 **DSH Dots**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
 
-## 2.0.1-test.5：持续事件订阅
+## 请求内的 DSH 原生事件流
 
-新增 `dsh_api_subscribe`：直接将 DSH 原生流式 API 的每个事件通过 MCP 请求进度通知持续传递给客户端。支持原生流结束和客户端取消；`dsh_api_snapshot` 继续提供单次快照。客户端使用 MCP `progressToken` 接收事件，调用中不另设任务时限、事件数量上限或风险审核。
+`dsh_api_subscribe` 在 MCP 工具调用期间，使用 `notifications/progress` 连续传递 DSH 原生事件；支持该通知的 MCP 客户端可用 `progressToken` 接收，取消请求就会释放订阅。`dsh_api_snapshot` 继续提供单次快照。
+
+ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议（`events/list`、`events/subscribe`、`events/unsubscribe`）。两种通道用途不同；本测试版提供请求内事件流，不把它标作 Dot 的后台事件订阅。
 
 **本轮修复：** 关闭 MCP 时即使官方隧道进程停止报错，仍会保存 MCP 关闭状态并显示实际错误。下载新版隧道客户端后，设置页会提示“待切换”；用户点击「启动隧道」时，停止旧进程并启动新客户端。
 
@@ -52,7 +54,7 @@ github:Tests4gptplay/dsh-dots#2.0.1-test.5
 
 使用已有 HTTPS 转发时，可直接填写上方转发地址并在 ChatGPT 选择 **Server URL**，无须运行隧道。MCP 完整地址中带有访问密钥；截图或反馈日志时隐藏该地址。
 
-[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.5/docs/releases/v2.0.1-test.5.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
+[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.6/docs/releases/v2.0.1-test.6.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## 日常使用
 
