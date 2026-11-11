@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promise
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createMcpController } from '../lib/mcp-control.mjs'
+import { disposeDotsResources } from '../lib/host.js'
 import { resultOf } from '../lib/mcp-server.mjs'
 import { loadNativeClient } from './cases/load-native-client.mjs'
 
@@ -65,6 +66,60 @@ test('tunnel shutdown failure leaves MCP off and persists the disabled preferenc
   const recovered = await reloaded.initialize()
   assert.equal(recovered.enabled, false)
   assert.equal(recovered.running, false)
+})
+
+test('host unload always releases the MCP listener and native Peer if tunnel disposal fails', async t => {
+  const { controller } = await fixture(t)
+  const started = await controller.configure({ enabled: true })
+  const calls = []
+  await assert.rejects(disposeDotsResources(
+    async () => { calls.push('unregister tunnel settings') },
+    async () => { calls.push('unregister MCP settings') },
+    { async dispose() { calls.push('dispose tunnel'); throw new Error('native tunnel process did not stop') } },
+    { async dispose() { calls.push('dispose MCP'); await controller.dispose() } },
+  ), /native tunnel process did not stop/)
+  assert.deepEqual(calls, ['unregister tunnel settings', 'unregister MCP settings', 'dispose tunnel', 'dispose MCP'])
+  await assert.rejects(fetch(started.localUrl))
+})
+
+test('rotating the MCP key reconnects an already-running tunnel to the new local address', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dots-mcp-rotate-'))
+  const ctx = { connection: { createPeer() { return { async dispose() {} } } } }
+  let tunnelRunning = true, startCount = 0, connectedUrl = ''
+  const controller = createMcpController(ctx, {
+    configPath: join(root, 'mcp.json'),
+    tunnelRunning: () => tunnelRunning,
+    onStop: async () => { tunnelRunning = false },
+    restartTunnel: async () => {
+      startCount++
+      connectedUrl = controller.status().localUrl
+      tunnelRunning = true
+    },
+  })
+  t.after(async () => { await controller.dispose(); await rm(root, { recursive: true, force: true }) })
+  const first = await controller.configure({ enabled: true })
+  const rotated = await controller.rotate()
+  assert.notEqual(first.localUrl, rotated.localUrl)
+  assert.equal(startCount, 1)
+  assert.equal(connectedUrl, rotated.localUrl)
+  assert.equal(tunnelRunning, true)
+  await assert.rejects(fetch(first.localUrl))
+  assert.equal((await controller.check()).lastCheck.ok, true)
+})
+
+test('rotating the MCP key does not start a tunnel that was already stopped', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dots-mcp-rotate-stopped-'))
+  const ctx = { connection: { createPeer() { return { async dispose() {} } } } }
+  let starts = 0
+  const controller = createMcpController(ctx, {
+    configPath: join(root, 'mcp.json'),
+    tunnelRunning: () => false,
+    restartTunnel: async () => { starts++ },
+  })
+  t.after(async () => { await controller.dispose(); await rm(root, { recursive: true, force: true }) })
+  await controller.configure({ enabled: true })
+  await controller.rotate()
+  assert.equal(starts, 0)
 })
 
 test('closing MCP clears prior successful local connection status', async t => {
