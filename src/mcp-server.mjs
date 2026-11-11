@@ -28,7 +28,7 @@ export function makeHandler(adapter, { onCall = () => {}, onError = () => {} } =
       server.registerTool(tool.name, { description: tool.description, annotations: tool.annotations,
         inputSchema: fromJsonSchema(tool.inputSchema) }, async (args, context) => {
         try {
-          const result = resultOf(await tool.run(args, context.mcpReq.signal))
+          const result = resultOf(await tool.run(args, context.mcpReq.signal, context.mcpReq))
           onCall({ tool: tool.name, at: new Date().toISOString(), ok: result.isError !== true })
           return result
         } catch (error) {
