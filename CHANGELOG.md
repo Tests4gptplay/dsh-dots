@@ -1,5 +1,14 @@
 # 更新记录
 
+## 2.0.1-test.7（2026-11-11）
+
+新增可选择的 **Dot 主动通知开关**。在 DSH「设置 → Dots」中独立启用，默认关闭；逐项选择明确的原生 Session ID 和「轮次结束／执行错误」事件类型。只有通过用户选择的范围并由 Dot 建立 MCP Events 订阅后，才发送官方签名 Webhook 通知。关闭开关清除订阅；更换 MCP 连接密钥也会撤销旧订阅。
+
+使用 DSH 已有 `session/event` 与 `agent/error` 事件，不轮询任务；通知包含会话 ID 和状态，不上传完整会话内容。保留原有 17 个 MCP 工具、请求内进度流及 Tunnel Client 管理。
+
+[功能说明与验收](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.7/docs/releases/v2.0.1-test.7.md)
+
+
 ## 2.0.1-test.6（2026-11-11）
 
 - 修复 Dots 卸载资源清理：即使官方隧道进程停止失败，也继续注销设置接口、释放 MCP 监听与 DSH Peer，并返回实际清理错误。
