@@ -1,4 +1,5 @@
 name: Verify optional Dots notifications
+# Verify real DSH session.header.id and native agent session identity.
 # Verify raw wire capabilities, independent of client SDK's schema projection.
 # Revalidate advertised official MCP event capabilities on both protocol eras.
 # Verify both MCP initialize and server/discover event advertisement.
