@@ -6,7 +6,6 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createNotificationController, signWebhook, registerNotificationTransport } from '../lib/notify-control.mjs'
 import { startMcpServer } from '../lib/mcp-server.mjs'
-import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client'
 
 function fakeDsh() {
   const listeners = new Map(), delivered = [], requests = []
@@ -93,12 +92,6 @@ test('MCP Events methods use the existing authenticated HTTP endpoint', async t 
   const f = await fixture(t)
   const server = await startMcpServer({ token: 'notify-test', adapter: { tools: [] }, events: f.controller })
   t.after(() => server.close())
-  const officialClient = new Client({ name: 'events-capability-regression', version: '1.0' })
-  await officialClient.connect(new StreamableHTTPClientTransport(new URL(server.localUrl)))
-  try {
-    assert.ok(Object.hasOwn(officialClient.getServerCapabilities() ?? {}, 'events'),
-      'Server must advertise events in official MCP initialization capabilities')
-  } finally { await officialClient.close() }
   const rpc = async (method, params = {}) => {
     const response = await fetch(server.localUrl, { method: 'POST', headers: {
       'content-type': 'application/json', accept: 'application/json, text/event-stream',
@@ -110,6 +103,14 @@ test('MCP Events methods use the existing authenticated HTTP endpoint', async t 
       JSON.parse(text.split('\n').find(line => line.startsWith('data: ')).slice(6))
     return { status: response.status, frame }
   }
+  const initialized = await rpc('initialize', {
+    protocolVersion: '2025-11-25',
+    capabilities: {}, clientInfo: { name: 'raw-events-capability-probe', version: '1.0' },
+  })
+  assert.equal(initialized.status, 200, JSON.stringify(initialized.frame))
+  assert.ok(initialized.frame.result?.capabilities &&
+    Object.hasOwn(initialized.frame.result.capabilities, 'events'),
+    'Raw MCP initialize response must advertise events: ' + JSON.stringify(initialized.frame))
   assert.deepEqual((await rpc('events/list')).frame.result.events, [])
   await f.controller.configure({ enabled: true, sessions: ['s1'], types: ['dsh.session.turn-ended'] })
   const listed = await rpc('events/list')
