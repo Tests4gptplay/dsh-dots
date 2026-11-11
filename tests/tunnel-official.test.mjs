@@ -65,11 +65,20 @@ test('official client installs, initializes, forwards MCP, reports health and st
     assert.notEqual(newest.executable, updated.executable)
     assert.equal(releaseLookups, 3, 'Every install must resolve the latest official GitHub Release')
     await access(dirname(installed.executable)) // currently running binary is kept until stop
-    const stopped = await controller.stop(); assert.equal(stopped.running, false)
+    const pending = await controller.status()
+    assert.equal(pending.running, true)
+    assert.equal(pending.pendingClientSwitch, true, 'A newer downloaded executable awaits activation')
+    assert.equal(pending.runningExecutable, installed.executable)
+    const switched = await controller.start()
+    assert.equal(switched.running, true)
+    assert.notEqual(switched.pid, started.pid, 'Start must switch from the old live client')
+    assert.equal(switched.runningExecutable, newest.executable)
+    assert.equal(switched.pendingClientSwitch, false)
     await assert.rejects(access(dirname(installed.executable)), { code: 'ENOENT' })
     await access(dirname(updated.executable))
     await access(dirname(newest.executable))
-    const restarted = await controller.start(); assert.equal(restarted.running, true); assert.notEqual(restarted.pid, started.pid)
+    const stopped = await controller.stop(); assert.equal(stopped.running, false)
+    const restarted = await controller.start(); assert.equal(restarted.running, true); assert.notEqual(restarted.pid, switched.pid)
     await controller.stop(); mcpOn = false
     await assert.rejects(controller.start(), /Enable MCP/)
   } finally {
