@@ -1,4 +1,4 @@
-# DSH Dots 2.0.1-test.3
+# DSH Dots 2.0.1-test.4
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
@@ -22,17 +22,21 @@ DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harne
 
 原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。
 
-## 安装 2.0.1-test.3 测试分支
+## 安装 2.0.1-test.4 测试分支
 
 在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.3
+github:Tests4gptplay/dsh-dots#2.0.1-test.4
 ```
 
-本页对应 `2.0.1-test.3` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
+本页对应 `2.0.1-test.4` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
 
 安装后，从侧栏打开 **DSH Dots**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
+
+## 2.0.1-test.4：持续事件订阅
+
+新增 `dsh_api_subscribe`：直接将 DSH 原生流式 API 的每个事件通过 MCP 请求进度通知持续传递给客户端。支持原生流结束和客户端取消；`dsh_api_snapshot` 继续提供单次快照。客户端使用 MCP `progressToken` 接收事件，调用中不另设任务时限、事件数量上限或风险审核。
 
 ## 连接自己的 Dot
 
@@ -46,7 +50,7 @@ github:Tests4gptplay/dsh-dots#2.0.1-test.3
 
 使用已有 HTTPS 转发时，可直接填写上方转发地址并在 ChatGPT 选择 **Server URL**，无须运行隧道。MCP 完整地址中带有访问密钥；截图或反馈日志时隐藏该地址。
 
-[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.3/docs/releases/v2.0.1-test.3.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
+[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.4/docs/releases/v2.0.1-test.4.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## 日常使用
 
