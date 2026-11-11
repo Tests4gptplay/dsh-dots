@@ -3,6 +3,7 @@ import { createServer } from 'node:http'
 import { timingSafeEqual } from 'node:crypto'
 import { McpServer, createMcpHandler, fromJsonSchema } from '@modelcontextprotocol/server'
 import { toNodeHandler, hostHeaderValidation, originValidation } from '@modelcontextprotocol/node'
+import * as z from 'zod/v4'
 
 export const VERSION = '2.0.1-test.6'
 // The SDK requires a finite byte count. Use the JavaScript counting boundary,
@@ -20,10 +21,19 @@ export function resultOf(value) {
   }
   return { content: [{ type: 'text', text: JSON.stringify(data) }, ...media], structuredContent: data, ...(isError ? { isError: true } : {}) }
 }
-export function makeHandler(adapter, { onCall = () => {}, onError = () => {} } = {}) {
+export function makeHandler(adapter, { onCall = () => {}, onError = () => {}, events } = {}) {
   return createMcpHandler(() => {
-    const server = new McpServer({ name: 'dsh-dots', version: VERSION }, { instructions:
+    const server = new McpServer({ name: 'dsh-dots', version: VERSION }, { capabilities: events ? { events: {} } : {}, instructions:
       'DSH is the execution environment. Reuse native session IDs. Create/prompt returns acceptance; use state, wait and events for completion and output. Discover additional native APIs with dsh_api_list and describe. Follow DSH approval requests in its native UI. MCP disconnection does not cancel accepted sessions.' })
+    if (events) {
+      for (const [method, action] of [
+        ['events/list', 'list'], ['events/subscribe', 'subscribe'], ['events/unsubscribe', 'unsubscribe'],
+      ]) {
+        server.server.setRequestHandler(z.object({
+          method: z.literal(method), params: z.record(z.string(), z.unknown()).optional(),
+        }), request => events[action](request.params ?? {}))
+      }
+    }
     for (const tool of adapter.tools) {
       server.registerTool(tool.name, { description: tool.description, annotations: tool.annotations,
         inputSchema: fromJsonSchema(tool.inputSchema) }, async (args, context) => {
@@ -43,14 +53,14 @@ export function makeHandler(adapter, { onCall = () => {}, onError = () => {} } =
   }, { legacy: 'stateless', keepAliveMs: 0, maxSubscriptions: Infinity, maxRequestBodySize, onerror: onError })
 }
 
-export async function startMcpServer({ adapter, token, port = 0, publicOrigin = '', onCall, onError = () => {} }) {
+export async function startMcpServer({ adapter, token, port = 0, publicOrigin = '', onCall, onError = () => {}, events }) {
   const path = `/mcp/${token}`
   const paths = [path, ...(publicOrigin ? [new URL(publicOrigin).pathname.replace(/\/+$/, '') + path] : [])].map(value => Buffer.from(value))
   const allowedHosts = ['127.0.0.1', 'localhost', '[::1]']
   if (publicOrigin) allowedHosts.push(new URL(publicOrigin).hostname)
   const checkHost = hostHeaderValidation(allowedHosts)
   const checkOrigin = originValidation(allowedHosts)
-  const handler = makeHandler(adapter, { onCall, onError })
+  const handler = makeHandler(adapter, { onCall, onError, events })
   const nodeHandler = toNodeHandler(handler, { maxRequestBodySize })
   const sockets = new Set()
   let closed = false
