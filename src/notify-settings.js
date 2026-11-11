@@ -79,7 +79,7 @@ function DotsNotifySettings({ t, notifyRpc, mcpRunning }) {
       : status.subscriptionCount > 0 && status.active ? t('notifyStateActive') : t('notifyStateOn')),
     h('label', { className: 'dotsMcpField' }, t('notifySessions'),
       h('textarea', { value: sessions, disabled: busy, rows: 3, spellCheck: false,
-        style: { width: '100%', resize: 'vertical' }, onChange: event => setSessions(event.target.value) })),
+        style: { width: '100%', resize: 'vertical' }, onInput: event => setSessions(event.currentTarget.value) })),
     h('p', { className: 'dotsMcpHint' }, t('notifySessionsHint')),
     checked('dsh.session.turn-ended', 'notifyTurn'),
     checked('dsh.session.error', 'notifyError'),
