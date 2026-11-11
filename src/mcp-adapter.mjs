@@ -52,7 +52,7 @@ export function createDshAdapter(ctx, peer) {
     run,
   })
   add('dsh_status', 'Inspect the connected DSH environment and available native API namespaces. This does not start a task.', schema(), true,
-    async () => ({ plugin: 'dsh-dots', version: '2.0.1-test.3',
+    async () => ({ plugin: 'dsh-dots', version: '2.0.1-test.4',
       namespaces: [...new Set(registry().map(d => d.namespace))].sort(),
       nativeApiCount: registry().length, nativeApiAvailable: Boolean(getService(ctx, 'typertGateway')), toolsAvailable: Boolean(getService(ctx, 'tools')) }))
   add('dsh_sessions', 'List existing DSH conversations. Use an existing sessionId to continue work.', nativeSchema(), true,
