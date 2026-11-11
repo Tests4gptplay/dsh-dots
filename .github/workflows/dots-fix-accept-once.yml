@@ -42,6 +42,14 @@ jobs:
           node --check _unpacked/package/lib/mcp-control.mjs
           node --check _unpacked/package/lib/tunnel-control.mjs
           sha256sum dsh-dots-2.0.1-test.5.tgz > SHA256SUMS.txt
+      - name: Native DSH 0.2.2-rc.1 regression using final packed plugin
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix _native --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1
+          mkdir -p _native/node_modules/dsh-dots native-evidence
+          tar -xzf dsh-dots-2.0.1-test.5.tgz -C _native/node_modules/dsh-dots --strip-components=1
+          DSH_NATIVE_ROOT="$PWD/_native" DSH_TEST_OUTPUT="$PWD/native-evidence" node tests/native/verify.mjs
       - name: Commit built production output after passing
         shell: bash
         env:
