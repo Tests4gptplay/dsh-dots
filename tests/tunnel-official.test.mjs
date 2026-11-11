@@ -2,6 +2,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
+import { spawn } from 'node:child_process'
+import { setTimeout as delay } from 'node:timers/promises'
 import { readFile, mkdtemp, rm, access } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -39,9 +41,14 @@ test('official client installs, initializes, forwards MCP, reports health and st
   const api = await listen(remote)
   const mcpServer = await startMcpServer({ token: 'local-test-key', adapter: { tools: [{ name: 'test_echo', description: 'Local transport check', inputSchema: { type: 'object', properties: { value: { type: 'string' } }, required: ['value'] }, run: async ({ value }) => ({ value }) }] } })
   let mcpOn = true, releaseLookups = 0
+  const healthExecutables = []
   const controller = createTunnelController({ dataDir: dir, mcp: { status: () => ({ localUrl: mcpOn ? mcpServer.localUrl : '' }) },
     environment: { ...process.env, CONTROL_PLANE_BASE_URL: api },
     fetchImpl: async url => url.includes('api.github.com') ? (releaseLookups++, Response.json(release)) : new Response(await readFile(join(official, url.split('/').at(-1)))),
+    spawnImpl: (exe, args, options) => {
+      if (args[0] === 'health') healthExecutables.push(exe)
+      return spawn(exe, args, options)
+    },
   })
   try {
     const installed = await controller.install()
@@ -69,6 +76,8 @@ test('official client installs, initializes, forwards MCP, reports health and st
     assert.equal(pending.running, true)
     assert.equal(pending.pendingClientSwitch, true, 'A newer downloaded executable awaits activation')
     assert.equal(pending.runningExecutable, installed.executable)
+    await controller.refresh()
+    assert.equal(healthExecutables.at(-1), installed.executable, 'Health checks must inspect the running binary')
     const switched = await controller.start()
     assert.equal(switched.running, true)
     assert.notEqual(switched.pid, started.pid, 'Start must switch from the old live client')
@@ -79,7 +88,23 @@ test('official client installs, initializes, forwards MCP, reports health and st
     await access(dirname(newest.executable))
     const stopped = await controller.stop(); assert.equal(stopped.running, false)
     const restarted = await controller.start(); assert.equal(restarted.running, true); assert.notEqual(restarted.pid, switched.pid)
-    await controller.stop(); mcpOn = false
+    // An unexpected process exit must also run the existing installation cleanup.
+    const next1 = await controller.install()
+    const next2 = await controller.install()
+    const beforeCrash = await controller.status()
+    assert.equal(beforeCrash.runningExecutable, newest.executable)
+    assert.equal(beforeCrash.pendingClientSwitch, true)
+    process.kill(process.platform === 'win32' ? beforeCrash.pid : -beforeCrash.pid, 'SIGTERM')
+    const deadline = Date.now() + 5000
+    while (Date.now() < deadline) {
+      try { await access(dirname(beforeCrash.runningExecutable)); await delay(20) }
+      catch (cause) { if (cause.code === 'ENOENT') break; throw cause }
+    }
+    assert.equal((await controller.status()).running, false)
+    await assert.rejects(access(dirname(beforeCrash.runningExecutable)), { code: 'ENOENT' })
+    await access(dirname(next1.executable))
+    await access(dirname(next2.executable))
+    mcpOn = false
     await assert.rejects(controller.start(), /Enable MCP/)
   } finally {
     await controller.dispose(); await mcpServer.close(); for (const timer of timers) clearTimeout(timer); await close(remote); await rm(dir, { recursive: true, force: true })
