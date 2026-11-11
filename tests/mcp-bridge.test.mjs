@@ -155,15 +155,17 @@ test('HTTPS forwarding supports a deployment path prefix', async t => {
   const forwarded = new URL(status.localUrl);forwarded.pathname = '/dsh' + forwarded.pathname
   assert.equal((await rpc(forwarded.href, 'dsh_status', {})).body.result.isError, undefined)
 })
-test('tool annotations distinguish creation and inspection from unrestricted execution', () => {
-  const { ctx } = environment();const adapter = createDshAdapter(ctx, {})
+test('tool metadata reports known read-only behavior without invented risk rankings', () => {
+  const { ctx } = environment(), adapter = createDshAdapter(ctx, {})
   const tool = name => adapter.tools.find(tool => tool.name === name)
-  assert.equal(tool('dsh_session_create').annotations.destructiveHint, false)
-  assert.equal(tool('dsh_tools').annotations.destructiveHint, false)
-  assert.equal(tool('dsh_tools').annotations.readOnlyHint, false)
-  assert.equal(tool('dsh_session_model').annotations.openWorldHint, false)
-  assert.equal(tool('dsh_api_call').annotations.destructiveHint, true)
-  assert.equal(tool('dsh_tool_call').annotations.openWorldHint, true)
+  for (const name of ['dsh_status', 'dsh_sessions', 'dsh_session_state', 'dsh_session_wait', 'dsh_session_events',
+    'dsh_model_catalog', 'dsh_api_list', 'dsh_api_describe', 'dsh_tools']) {
+    assert.deepEqual(tool(name).annotations, { readOnlyHint: true }, name)
+  }
+  for (const name of ['dsh_session_prompt', 'dsh_session_create', 'dsh_session_cancel', 'dsh_session_model',
+    'dsh_api_call', 'dsh_api_snapshot', 'dsh_api_subscribe', 'dsh_tool_call']) {
+    assert.equal(tool(name).annotations, undefined, name)
+  }
 })
 
 test('modern HTTP preserves payloads larger than the SDK default', async t => {
@@ -203,4 +205,91 @@ test('unknown native delivery modes reach host validation instead of a frozen ad
   const result = await rpc(server.localUrl, 'dsh_session_prompt', { sessionId: 'native-session', text: 'message', mode: 'host-extension' })
   assert.equal(result.body.result.isError, undefined)
   assert.equal(calls[0].args.request.mode, 'host-extension')
+})
+
+function progressFrames(body) {
+  return body.split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)))
+}
+for (const version of ['2025-11-25', '2026-07-28']) {
+  test(`native continuous DSH stream forwards every structured event via MCP progress (${version})`, async t => {
+    const env = environment(), calls = []
+    env.ctx.typertGateway.stream = ({ namespace, method, args, signal }) => {
+      calls.push({ namespace, method, args, signal })
+      return { async *[Symbol.asyncIterator]() {
+        yield { seq: 0, payload: { note: '第一条' } }
+        yield { seq: 1, payload: { count: 100000000000000000000n } }
+        yield { seq: 2, payload: [1, 2, 3] }
+      } }
+    }
+    const server = await startMcpServer({ adapter: createDshAdapter(env.ctx, {}), token: 'stream-bridge' })
+    t.after(() => server.close())
+    const modern = version === '2026-07-28'
+    const args = { namespace: 'nativeExtension', method: 'customStream', args: { cursor: -1, custom: { enabled: true } } }
+    const request = message('dsh_api_subscribe', args)
+    request.params._meta = modern ? {
+      progressToken: 'native-stream-token', 'io.modelcontextprotocol/protocolVersion': version,
+      'io.modelcontextprotocol/clientCapabilities': {}, 'io.modelcontextprotocol/clientInfo': { name: 'dots-stream-test', version: '1' },
+    } : { progressToken: 'native-stream-token' }
+    const response = await fetch(server.localUrl, { method: 'POST', headers: { ...headers,
+      'MCP-Protocol-Version': version, ...(modern ? { 'Mcp-Method': 'tools/call', 'Mcp-Name': 'dsh_api_subscribe' } : {}) },
+      body: JSON.stringify(request) })
+    assert.equal(response.status, 200)
+    assert.match(response.headers.get('content-type'), /text\/event-stream/)
+    const frames = progressFrames(await response.text())
+    const notices = frames.filter(item => item.method === 'notifications/progress')
+    assert.equal(notices.length, 3)
+    assert.deepEqual(notices.map(item => item.params.progress), [1, 2, 3])
+    assert.ok(notices.every(item => item.params.progressToken === 'native-stream-token'))
+    assert.deepEqual(notices.map(item => JSON.parse(item.params.message)), [
+      { seq: 0, payload: { note: '第一条' } }, { seq: 1, payload: { count: '100000000000000000000' } },
+      { seq: 2, payload: [1, 2, 3] },
+    ])
+    assert.deepEqual(calls.map(({ namespace, method, args }) => ({ namespace, method, args })), [args])
+    assert.equal(frames.at(-1).result.structuredContent.events, 3)
+    assert.equal(frames.at(-1).result.structuredContent.completed, true)
+  })
+}
+test('continuous subscription uses the MCP request lifetime to stop the native iterator without cancelling a DSH task', async t => {
+  const env = environment()
+  let stopNative, closed, abortedSignal
+  const closedNative = new Promise(resolve => { stopNative = resolve })
+  env.ctx.typertGateway.stream = ({ signal }) => {
+    abortedSignal = signal
+    return { [Symbol.asyncIterator]() {
+      let first = true
+      return {
+        async next() {
+          if (first) { first = false; return { value: { seq: 1, action: 'watch' }, done: false } }
+          await new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }))
+          return { done: true }
+        },
+        async return() { closed = true; stopNative(); return { done: true } },
+      }
+    } }
+  }
+  const server = await startMcpServer({ adapter: createDshAdapter(env.ctx, {}), token: 'stream-abort' })
+  t.after(() => server.close())
+  const request = message('dsh_api_subscribe', { namespace: 'workspace', method: 'follow', args: {} })
+  request.params._meta = { progressToken: 'abort-token' }
+  const abort = new AbortController()
+  const response = await fetch(server.localUrl, { method: 'POST', headers, body: JSON.stringify(request), signal: abort.signal })
+  assert.match(response.headers.get('content-type'), /text\/event-stream/)
+  const reader = response.body.getReader()
+  const first = new TextDecoder().decode((await reader.read()).value)
+  assert.match(first, /notifications\/progress/)
+  abort.abort('Stop listening')
+  await closedNative
+  assert.equal(abortedSignal.aborted, true)
+  assert.equal(closed, true)
+})
+test('subscription without MCP progress support reports its transport requirement immediately', async t => {
+  const env = environment()
+  let started = false
+  env.ctx.typertGateway.stream = () => { started = true; throw new Error('should not start a stream without progress transport') }
+  const server = await startMcpServer({ adapter: createDshAdapter(env.ctx, {}), token: 'stream-missing-progress' })
+  t.after(() => server.close())
+  const result = await rpc(server.localUrl, 'dsh_api_subscribe', { namespace: 'workspace', method: 'follow', args: {} })
+  assert.equal(result.body.result.isError, true)
+  assert.match(result.body.result.structuredContent.error.message, /progressToken/)
+  assert.equal(started, false)
 })
