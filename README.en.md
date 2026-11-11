@@ -22,7 +22,7 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls.
 
-## Install the 2.0.0 branch
+## Install the 2.0.1-test.7 branch
 
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
