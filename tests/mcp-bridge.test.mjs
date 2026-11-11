@@ -116,7 +116,7 @@ for (const operation of ['disable', 'suspend', 'dispose']) test(`a pending diagn
   try {
     checking = control.check();await started
     stopping = (operation === 'disable' ? control.configure({ enabled: false }) : control[operation]()).then(() => { stopped = true })
-    await new Promise(resolve => setTimeout(resolve, 80))
+    await stopping // Assert actual shutdown completion instead of an arbitrary CI scheduling delay.
     assert.equal(stopped, true)
     assert.equal(control.status().running, false)
     assert.equal(observedSignal?.aborted, true)
