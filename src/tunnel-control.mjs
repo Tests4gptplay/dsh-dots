@@ -93,6 +93,7 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     let installed = false
     if (prefs.executable) try { await access(prefs.executable); installed = true } catch {}
     return { ...prefs, installed, platform, arch, running: Boolean(runtime), pid: runtime?.child.pid ?? null,
+      runningExecutable: runtime?.executable ?? '', pendingClientSwitch: Boolean(runtime && prefs.executable !== runtime.executable),
       state: runtime ? 'running' : operation ? operation.name : 'stopped', operation: operation?.name ?? '',
       keyAvailable: Boolean(secret || environment.CONTROL_PLANE_API_KEY), error, lastDiagnosis, health, links: TUNNEL_LINKS,
       profileDirectory: profileDir, targetAvailable: Boolean(mcp.status().localUrl) }
@@ -208,7 +209,12 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     return task('starting', async signal => {
       await configure(patch)
       signal.throwIfAborted()
-      if (runtime) return
+      if (runtime) {
+        if (runtime.executable === prefs.executable) return
+        // An official download updates the selected binary; switch when the user presses Start.
+        await stopProcess(false)
+        signal.throwIfAborted()
+      }
       await prepare(signal)
       signal.throwIfAborted()
       const healthFile = join(profileDir, `health-${randomUUID()}.url`)
