@@ -1,4 +1,5 @@
 name: Dots 2.0.1-test.6 lifecycle and packaging acceptance
+# Re-run with the corrected old-key HTTP 404 assertion.
 on:
   push:
     branches: ['2.0.1-test.6']
