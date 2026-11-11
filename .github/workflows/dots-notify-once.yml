@@ -1,4 +1,5 @@
 name: Verify optional Dots notifications
+# Recheck SDK v2 event handlers and exact-version documentation.
 on:
   push:
     branches: ['2.0.1-test.7']
