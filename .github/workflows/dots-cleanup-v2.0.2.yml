@@ -60,23 +60,23 @@ jobs:
               failures=1
             fi
           done <<'BRANCH_TARGETS'
-2.0.1-test.1 ef9b3f2471d4a48c521e2acaaf038cda1acf8096
-2.0.1-test.2 6c15705a32af498bd94d034b32c4592b239a268b
-2.0.1-test.3 a5cc4967b1d0d51e3d8283b00bba99f5ad3812d9
-2.0.1-test.4 ee14188975d349337754a97d6989f76f14f44c5d
-2.0.1-test.5 ca34bee0d4a42fd63b0ed5b9dbc5b21ff985b7ff
-2.0.1-test.6 ba885fe08da23738c5cd239743496ffa2bf17560
-2.0.1-test.7 b89481513b08744147b1ed85e4a93bd555d3ba7a
-2.0.1-test.8 b7873167f3857559c439bd671eb94f0668604bb2
-2.0.1-test.9 b09edace212de89e4c267f6f944d5a7b7d611d91
-2.0.1-test.10 83d7636f08a69ab5a76a6963a44326883923b5de
-2.0.1-test.11 7668e8ccc08e71e4a3a75e8ddb0a19e629e794ea
-2.0.1-test.12 c91887eb27f7bfb3a293e9d9869f0001feb85c17
-2.0.2-test.1 39d209f3909c1fb02851756b93bbf086ef516dbe
-2.0.2-test.2 39d209f3909c1fb02851756b93bbf086ef516dbe
-release/2.0.0 f46b17f463640fccfa6890412919493618eea0f7
-release/2.0.1 10a873689b9a5e8ad9691401d4d8cf9e5a4486e8
-release/2.0.2 1f9aafa20347b03741c45255707dd614385448a0
-test/login-retention-1.0.12 ba821839d35bdc627b3a4390cf1dc9a1ad3fbcb1
-BRANCH_TARGETS
+          2.0.1-test.1 ef9b3f2471d4a48c521e2acaaf038cda1acf8096
+          2.0.1-test.2 6c15705a32af498bd94d034b32c4592b239a268b
+          2.0.1-test.3 a5cc4967b1d0d51e3d8283b00bba99f5ad3812d9
+          2.0.1-test.4 ee14188975d349337754a97d6989f76f14f44c5d
+          2.0.1-test.5 ca34bee0d4a42fd63b0ed5b9dbc5b21ff985b7ff
+          2.0.1-test.6 ba885fe08da23738c5cd239743496ffa2bf17560
+          2.0.1-test.7 b89481513b08744147b1ed85e4a93bd555d3ba7a
+          2.0.1-test.8 b7873167f3857559c439bd671eb94f0668604bb2
+          2.0.1-test.9 b09edace212de89e4c267f6f944d5a7b7d611d91
+          2.0.1-test.10 83d7636f08a69ab5a76a6963a44326883923b5de
+          2.0.1-test.11 7668e8ccc08e71e4a3a75e8ddb0a19e629e794ea
+          2.0.1-test.12 c91887eb27f7bfb3a293e9d9869f0001feb85c17
+          2.0.2-test.1 39d209f3909c1fb02851756b93bbf086ef516dbe
+          2.0.2-test.2 39d209f3909c1fb02851756b93bbf086ef516dbe
+          release/2.0.0 f46b17f463640fccfa6890412919493618eea0f7
+          release/2.0.1 10a873689b9a5e8ad9691401d4d8cf9e5a4486e8
+          release/2.0.2 1f9aafa20347b03741c45255707dd614385448a0
+          test/login-retention-1.0.12 ba821839d35bdc627b3a4390cf1dc9a1ad3fbcb1
+          BRANCH_TARGETS
           if [ "$failures" -ne 0 ]; then exit 1; fi
