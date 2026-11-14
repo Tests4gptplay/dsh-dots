@@ -38,6 +38,34 @@ jobs:
           test -f "docs/releases/v${VERSION}.md"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Resolve release-note links against the immutable version tag
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import posixpath
+          import re
+          from pathlib import Path
+          version = os.environ['VERSION']
+          repo = os.environ['GITHUB_REPOSITORY']
+          source = Path('docs/releases') / f'v{version}.md'
+          markdown = source.read_text(encoding='utf-8')
+          def resolve_link(match):
+              label, target = match.groups()
+              if target.startswith(('https://', 'http://', 'mailto:', '#')):
+                  return match.group(0)
+              filename, sep, fragment = target.partition('#')
+              if not filename:
+                  return match.group(0)
+              repo_path = posixpath.normpath('docs/releases/' + filename)
+              base = (f'https://raw.githubusercontent.com/{repo}/v{version}/'
+                      if label.startswith('!') else f'https://github.com/{repo}/blob/v{version}/')
+              return f'{label}({base}{repo_path}{sep}{fragment})'
+          resolved = re.sub(r'(!?\[[^\]\n]+\])\(([^)\s]+)\)', resolve_link, markdown)
+          Path('release-notes-for-github.md').write_text(resolved, encoding='utf-8')
+          PY
       - name: Create exact release TGZ (no install scripts)
         run: npm pack --ignore-scripts
       - name: Record release archive SHA-256
@@ -75,10 +103,10 @@ jobs:
             gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" \
               -f sha="$GITHUB_SHA" -F force=true >/dev/null
             gh release upload "$TAG" "dsh-dots-${VERSION}.tgz" SHA256SUMS.txt --clobber
-            gh release edit "$TAG" --notes-file "docs/releases/$TAG.md" --target "$GITHUB_SHA"
+            gh release edit "$TAG" --notes-file "release-notes-for-github.md" --target "$GITHUB_SHA"
           else
             gh release create "$TAG" "dsh-dots-${VERSION}.tgz" SHA256SUMS.txt \
               --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
               --title "DSH Dots $TAG" --latest \
-              --notes-file "docs/releases/$TAG.md"
+              --notes-file "release-notes-for-github.md"
           fi
