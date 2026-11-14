@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, readFile, readdir, rm, access, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, readdir, rm, access, writeFile, stat } from 'node:fs/promises'
 import { basename, join } from 'node:path'
+import { EventEmitter } from 'node:events'
 import { tmpdir } from 'node:os'
 import { zipSync, strToU8 } from 'fflate'
 import { createTunnelController, selectTunnelAsset, redactTunnelText, extractTunnelArchive, registerTunnelTransport, pruneTunnelInstallations } from '../lib/tunnel-control.mjs'
@@ -16,7 +17,7 @@ const release = { tag_name: 'v0.0.20', assets: ['windows-amd64', 'linux-amd64', 
 test('tunnel defaults to a profile-owned directory and does not launch or download', async t => {
   const { dir, controller } = await fixture(t, { fetchImpl() { throw new Error('Unexpected background network request') } })
   const state = await controller.status()
-  assert.equal(state.installDirectory, join(dir, 'tunnel-client')); assert.equal(state.running, false); assert.equal(state.keyAvailable, false)
+  assert.equal(state.installDirectory, join(dir, 'tunnel-client')); assert.equal(state.running, false); assert.equal(state.enabled, false); assert.equal(state.keyAvailable, false)
 })
 test('official asset selection follows platform and CPU without selecting runtime-only archive', () => {
   assert.equal(selectTunnelAsset(release, 'win32', 'x64').name, 'tunnel-client-v0.0.20-windows-amd64.zip')
@@ -26,15 +27,72 @@ test('official asset selection follows platform and CPU without selecting runtim
 test('unavailable official platform gives the existing-executable option', () => {
   assert.throws(() => selectTunnelAsset(release, 'linux', 'arm64'), /existing tunnel-client executable/)
 })
-test('selected path and complete tunnel ID persist but runtime key is never saved or returned', async t => {
+test('selected path and Tunnel ID persist, runtime credential stays in its own private profile file', async t => {
   const { dir, controller } = await fixture(t)
   const tunnelId = 'tunnel_ab12_' + 'a'.repeat(32)
-  const state = await controller.configure({ installDirectory: join(dir, 'custom location'), executable: join(dir, 'existing-client'), tunnelId, apiKey: 'sk-transient-test-key' })
-  const text = await readFile(join(dir, 'tunnel.json'), 'utf8')
+  const state = await controller.configure({ installDirectory: join(dir, 'custom location'), executable: join(dir, 'existing-client'), tunnelId, apiKey: 'sk-private-test-key' })
+  const config = await readFile(join(dir, 'tunnel.json'), 'utf8')
+  const credential = await readFile(join(dir, 'tunnel-runtime-key.json'), 'utf8')
   assert.equal(state.tunnelId, tunnelId); assert.equal(state.keyAvailable, true)
-  assert.ok(!text.includes('sk-transient')); assert.ok(!JSON.stringify(state).includes('sk-transient'))
+  assert.ok(!config.includes('sk-private-test-key'))
+  assert.ok(credential.includes('sk-private-test-key'))
+  assert.ok(!JSON.stringify(state).includes('sk-private-test-key'))
+  if (process.platform !== 'win32') assert.equal((await stat(join(dir, 'tunnel-runtime-key.json'))).mode & 0o777, 0o600)
   const second = createTunnelController({ dataDir: dir, mcp: { status: () => ({}) }, environment: {} })
-  try { assert.equal((await second.status()).tunnelId, tunnelId); assert.equal((await second.status()).keyAvailable, false) } finally { await second.dispose() }
+  try { assert.equal((await second.status()).tunnelId, tunnelId); assert.equal((await second.status()).keyAvailable, true) } finally { await second.dispose() }
+})
+test('remembered tunnel start automatically resumes after MCP is ready and manual Stop remains stopped', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'dots-tunnel-resume-'))
+  const running = []
+  let launches = 0, currentEnv
+  const mcp = { status: () => ({ localUrl: 'http://127.0.0.1:3600/mcp/token' }) }
+  const spawnImpl = (binary, args, options) => {
+    const child = new EventEmitter()
+    child.pid = 1100 + launches; child.exitCode = null
+    child.stdout = new EventEmitter(); child.stderr = new EventEmitter()
+    if (args[0] === 'init') {
+      queueMicrotask(async () => {
+        await mkdir(join(dir, 'tunnel-profiles'), { recursive: true })
+        await writeFile(join(dir, 'tunnel-profiles', 'dsh-dots.yaml'), 'test profile')
+        child.emit('close', 0, null)
+      })
+    } else if (args[0] === 'run') {
+      launches++; currentEnv = options.env; running.push(child)
+      queueMicrotask(() => child.emit('spawn'))
+    } else if (binary === 'taskkill.exe') {
+      queueMicrotask(() => {
+        const active = running.pop()
+        if (active) { active.exitCode = 0; active.emit('close', 0, null) }
+        child.emit('close', 0, null)
+      })
+    }
+    return child
+  }
+  const create = () => createTunnelController({ dataDir: dir, mcp, platform: 'win32', environment: {}, spawnImpl })
+  const first = create()
+  try {
+    await first.start({ executable: join(dir, 'official-client.exe'), tunnelId: 'tunnel_demo', apiKey: 'sk-resume-test-key' })
+    assert.equal((await first.status()).enabled, true)
+    assert.equal(launches, 1)
+    await first.dispose()
+    const second = create()
+    try {
+      assert.equal((await second.status()).enabled, true)
+      await second.initialize()
+      assert.equal(launches, 2, 'enabled profile launches exactly one new tunnel at startup')
+      assert.equal(currentEnv.CONTROL_PLANE_API_KEY, 'sk-resume-test-key')
+      await second.initialize()
+      assert.equal(launches, 2, 'repeated initialize reuses running tunnel')
+      await second.stop()
+      assert.equal((await second.status()).enabled, false)
+    } finally { await second.dispose() }
+    const third = create()
+    try {
+      await third.initialize()
+      assert.equal((await third.status()).enabled, false)
+      assert.equal(launches, 2, 'explicit stopped preference survives another restart')
+    } finally { await third.dispose() }
+  } finally { await first.dispose(); await rm(dir, { recursive: true, force: true }) }
 })
 test('log redaction removes runtime keys and complete local MCP access path', () => {
   const result = redactTunnelText('key=sk-private; http://localhost/mcp/local-secret and explicit', ['explicit'])

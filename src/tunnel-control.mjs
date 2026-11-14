@@ -80,13 +80,20 @@ async function replaceJSON(path, value) {
 export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnImpl = spawn,
   platform = process.platform, arch = process.arch, environment = process.env } = {}) {
   const root = resolve(dataDir), configFile = join(root, 'tunnel.json'), profileDir = join(root, 'tunnel-profiles')
-  const profileFile = join(profileDir, 'dsh-dots.yaml')
-  let prefs = { installDirectory: join(root, 'tunnel-client'), executable: '', previousExecutable: '', tunnelId: '' }
+  const profileFile = join(profileDir, 'dsh-dots.yaml'), runtimeKeyFile = join(root, 'tunnel-runtime-key.json')
+  let prefs = { installDirectory: join(root, 'tunnel-client'), executable: '', previousExecutable: '', tunnelId: '', enabled: false }
   let loaded, secret = '', runtime, operation, error = '', lastDiagnosis = null, health = null, disposed = false
   const clean = text => redactTunnelText(text, [secret, mcp.status().localUrl])
   const load = () => loaded ??= (async () => {
-    try { const saved = JSON.parse(await readFile(configFile, 'utf8')); for (const key of Object.keys(prefs)) if (typeof saved[key] === 'string') prefs[key] = saved[key] }
-    catch (cause) { if (cause.code !== 'ENOENT') throw cause }
+    try {
+      const saved = JSON.parse(await readFile(configFile, 'utf8'))
+      for (const key of ['installDirectory', 'executable', 'previousExecutable', 'tunnelId']) if (typeof saved[key] === 'string') prefs[key] = saved[key]
+      if (typeof saved.enabled === 'boolean') prefs.enabled = saved.enabled
+    } catch (cause) { if (cause.code !== 'ENOENT') throw cause }
+    try {
+      const saved = JSON.parse(await readFile(runtimeKeyFile, 'utf8'))
+      if (typeof saved.apiKey === 'string' && saved.apiKey) secret = saved.apiKey
+    } catch (cause) { if (cause.code !== 'ENOENT') throw cause }
   })()
   async function status() {
     await load()
@@ -111,7 +118,11 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     if (runtime && (next.executable !== prefs.executable || next.tunnelId !== prefs.tunnelId)) await stopProcess(false)
     await replaceJSON(configFile, next)
     prefs = next
-    if (typeof patch.apiKey === 'string' && patch.apiKey.trim()) secret = patch.apiKey.trim()
+    if (typeof patch.apiKey === 'string' && patch.apiKey.trim()) {
+      const key = patch.apiKey.trim()
+      await replaceJSON(runtimeKeyFile, { apiKey: key })
+      secret = key
+    }
     error = ''
     return status()
   }
@@ -209,6 +220,11 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     return task('starting', async signal => {
       await configure(patch)
       signal.throwIfAborted()
+      if (!prefs.enabled) {
+        const next = { ...prefs, enabled: true }
+        await replaceJSON(configFile, next)
+        prefs = next
+      }
       if (runtime) {
         if (runtime.executable === prefs.executable) return
         // An official download updates the selected binary; switch when the user presses Start.
@@ -262,7 +278,20 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     await prune()
     health = null; lastDiagnosis = null
   }
-  async function stop() { await stopProcess(); return status() }
+  async function stop() {
+    await load()
+    if (prefs.enabled) {
+      const next = { ...prefs, enabled: false }
+      await replaceJSON(configFile, next)
+      prefs = next
+    }
+    await stopProcess()
+    return status()
+  }
+  async function initialize() {
+    await load()
+    return prefs.enabled && mcp.status().localUrl && !runtime ? start() : status()
+  }
   async function diagnose(patch = {}) {
     return task('checking', async signal => {
       await configure(patch)
@@ -287,7 +316,7 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
     }
     return status()
   }
-  return { status, configure, install, start, stop, diagnose, refresh,
+  return { status, configure, install, start, stop, initialize, diagnose, refresh,
     isRunning: () => Boolean(runtime),
     suspend: () => stopProcess(),
     async dispose() { disposed = true; try { await stopProcess() } finally { secret = '' } } }
