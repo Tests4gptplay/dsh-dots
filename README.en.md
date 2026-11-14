@@ -1,8 +1,12 @@
-# DSH Dots 2.0.1-test.10
+# DSH Dots 2.0.1
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
 [中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
+
+**2.0.1 update:** A previously enabled Tunnel starts once after a short delay following MCP listener readiness. Pending startup is cancelled when MCP turns off and rescheduled once when MCP is enabled again. There is no resident polling loop.
+
+[2.0.1 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.1/docs/releases/v2.0.1.md) · [2.0.0 features and native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
 
 DSH Dots brings [ChatGPT Dots](https://chatgpt.com/dots/home) into DeepSeek Harness. Chat with your own Dot inside DSH, or enable MCP so your Dot can use DSH's AI sessions, tools and workspaces to submit tasks and retrieve results.
 
@@ -22,15 +26,15 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls. The toolbar adds Back navigation, and clicking the Dots icon or title returns to Dot home.
 
-## Install the 2.0.1-test.10 test branch
+## Install DSH Dots 2.0.1
 
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.10
+github:Tests4gptplay/dsh-dots#v2.0.1
 ```
 
-This page describes the `2.0.1-test.10` Tunnel startup-sequence test branch. The published release remains [v2.0.0](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.0).
+This page describes the official maintenance release `v2.0.1`. The package and checksum file are available under [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.1).
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 
