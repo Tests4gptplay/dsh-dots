@@ -21,7 +21,8 @@ test('market subpackage installs the same Dot MCP production runtime and identit
   )
   assert.equal(new Set(files).size,files.length)
   for(const file of files){
-    assert.deepEqual(readFileSync(new URL(file,sub)),readFileSync(new URL(file,root)),file)
+    const normalized = url => readFileSync(url,'utf8').replace(/\r\n/g,'\n')
+    assert.equal(normalized(new URL(file,sub)),normalized(new URL(file,root)),file)
   }
   const command=process.platform==='win32'?'npm.cmd':'npm'
   const run=spawnSync(command,['pack','--dry-run','--ignore-scripts','--json'],{
