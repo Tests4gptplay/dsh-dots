@@ -22,7 +22,7 @@ github:Tests4gptplay/dsh-dots#v1.0.12
 
 [Download the 1.0.12 release package](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.12/dsh-dots-1.0.12.tgz) · [Version 1.0.12 release and installation notes](docs/releases/v1.0.12.md)
 
-**npm package**: `dsh-dots@1.0.12` (use this name after the first npm publication).
+**Published npm package**: `@tests4gptplay/dsh-dots@1.0.12`.
 
 Open **DSH Dots** in the sidebar and sign in on the official ChatGPT page. Manage Desktop login retention in DSH Settings.
 
