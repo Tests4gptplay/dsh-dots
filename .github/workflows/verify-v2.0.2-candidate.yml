@@ -1,0 +1,88 @@
+name: DSH Dots v2.0.2 official-candidate acceptance
+on:
+  push:
+    branches: ['release/2.0.2']
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: v2.0.2 candidate / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Build and run all regressions
+        run: npm test
+      - name: Verify compiled bytes and final package manifest
+        shell: bash
+        run: |
+          npm run pack:check
+          git diff --exit-code -- lib THIRD-PARTY-NOTICES.txt
+      - name: Create exact versioned candidate TGZ
+        run: npm pack --ignore-scripts
+      - name: Verify npm installation of exact TGZ
+        shell: bash
+        run: |
+          mkdir -p _installed-test
+          cd _installed-test
+          npm install --offline --legacy-peer-deps --ignore-scripts --no-audit --no-fund ../dsh-dots-2.0.2.tgz
+          node --input-type=module -e 'import("dsh-dots").then(x=>{if(x.name!=="dsh-dots")process.exit(1)})'
+      - name: Verify pnpm installation of exact TGZ
+        shell: bash
+        run: |
+          npm install -g pnpm@10
+          mkdir -p _pnpm-install-test
+          cd _pnpm-install-test
+          printf '%s\n' '{"name":"dots-v2.0.2-install-test","private":true}' > package.json
+          pnpm add ../dsh-dots-2.0.2.tgz --ignore-scripts --config.auto-install-peers=false
+          node --input-type=module -e 'import("dsh-dots").then(x=>{if(x.name!=="dsh-dots")process.exit(1)})'
+      - name: Chromium settings regression
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+          python tests/browser/settings-layout.py
+      - name: Install native DSH 0.2.2-rc.1 and candidate
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/dsh-native"
+          cd "$RUNNER_TEMP/dsh-native"
+          npm init -y
+          npm install --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1 @deepseek-ai/dsh-client-connection@0.2.2-rc.1 @deepseek-ai/dsh-api-gateway@0.2.2-rc.1 @deepseek-ai/dsh-api-session-controller@0.2.2-rc.1 @deepseek-ai/dsh-api-remote-access@0.2.2-rc.1 @deepseek-ai/dsh-typert-registry@0.2.2-rc.1
+          mkdir -p node_modules/dsh-dots
+          tar -xzf "$GITHUB_WORKSPACE/dsh-dots-2.0.2.tgz" --strip-components=1 -C node_modules/dsh-dots
+      - name: Native DSH and Chromium acceptance
+        if: runner.os == 'Linux'
+        env:
+          DSH_NATIVE_ROOT: ${{ runner.temp }}/dsh-native
+          DSH_TEST_OUTPUT: ${{ runner.temp }}/dots-native-evidence
+          DSH_BROWSER_TEST: '1'
+        run: node tests/native/verify.mjs
+      - name: Build candidate source snapshot and checksums
+        shell: bash
+        run: |
+          git archive --format=zip --output=dsh-dots-2.0.2-source.zip HEAD
+          sha256sum dsh-dots-2.0.2.tgz dsh-dots-2.0.2-source.zip > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dots-2.0.2-preflight-${{ matrix.os }}
+          path: |
+            dsh-dots-2.0.2.tgz
+            dsh-dots-2.0.2-source.zip
+            SHA256SUMS.txt
+            ui-evidence/
+            ${{ runner.temp }}/dots-native-evidence/
+          if-no-files-found: ignore
+          retention-days: 14
