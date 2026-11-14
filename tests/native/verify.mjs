@@ -24,9 +24,9 @@ function start(){
 }
 async function stop(){if(!host||host.exitCode!==null)return;const exited=new Promise(r=>host.once('exit',r));host.kill('SIGTERM');await exited}
 async function login(url){base=new URL(url).origin;const r=await fetch(url,{redirect:'manual'});cookie=r.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');const page=await fetch(new URL(r.headers.get('location')??'/',base),{headers:{cookie}});assert.equal(page.status,200)}
-async function rpc(endpoint,payload={}){const method='dsh-dots-mcp/'+endpoint;const response=await fetch(base+'/api/'+method,{method:'POST',headers:{'content-type':'application/json',cookie,origin:base},body:JSON.stringify({type:'client-request',method,rpcId:crypto.randomUUID(),payload})});const data=await response.json();assert.equal(data.result?.ok,true,JSON.stringify(data));return data.result.value}
+async function rpc(endpoint,payload={}){const method='dsh-dot-mcp-mcp/'+endpoint;const response=await fetch(base+'/api/'+method,{method:'POST',headers:{'content-type':'application/json',cookie,origin:base},body:JSON.stringify({type:'client-request',method,rpcId:crypto.randomUUID(),payload})});const data=await response.json();assert.equal(data.result?.ok,true,JSON.stringify(data));return data.result.value}
 async function notifyRpc(endpoint,payload={}) {
- const method='dsh-dots-notify/'+endpoint
+ const method='dsh-dot-mcp-notify/'+endpoint
  const response=await fetch(base+'/api/'+method,{method:'POST',headers:{'content-type':'application/json',cookie,origin:base},
   body:JSON.stringify({type:'client-request',method,rpcId:crypto.randomUUID(),payload})})
  const data=await response.json()
@@ -43,10 +43,10 @@ try{
   throw new Error('Actual DSH CLI profile preparation failed: '+diagnostics, { cause })
  }
  const profile=join(home,'profiles/dots-acceptance'),manifest=JSON.parse(await readFile(join(profile,'package.json'),'utf8'))
- manifest.dependencies['dsh-dots']='file:'+join(runtime,'node_modules/dsh-dots');manifest.dsh.profile.bundles.push('dsh-dots')
+ manifest.dependencies['dsh-dot-mcp']='file:'+join(runtime,'node_modules/dsh-dot-mcp');manifest.dsh.profile.bundles.push('dsh-dot-mcp')
  await writeFile(join(profile,'package.json'),JSON.stringify(manifest,null,2));await symlink(join(runtime,'node_modules'),join(profile,'node_modules'),'junction')
  const url=await start();await login(url)
- const tunnelMethod='dsh-dots-tunnel/status'
+ const tunnelMethod='dsh-dot-mcp-tunnel/status'
  const tunnelResponse=await fetch(base+'/api/'+tunnelMethod,{method:'POST',headers:{'content-type':'application/json',cookie,origin:base},body:JSON.stringify({type:'client-request',method:tunnelMethod,rpcId:crypto.randomUUID(),payload:{}})})
  const tunnelState=await tunnelResponse.json();assert.equal(tunnelState.result?.ok,true,JSON.stringify(tunnelState));assert.equal(tunnelState.result.value.running,false)
  assert.ok(tunnelState.result.value.installDirectory.includes('dsh-dots'));assert.equal(tunnelState.result.value.keyAvailable,false);pass('Native tunnel Settings endpoint starts stopped with a profile-owned path')
