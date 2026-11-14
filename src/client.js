@@ -1,12 +1,12 @@
 /** Native DSH main panel and sidebar entry. Uses the user's own ChatGPT web login. */
 const React = require('react')
 const { createElement: h, useState, useRef, useEffect } = React
-const NAMESPACE = 'dsh.dots'
-const PANEL_ID = 'dsh-dots'
+const NAMESPACE = 'dsh.dotmcp'
+const PANEL_ID = 'dsh-dot-mcp'
 const DOTS_URL = 'https://chatgpt.com/dots/home'
 
 const zh = {
-  panel: 'DSH Dots', title: 'Dots',
+  panel: 'DSH Dot MCP', title: 'Dots',
   inBrowser: '在浏览器打开', reload: '刷新', back: '后退', home: '返回 Dot 首页',
   openFailed: '未能打开网页，请使用系统浏览器访问 ChatGPT Dots。',
   guestFailed: 'DSH 桌面网页载体未能启动，可在浏览器中打开。',
@@ -24,7 +24,7 @@ const zh = {
   persistencePath: '目标文件', persistenceError: '操作失败：',
 }
 const en = {
-  panel: 'DSH Dots', title: 'Dots',
+  panel: 'DSH Dot MCP', title: 'Dots',
   inBrowser: 'Open in browser', reload: 'Reload', back: 'Back', home: 'Back to Dot home',
   openFailed: 'Could not open the site. Open ChatGPT Dots in your system browser.',
   guestFailed: 'The DSH Desktop web carrier could not start. Open in your browser.',
@@ -423,7 +423,7 @@ function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop
   return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc, tunnelRpc, notifyRpc }) : null)
 }
 
-exports.name = 'dsh-dots-client'
+exports.name = 'dsh-dot-mcp-client'
 exports.inject = ['slots', 'locale']
 exports.RingIcon = RingIcon
 exports.DotsSidebarIcon = DotsSidebarIcon
@@ -436,14 +436,14 @@ exports.mountDesktopDotGuest = mountDesktopDotGuest
 exports.desktopBrowserBridge = desktopBrowserBridge
 exports.DotsPersistenceSettings = DotsPersistenceSettings
 exports.apply = function apply(ctx) {
-  ctx.effect(() => ctx.locale.register(NAMESPACE, { zh, en }), 'dsh-dots.localization')
+  ctx.effect(() => ctx.locale.register(NAMESPACE, { zh, en }), 'dsh-dot-mcp.localization')
   ctx.effect(() => {
     const style = document.createElement('style')
     style.dataset.dshDots = 'client'
     style.textContent = __DOTS_CLIENT_CSS__
     document.head.append(style)
     return () => style.remove()
-  }, 'dsh-dots.style')
+  }, 'dsh-dot-mcp.style')
   const t = ctx.locale.bind(NAMESPACE)
   const openExternal = () => {
     window.open(DOTS_URL, '_blank', 'noopener,noreferrer')
@@ -455,33 +455,33 @@ exports.apply = function apply(ctx) {
     const rpc = async (endpoint, signal) => {
       const connection = ctx.get?.('connection') ?? ctx.connection
       if (!connection?.rpc) throw new Error('DSH connection is not available')
-      const response = await connection.rpc.call('/api', 'dsh-dots-persistence/' + endpoint, {}, signal)
+      const response = await connection.rpc.call('/api', 'dsh-dot-mcp-persistence/' + endpoint, {}, signal)
       if (!response?.ok) throw new Error(response?.error?.message || 'Dots persistence request failed')
       return response.value
     }
     const mcpRpc = async (endpoint, payload = {}, signal) => {
       const connection = ctx.get?.('connection') ?? ctx.connection
       if (!connection?.rpc) throw new Error('DSH connection is not available')
-      const response = await connection.rpc.call('/api', 'dsh-dots-mcp/' + endpoint, payload, signal)
+      const response = await connection.rpc.call('/api', 'dsh-dot-mcp-mcp/' + endpoint, payload, signal)
       if (!response?.ok) throw new Error(response?.error?.message || 'Dots MCP request failed')
       return response.value
     }
     const notifyRpc = async (endpoint, payload = {}, signal) => {
       const connection = ctx.get?.('connection') ?? ctx.connection
       if (!connection?.rpc) throw new Error('DSH connection is not available')
-      const response = await connection.rpc.call('/api', 'dsh-dots-notify/' + endpoint, payload, signal)
+      const response = await connection.rpc.call('/api', 'dsh-dot-mcp-notify/' + endpoint, payload, signal)
       if (!response?.ok) throw new Error(response?.error?.message || 'Dots notification request failed')
       return response.value
     }
     const tunnelRpc = async (endpoint, payload = {}, signal) => {
       const connection = ctx.get?.('connection') ?? ctx.connection
       if (!connection?.rpc) throw new Error('DSH connection is not available')
-      const response = await connection.rpc.call('/api', 'dsh-dots-tunnel/' + endpoint, payload, signal)
+      const response = await connection.rpc.call('/api', 'dsh-dot-mcp-tunnel/' + endpoint, payload, signal)
       if (!response?.ok) throw new Error(response?.error?.message || 'Tunnel request failed')
       return response.value
     }
     ctx.slots.inject('settings.section', () => ctx.slots.register({
-      name: 'settings.section', id: 'dsh-dots-login-retention', order: 25,
+      name: 'settings.section', id: 'dsh-dot-mcp-settings', order: 25,
       locale: NAMESPACE, label: () => t('persistenceNav'), inject: () => ({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop: persistent }),
     }, DotsPersistenceSettings))
   }
@@ -491,7 +491,7 @@ exports.apply = function apply(ctx) {
     persistentPage = mountPersistentDotsPage(desktopBrowserBridge(), t, openExternal)
     const unsubscribe = ctx.locale.subscribe(() => persistentPage?.refreshLocale())
     return () => { unsubscribe(); persistentPage?.dispose() }
-  }, 'dsh-dots.preload')
+  }, 'dsh-dot-mcp.preload')
   const MainEntry = persistent ? function DotsNativeSlot({ t: translate, openExternal: open }) {
     // Mounting the slot is the authoritative signal that Dots is selected:
     // show the persistent page and hide it again when the panel is replaced.

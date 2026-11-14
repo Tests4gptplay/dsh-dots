@@ -282,7 +282,7 @@ export function createNotificationController(ctx, { dataDir, canDeliver = () => 
 /** Settings RPC remains on the DSH authenticated transport, separate from the public MCP endpoint. */
 export function registerNotificationTransport(connection, controller) {
   const disposers = ['status', 'configure'].map(endpoint => {
-    const method = 'dsh-dots-notify/' + endpoint
+    const method = 'dsh-dot-mcp-notify/' + endpoint
     return connection.fetch.register({ path: '/api/' + method, methods: ['POST'], requestBody: 'buffered',
       async fetch(request) {
         if (request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return new Response('Expected JSON', { status: 415 })

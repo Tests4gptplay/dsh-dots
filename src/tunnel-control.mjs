@@ -157,7 +157,7 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
       await configure(patch)
       localSignal.throwIfAborted()
       const signal = callerSignal ? AbortSignal.any([localSignal, callerSignal]) : localSignal
-      const response = await fetchImpl(RELEASE_URL, { signal, headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'dsh-dots' } })
+      const response = await fetchImpl(RELEASE_URL, { signal, headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'dsh-dot-mcp' } })
       if (!response.ok) throw new Error(`Official release lookup failed (HTTP ${response.status}).`)
       const release = await response.json(), asset = selectTunnelAsset(release, platform, arch)
       const download = new URL(asset.browser_download_url)
@@ -326,7 +326,7 @@ export function createTunnelController({ dataDir, mcp, fetchImpl = fetch, spawnI
 export function registerTunnelTransport(connection, controller) {
   const methods = ['status', 'configure', 'install', 'start', 'stop', 'diagnose', 'refresh']
   const disposers = methods.map(endpoint => {
-    const method = 'dsh-dots-tunnel/' + endpoint
+    const method = 'dsh-dot-mcp-tunnel/' + endpoint
     return connection.fetch.register({ path: '/api/' + method, methods: ['POST'], requestBody: 'buffered',
       async fetch(request) {
         if (request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return new Response('Expected JSON', { status: 415 })

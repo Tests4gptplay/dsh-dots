@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { homedir } from 'node:os'
 import { inspect, applyPersistence, restorePersistence } from './persistence.mjs'
 
-export const name = 'dsh-dots'
+export const name = 'dsh-dot-mcp'
 export const inject = []
 
 /** Release each owned resource even if another shutdown step reports a concrete failure. */
@@ -49,7 +49,7 @@ export function createTunnelStartup(tunnel) {
   }
 }
 
-const PATH = 'dsh-dots-persistence'
+const PATH = 'dsh-dot-mcp-persistence'
 const METHODS = ['status', 'apply', 'restore']
 
 export function registerPersistenceTransport(connection, service = { inspect, applyPersistence, restorePersistence }) {
@@ -88,7 +88,7 @@ export function registerPersistenceTransport(connection, service = { inspect, ap
 }
 export function apply(ctx) {
   ctx.inject(['connection'], scoped => {
-    scoped.effect(() => registerPersistenceTransport(scoped.connection), 'dsh-dots: persistence settings RPC')
+    scoped.effect(() => registerPersistenceTransport(scoped.connection), 'dsh-dot-mcp: persistence settings RPC')
     let tunnel, notify, startup
     const controller = createMcpController(scoped, {
       onStop: () => tunnel?.suspend(),
@@ -112,6 +112,6 @@ export function apply(ctx) {
       // Startup reads the opt-in notification scope before advertising MCP events.
       void controller.initialize().catch(() => {})
       return () => disposeDotsResources(unregisterTunnel, unregister, tunnel, controller, unregisterNotify, notify)
-    }, 'dsh-dots: optional MCP settings and lifetime')
+    }, 'dsh-dot-mcp: optional MCP settings and lifetime')
   })
 }

@@ -5,7 +5,7 @@ import { McpServer, createMcpHandler, fromJsonSchema } from '@modelcontextprotoc
 import { toNodeHandler, hostHeaderValidation, originValidation } from '@modelcontextprotocol/node'
 import * as z from 'zod/v4'
 
-export const VERSION = '2.0.2'
+export const VERSION = '2.0.3'
 // The SDK requires a finite byte count. Use the JavaScript counting boundary,
 // not a product-specific file/message quota, in both HTTP layers.
 const maxRequestBodySize = Number.MAX_SAFE_INTEGER
@@ -23,7 +23,7 @@ export function resultOf(value) {
 }
 export function makeHandler(adapter, { onCall = () => {}, onError = () => {}, events } = {}) {
   return createMcpHandler(() => {
-    const server = new McpServer({ name: 'dsh-dots', version: VERSION }, { capabilities: events ? { events: {} } : {}, instructions:
+    const server = new McpServer({ name: 'dsh-dot-mcp', version: VERSION }, { capabilities: events ? { events: {} } : {}, instructions:
       'DSH is the execution environment. Reuse native session IDs. Create/prompt returns acceptance; use state, wait and events for completion and output. Discover additional native APIs with dsh_api_list and describe. Follow DSH approval requests in its native UI. MCP disconnection does not cancel accepted sessions.' })
     if (events) {
       for (const [method, action] of [
