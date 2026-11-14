@@ -1,11 +1,13 @@
 name: DSH Dots cases
 on:
   push:
-    branches: [main]
+    branches: [main, '2.0.0']
   pull_request:
+permissions:
+  contents: read
 jobs:
-  unit:
-    name: Dots plugin packaging / ${{ matrix.os }}
+  verify:
+    name: Package and native verification / ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -13,32 +15,69 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - name: Plugin source and regression tests
-        run: npm test
+          node-version: '24'
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - run: npm test
+      - run: npm run pack:check
+      - name: Verify compiled output matches committed source
+        run: git diff --exit-code -- lib THIRD-PARTY-NOTICES.txt
       - name: Check scoped npm staging without publishing
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         run: node scripts/npm/prepare-scoped-npm.mjs npm-dist
-      - name: Verify packaged file whitelist
-        run: npm run pack:check
-      - name: Check distributable can be installed without running scripts
+      - name: Inspect and install the candidate package
         shell: bash
         run: |
           npm pack --ignore-scripts
           mkdir -p _package-test
           cd _package-test
-          npm install --offline --legacy-peer-deps --ignore-scripts --no-audit --no-fund "../$(node -p 'require("../package.json").name.replace("@", "").replace("/", "-") + "-" + require("../package.json").version + ".tgz"')"
+          npm install --offline --legacy-peer-deps --ignore-scripts --no-audit --no-fund ../dsh-dots-2.0.0.tgz
           node --input-type=module -e 'import("dsh-dots").then(x=>{if(x.name!=="dsh-dots")process.exit(1)})'
           node --input-type=module -e 'import zh from "dsh-dots/locale/zh.json" with {type:"json"}; import en from "dsh-dots/locale/en.json" with {type:"json"}; if(!zh.meta.title || !en.meta.title)process.exit(1)'
-      - name: Verify local TGZ installation with pnpm
+      - name: Verify pnpm installation
         shell: bash
         run: |
           npm install -g pnpm@10
           mkdir -p _pnpm-package-test
           cd _pnpm-package-test
           printf '%s\n' '{"name":"dsh-dots-install-check","private":true}' > package.json
-          pnpm add "../$(node -p 'require("../package.json").name.replace("@", "").replace("/", "-") + "-" + require("../package.json").version + ".tgz"')" --ignore-scripts --config.auto-install-peers=false
+          pnpm add ../dsh-dots-2.0.0.tgz --ignore-scripts --config.auto-install-peers=false
           node --input-type=module -e 'import("dsh-dots").then(x=>{if(x.name!=="dsh-dots")process.exit(1)})'
-
+      - name: Install actual native DSH and candidate package
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/dsh-native"
+          cd "$RUNNER_TEMP/dsh-native"
+          npm init -y
+          npm install --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1 @deepseek-ai/dsh-client-connection@0.2.2-rc.1 @deepseek-ai/dsh-api-gateway@0.2.2-rc.1 @deepseek-ai/dsh-api-session-controller@0.2.2-rc.1 @deepseek-ai/dsh-api-remote-access@0.2.2-rc.1 @deepseek-ai/dsh-typert-registry@0.2.2-rc.1
+          mkdir -p node_modules/dsh-dots
+          tar -xzf "$GITHUB_WORKSPACE/dsh-dots-2.0.0.tgz" --strip-components=1 -C node_modules/dsh-dots
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Real DSH and Chromium acceptance
+        if: runner.os == 'Linux'
+        env:
+          DSH_NATIVE_ROOT: ${{ runner.temp }}/dsh-native
+          DSH_TEST_OUTPUT: ${{ runner.temp }}/dots-native-evidence
+          DSH_BROWSER_TEST: '1'
+        run: node tests/native/verify.mjs
+      - name: Archive source and package checksums
+        shell: bash
+        run: |
+          git archive --format=zip --output=dsh-dots-2.0.0-source.zip HEAD
+          node --input-type=module -e 'import fs from "node:fs"; import crypto from "node:crypto"; for(const f of ["dsh-dots-2.0.0.tgz","dsh-dots-2.0.0-source.zip"])fs.appendFileSync("SHA256SUMS.txt",crypto.createHash("sha256").update(fs.readFileSync(f)).digest("hex")+"  "+f+"\n")'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dots-2.0.0-verification-${{ matrix.os }}
+          path: |
+            dsh-dots-2.0.0.tgz
+            dsh-dots-2.0.0-source.zip
+            SHA256SUMS.txt
+            ${{ runner.temp }}/dots-native-evidence
+          if-no-files-found: error
+          retention-days: 14

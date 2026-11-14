@@ -29,7 +29,7 @@ test('Dots persistence section is registered in DSH Settings (not Plugins or the
   const page = await loadNativeClient(opts)
   assert.equal(page.slots.some(s => s.options.name === 'settings.plugins.tab'), false)
   assert.equal(page.slots.filter(s => s.options.name === 'settings.section').length, 1)
-  assert.equal(sectionOf(page).options.label(), 'Dots 登录保持')
+  assert.equal(sectionOf(page).options.label(), 'Dots')
   assert.equal(page.main.options.key, 'dsh-dots')
   assert.equal(page.icon.options.id, 'dsh-dots')
   const nodes = flattenSection(page)
@@ -39,10 +39,12 @@ test('Dots persistence section is registered in DSH Settings (not Plugins or the
   await page.dispose()
 })
 
-test('Web profile keeps only main panel + sidebar; no Desktop repair action', async () => {
+test('Web profile offers MCP in the same settings entry without Desktop repair', async () => {
   const page = await loadNativeClient({ connection: setup({}).connection })
-  assert.equal(sectionOf(page), undefined)
-  assert.deepEqual(page.slots.map(s => s.options.name).sort(), ['main', 'sidebar.panellist'])
+  assert.ok(sectionOf(page))
+  const nodes = flattenSection(page)
+  assert.equal(nodes.some(n => n.props?.['data-testid'] === 'dots-persistence-settings'), false)
+  assert.equal(nodes.some(n => n.props?.['data-testid'] === 'dots-mcp-settings'), true)
   await page.dispose()
 })
 

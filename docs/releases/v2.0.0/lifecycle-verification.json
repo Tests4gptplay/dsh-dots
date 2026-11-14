@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-10",
+  "branch": "2.0.0",
+  "implementationCommit": "2580324c80ae1e1c7a5b26419b630bbe59d0b12d",
+  "scope": "MCP settings lifecycle, image-result conversion, Desktop guest release",
+  "sourceRegression": {
+    "environment": "Linux, Node.js 22.16.0",
+    "passed": 104,
+    "failed": 0
+  },
+  "nativeAcceptance": {
+    "environment": "Linux, Node.js 24.22.2, DSH 0.2.2-rc.1, installed 2.0.0 TGZ",
+    "passed": 25,
+    "failed": 0,
+    "checks": [
+      "16 MCP tools discovered",
+      "144 native APIs, 30 namespaces, 31 DSH tools discovered",
+      "session lifecycle, native file and image results",
+      "5,242,899-byte file write and byte-for-byte readback",
+      "MCP close, re-enable, persisted session and host restart"
+    ]
+  },
+  "package": {
+    "filename": "dsh-dots-2.0.0.tgz",
+    "bytes": 170072,
+    "files": 18,
+    "allFilesMatchSource": true,
+    "sha256": "0510edf4b591acd9c986ee1ff00dddd0f1c897b52bf2ca4c509c115a70f822ed"
+  },
+  "targetedBehavior": [
+    "Save failure on disable closes MCP listener and reports nonpersistent preference",
+    "Image Base64 appears once in MCP image block with metadata preserved",
+    "Local connection check is cleared on service shutdown",
+    "Async browser lease release errors are captured and recorded"
+  ]
+}

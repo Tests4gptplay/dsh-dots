@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "DSH Dots · ChatGPT 网页",
-    "description": "在 DSH 中使用 ChatGPT Dots，支持启动预加载、页面切换保留、中英文主题适配、刷新和外部浏览器打开；设置页提供登录保持、修复与原版恢复。"
+    "title": "DSH Dots · ChatGPT & MCP",
+    "description": "在 DSH 中使用 ChatGPT Dots，支持启动预加载、页面切换保留、中英文主题适配、刷新和外部浏览器打开；设置页提供登录保持、修复与原版恢复。 可选 MCP 服务让 Dot 调用 DSH；同一设置页提供开关、连接信息和官方接入指南。"
   }
 }

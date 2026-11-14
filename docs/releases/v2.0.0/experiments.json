@@ -1,0 +1,77 @@
+{
+  "version": "2.0.0",
+  "verificationDate": "2026-11-09",
+  "environment": {
+    "dsh": "0.2.2-rc.1",
+    "node": "24.22.2",
+    "platform": "Linux",
+    "plugin": "2.0.0"
+  },
+  "method": "An interactive model test interface supplied model responses turn by turn to an actual DSH session. DSH executed the file tools and returned their outputs and session state.",
+  "input": "input.csv",
+  "output": "report.txt",
+  "firstTurn": {
+    "request": "Read the input CSV, calculate item subtotals and grand total, save report.txt, then read it back to verify.",
+    "nativeToolSequence": [
+      "read input.csv",
+      "write report.txt",
+      "read report.txt"
+    ],
+    "verifiedSubtotals": [
+      96,
+      240,
+      138
+    ],
+    "verifiedGrandTotal": 474,
+    "nativeWait": {
+      "reason": "idle",
+      "state": {
+        "cursor": 32,
+        "active": true,
+        "running": false,
+        "queue": [],
+        "pendingInput": []
+      }
+    }
+  },
+  "secondTurn": {
+    "request": "Continue the same session, read report.txt, add the total quantity, save and read it back.",
+    "nativeToolSequence": [
+      "read report.txt",
+      "write report.txt",
+      "read report.txt"
+    ],
+    "mcpDisabledDuringExecution": true,
+    "verifiedQuantity": 20,
+    "retrievedAfterReenable": true,
+    "nativeWait": {
+      "reason": "idle",
+      "state": {
+        "cursor": 56,
+        "active": true,
+        "running": false,
+        "queue": [],
+        "pendingInput": []
+      }
+    }
+  },
+  "cancellation": {
+    "pendingModelRequestObserved": true,
+    "before": {
+      "cursor": 61,
+      "active": true,
+      "running": true,
+      "queue": [],
+      "pendingInput": []
+    },
+    "accepted": true,
+    "after": {
+      "cursor": 64,
+      "active": true,
+      "running": false,
+      "queue": [],
+      "pendingInput": []
+    }
+  },
+  "outputSha256": "7fb069ecf2aee2a5ef91e2e15a8bef5a0a14c66f95126c8aa6c31ec0dd112624"
+}

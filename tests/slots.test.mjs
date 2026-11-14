@@ -6,9 +6,9 @@ import { flatten } from './cases/runtime.mjs'
 
 function render(page, extra = {}) { return flatten(page.runtime.expand(page.runtime.React.createElement(page.main.component, { ...page.props, ...extra }))) }
 
-test('official entry registers only a DSH main panel and sidebar icon', async () => {
+test('official entry preserves main/sidebar and shares the Dots settings section', async () => {
   const page = await loadNativeClient()
-  assert.deepEqual([...page.slots.map(s => s.options.name)].sort(), ['main', 'sidebar.panellist'])
+  assert.deepEqual([...page.slots.map(s => s.options.name)].sort(), ['main', 'settings.section', 'sidebar.panellist'])
   assert.equal(page.main.options.key, 'dsh-dots')
   assert.equal(page.icon.options.id, 'dsh-dots')
   assert.equal(page.icon.options.label(), 'DSH Dots')
@@ -36,7 +36,9 @@ test('production page has a full-bleed DSH content surface, not a framed browser
   assert.equal(nodes.some(n => n.props?.className === 'dotsFrameWrap'), false)
   assert.equal(nodes.some(n => n.props?.className === 'dotsBanner'), false)
   const buttons = nodes.filter(n => n.type === 'button')
-  assert.equal(buttons.length, 2)
+  assert.equal(buttons.length, 4)
+  assert.ok(buttons.some(b => b.props?.className === 'dotsBrand'), 'Dots mark and title form a clickable home button')
+  assert.ok(buttons.some(b => b.props?.className === 'dotsTool dotsBack'), 'Back is available in the toolbar')
   assert.match(JSON.stringify(buttons), /在浏览器打开/)
 })
 
@@ -45,7 +47,7 @@ test('the old unavailable right-sidebar browser action is not present', async ()
   const nodes = render(page)
   assert.equal(nodes.some(n => typeof n.props?.children === 'string' && n.props.children.includes('DSH 浏览器')), false)
   assert.equal(nodes.some(n => n.props?.role === 'alert'), false)
-  nodes.filter(n => n.type === 'button')[1].props.onClick()
+  nodes.find(n => n.type === 'button' && n.props?.className === 'dotsTool dotsOpen').props.onClick()
   assert.equal(page.nativeOpened.filter(x => x.kind === 'external').length, 1)
   assert.equal(page.nativeOpened.filter(x => x.kind === 'browser').length, 0)
 })
@@ -76,16 +78,24 @@ test('full-bleed Dots main panel does not depend on any sidebar session Browser'
 
 test('system browser entry targets only the official Dots webpage', async () => {
   const page = await loadNativeClient()
-  render(page).filter(node => node.type === 'button')[1].props.onClick()
+  render(page).find(node => node.type === 'button' && node.props?.className === 'dotsTool dotsOpen').props.onClick()
   assert.equal(page.nativeOpened.filter(x => x.kind === 'external').length, 1)
   assert.doesNotMatch(JSON.stringify(render(page)), /模拟 Dot · 仅供测试/)
 })
 
-test('production host exposes only user-invoked persistence maintenance', async () => {
+test('production host registers persistence and optional MCP through native connection', async () => {
   const host = await import('../lib/host.js')
   assert.equal(host.name, 'dsh-dots')
   assert.deepEqual(host.inject, [])
+  const routes = [], effects = [], nested = []
+  const scoped = {
+    effect(register) { effects.push(register); return () => {} },
+    inject(deps) { nested.push(deps); return () => {} },
+    connection: { fetch: { register(route) { routes.push(route); return async () => {} } } },
+  }
   let injected
-  host.apply({ inject(deps, callback) { injected = deps; callback({effect(register) { return register() }, connection: { fetch: { register() { return async () => {} } } }}) } })
+  host.apply({ inject(deps, callback) { injected = deps; callback(scoped) } })
   assert.deepEqual(injected, ['connection'])
+  assert.deepEqual(nested, [], 'MCP lifetime follows the connection, not native API loading')
+  assert.equal(effects.length, 2)
 })

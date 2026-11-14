@@ -1,0 +1,43 @@
+{
+  "version": "2.0.1-test.8",
+  "date": "2026-11-14",
+  "workflowRun": "https://github.com/Tests4gptplay/dsh-dots/actions/runs/43582823162",
+  "implementationCommit": "a007c279687e68734ecccfbd558fe2b247c7503f",
+  "unitTests": {
+    "linux": {"node": "24.22.2", "total": 142, "passed": 141, "failed": 0, "skipped": 1},
+    "windows": {"node": "24.22.2", "total": 142, "passed": 141, "failed": 0, "skipped": 1},
+    "skippedCase": "Separate official tunnel-client binary execution test was not invoked in this UI-focused run."
+  },
+  "componentLayout": {
+    "renderer": "Chromium",
+    "dataSource": "Controlled RPC fixtures with the actual production React Client",
+    "languages": ["zh", "en"],
+    "themes": ["light", "dark"],
+    "contentWidths": [320, 360, 530, 760],
+    "casesPassed": 16,
+    "checkboxesPerCase": 4,
+    "checks": ["16px checkbox size", "inline label alignment", "label click", "keyboard Space", "form save", "directory button alignment", "no horizontal overflow", "no host style leakage"]
+  },
+  "nativeHost": {
+    "platform": "linux",
+    "node": "24.22.2",
+    "dsh": "0.2.2-rc.1",
+    "checksPassed": 31,
+    "browser": "Chromium",
+    "pageErrors": [],
+    "settingsFontSizePx": 13,
+    "checkboxSizePx": [16, 16],
+    "labelGapPx": 9,
+    "verticalCenterDifferencePx": 0,
+    "viewportWidths": [900, 1280],
+    "horizontalOverflow": false
+  },
+  "package": {
+    "filename": "dsh-dots-2.0.1-test.8.tgz",
+    "producer": "Linux acceptance job",
+    "productionFiles": 20,
+    "sha256": "a20507ca22b17256296e4856f10e55ca1b26bfb977758c98077103f576bf9bca"
+  },
+  "preservedRuntimeFiles": ["lib/host.js", "lib/mcp-control.mjs", "lib/tunnel-control.mjs", "lib/notify-control.mjs"],
+  "runtimeComparison": "Listed files are byte-identical to 2.0.1-test.7. MCP server and adapter only change candidate version constants."
+}

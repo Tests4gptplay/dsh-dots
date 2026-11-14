@@ -1,8 +1,23 @@
 /** DSH Dots: original browser panel plus user-invoked Desktop login persistence maintenance. */
+import { createMcpController, registerMcpTransport } from './mcp-control.mjs'
+import { createTunnelController, registerTunnelTransport } from './tunnel-control.mjs'
+import { createNotificationController, registerNotificationTransport } from './notify-control.mjs'
+import { join } from 'node:path'
+import { homedir } from 'node:os'
 import { inspect, applyPersistence, restorePersistence } from './persistence.mjs'
 
 export const name = 'dsh-dots'
 export const inject = []
+
+/** Release each owned resource even if another shutdown step reports a concrete failure. */
+export async function disposeDotsResources(unregisterTunnel, unregisterMcp, tunnel, controller, unregisterNotify, notify) {
+  const errors = []
+  for (const action of [unregisterTunnel, unregisterMcp, unregisterNotify, () => tunnel.dispose(), () => controller.dispose(), () => notify?.dispose()].filter(Boolean)) {
+    try { await action() } catch (error) { errors.push(error) }
+  }
+  if (errors.length === 1) throw errors[0]
+  if (errors.length > 1) throw new AggregateError(errors, 'Dots cleanup encountered multiple errors.')
+}
 
 const PATH = 'dsh-dots-persistence'
 const METHODS = ['status', 'apply', 'restore']
@@ -44,5 +59,28 @@ export function registerPersistenceTransport(connection, service = { inspect, ap
 export function apply(ctx) {
   ctx.inject(['connection'], scoped => {
     scoped.effect(() => registerPersistenceTransport(scoped.connection), 'dsh-dots: persistence settings RPC')
+    let tunnel, notify
+    const controller = createMcpController(scoped, {
+      onStop: () => tunnel?.suspend(),
+      tunnelRunning: () => tunnel?.isRunning() === true,
+      restartTunnel: () => tunnel?.isRunning() ? undefined : tunnel?.start(),
+      onReady: async () => {
+        try { await tunnel?.initialize() }
+        catch (cause) { console.error('DSH Dots: tunnel auto-resume failed:', String(cause?.message ?? cause)) }
+      },
+      events: () => notify,
+    })
+    const profile = scoped.get?.('profileContext') ?? scoped.profileContext
+    const dataDir = join(profile?.dir ?? join(homedir(), '.dsh'), 'dsh-dots')
+    tunnel = createTunnelController({ dataDir, mcp: controller })
+    notify = createNotificationController(scoped, { dataDir, canDeliver: () => controller.status().running })
+    scoped.effect(() => {
+      const unregister = registerMcpTransport(scoped.connection, controller)
+      const unregisterTunnel = registerTunnelTransport(scoped.connection, tunnel)
+      const unregisterNotify = registerNotificationTransport(scoped.connection, notify)
+      // Startup reads the opt-in notification scope before advertising MCP events.
+      void controller.initialize().catch(() => {})
+      return () => disposeDotsResources(unregisterTunnel, unregister, tunnel, controller, unregisterNotify, notify)
+    }, 'dsh-dots: optional MCP settings and lifetime')
   })
 }

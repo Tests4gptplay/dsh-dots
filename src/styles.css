@@ -2,10 +2,14 @@
 .dotsPage { color-scheme:light; box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 auto; align-self:stretch; width:100%; height:100%; min-height:0; min-width:0; overflow:hidden; color:var(--dsw-alias-label-primary,inherit); background:var(--dsw-alias-bg-base,transparent); }
 .dotsToolbar { box-sizing:border-box; display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:calc(var(--dsh-frame-top-clearance,0px) + 8px) 18px 9px; min-height:48px; background:var(--dsw-alias-bg-base,transparent); border-bottom:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.18)); }
 .dotsBrand,.dotsToolbarActions { display:inline-flex; align-items:center; gap:9px; min-width:0; }
+.dotsBrand { appearance:none; border:0; background:transparent; color:inherit; padding:0; cursor:pointer; font:inherit; text-align:left; border-radius:var(--dsw-radius-sm,7px); }
+.dotsBrand:hover { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }
+.dotsBrand:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
 .dotsMark,.dotsMark svg { display:block; flex:none; width:23px; height:23px; }
 .dotsBrandName { font-size:14px; font-weight:600; letter-spacing:.01em; }
 .dotsTool { appearance:none; cursor:pointer; border:0; border-radius:var(--dsw-radius-sm,7px); padding:7px 10px; font:inherit; font-size:12px; line-height:1.3; color:inherit; background:transparent; white-space:nowrap; }
-.dotsTool:hover { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }
+.dotsTool:disabled { opacity:.45; cursor:default; }
+.dotsTool:hover:not(:disabled) { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }
 .dotsTool:focus-visible { outline:2px solid currentColor; outline-offset:2px; }
 .dotsOpen { border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.2)); }
 .dotsContent { box-sizing:border-box; position:relative; flex:1 1 0; width:100%; min-height:0; min-width:0; overflow:hidden; background:var(--dsw-alias-bg-base,transparent); }
@@ -22,3 +26,91 @@ body[data-ds-dark-theme] .dotsPage { color-scheme:dark; }
 
 /* Fallback host: keeps the proven in-slot page filling the native center column. */
 .dotsFallbackHost { box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 0; min-height:0; min-width:0; width:100%; position:relative; }
+
+/* Settings-only design system. DSH owns the theme; controls retain native semantics. */
+.dotsSettings {
+  --dots-accent: var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4d6bfe);
+  --dots-stroke: var(--dsw-alias-settings-card-stroke, var(--dsw-alias-border-l3, #d9dde5));
+  --dots-muted: var(--dsw-alias-label-secondary, #626b7a);
+  box-sizing: border-box; width: 100%; min-width: 0; padding: 4px 0 16px;
+  font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.6;
+  color: var(--dsw-alias-label-primary, inherit);
+}
+.dotsSettings *, .dotsSettings *::before, .dotsSettings *::after { box-sizing: border-box; }
+.dotsMcpSettings { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 0; }
+.dotsSettings .dotsSettingsCard {
+  width: 100%; min-width: 0; padding: 18px 20px; margin: 0;
+  border: 1px solid var(--dots-stroke); border-radius: 12px;
+  background: var(--dsw-alias-settings-card-fill, var(--dsw-alias-bg-layer-2, transparent));
+}
+.dotsSettings > .dotsSettingsCard { margin-bottom: 16px; }
+.dotsSettings h3, .dotsSettings h4, .dotsSettings p { margin: 0; overflow-wrap: anywhere; }
+.dotsSettings h3, .dotsSettings h4 { font: inherit; font-size: 14px; line-height: 22px; font-weight: 650; }
+.dotsSettings .dotsCardHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 6px; }
+.dotsSettings .dotsCardIntro { color: var(--dots-muted); font-size: 12px; line-height: 19px; margin-bottom: 16px; }
+.dotsSettings .dotsMcpHint { color: var(--dots-muted); font-size: 12px; line-height: 19px; opacity: 1; margin-top: 6px; }
+.dotsSettings .dotsMcpRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.dotsSettings .dotsFieldRow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dotsSettings .dotsFieldRow > input { flex: 1 1 0; width: 0; min-width: 0; }
+.dotsSettings .dotsFieldRow > button { flex: 0 0 auto; }
+.dotsSettings .dotsMcpField { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 14px 0 0; font-size: 13px; line-height: 20px; }
+.dotsSettings .dotsMcpField > label, .dotsSettings .dotsFieldLabel { font-weight: 500; }
+/* Text inputs and checkboxes have deliberately separate sizing rules. */
+.dotsSettings input:not([type=checkbox]):not([type=radio]), .dotsSettings textarea {
+  display: block; width: 100%; min-width: 0; min-height: 34px; margin: 0; padding: 7px 10px;
+  border: 1px solid var(--dsw-alias-border-l3, #d9dde5); border-radius: 7px;
+  background: var(--dsw-alias-bg-layer-2, transparent); color: var(--dsw-alias-label-primary, inherit);
+  font: inherit; font-size: 13px; line-height: 20px; box-shadow: none;
+}
+.dotsSettings .dotsFieldRow > input:not([type=checkbox]) { width: 0; }
+.dotsSettings textarea { min-height: 84px; resize: vertical; }
+.dotsSettings input::placeholder, .dotsSettings textarea::placeholder { color: var(--dsw-alias-label-tertiary, #818996); opacity: 1; }
+.dotsSettings input:focus-visible, .dotsSettings textarea:focus-visible, .dotsSettings button:focus-visible, .dotsSettings summary:focus-visible, .dotsSettings a:focus-visible {
+  outline: 2px solid var(--dots-accent); outline-offset: 2px;
+}
+.dotsSettings .dotsMcpSwitch {
+  display: inline-flex; align-items: center; flex-wrap: nowrap; gap: 9px; min-height: 28px; width: auto; margin: 0;
+  font-size: 13px; line-height: 20px; cursor: pointer;
+}
+.dotsSettings input[type=checkbox], .dotsSettings input[type=radio] {
+  flex: 0 0 16px; width: 16px; height: 16px; min-width: 16px; min-height: 16px; margin: 0; padding: 0;
+  accent-color: var(--dots-accent); cursor: pointer;
+}
+.dotsSettings .dotsMcpSwitch > span { min-width: 0; }
+.dotsSettings .dotsSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 0 12px; }
+.dotsSettings .dotsChoices { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 8px 0 0; }
+.dotsSettings .dotsMcpButton {
+  appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 34px;
+  margin: 0; padding: 6px 12px; border: 1px solid var(--dsw-alias-border-l3, #d9dde5); border-radius: 7px;
+  background: var(--dsw-alias-bg-layer-2, transparent); color: inherit; font: inherit; font-size: 12px; line-height: 20px;
+  cursor: pointer; text-align: center; white-space: normal; overflow-wrap: anywhere;
+}
+.dotsSettings .dotsMcpButton:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover, #7f7f7f10); }
+.dotsSettings .dotsPrimaryButton { border-color: var(--dots-accent); color: var(--dots-accent); background: color-mix(in srgb, var(--dots-accent) 7%, transparent); font-weight: 600; }
+.dotsSettings .dotsMcpButton:disabled, .dotsSettings input:disabled, .dotsSettings textarea:disabled { opacity: .5; cursor: default; }
+.dotsSettings .dotsActions { margin-top: 14px; }
+.dotsSettings .dotsMcpLinks { display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0; }
+.dotsSettings a { color: var(--dots-accent); font-size: 12px; line-height: 20px; text-decoration: none; overflow-wrap: anywhere; }
+.dotsSettings a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.dotsSettings .dotsStatus { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; padding: 2px 8px; border-radius: 5px; font-size: 11px; line-height: 19px; color: var(--dots-muted); background: var(--dsw-alias-bg-hover, #7f7f7f0d); }
+.dotsSettings .dotsStatus[data-active=true] { color: var(--dsw-alias-state-success-primary, #168154); background: color-mix(in srgb, var(--dsw-alias-state-success-primary, #168154) 8%, transparent); }
+.dotsSettings .dotsStatus::before { content: ''; flex: none; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.dotsSettings .dotsSectionTitle { margin-top: 16px; font-size: 12px; line-height: 20px; font-weight: 600; color: var(--dots-muted); }
+.dotsSettings .dotsDivider { height: 0; margin: 18px 0; border: 0; border-top: 1px solid var(--dots-stroke); }
+.dotsSettings .dotsDetails { margin-top: 14px; border-top: 1px solid var(--dots-stroke); padding-top: 12px; }
+.dotsSettings .dotsDetails summary { cursor: pointer; font-size: 12px; line-height: 22px; font-weight: 500; color: var(--dots-muted); }
+.dotsSettings .dotsDetails[open] summary { margin-bottom: 10px; }
+.dotsSettings .dotsDetails p + p { margin-top: 8px; }
+.dotsSettings .dotsMessage { padding: 8px 10px; margin-top: 10px; border-radius: 7px; background: var(--dsw-alias-interactive-bg-hover, #7f7f7f0d); font-size: 12px; line-height: 20px; }
+.dotsSettings .dotsReport { font: 11px/18px ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; margin: 0; }
+.dotsSettings .dotsMetrics { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 14px; font-size: 12px; color: var(--dots-muted); }
+.dotsSettings .dotsMetrics strong { font-weight: 600; color: var(--dsw-alias-label-primary, inherit); }
+.dotsSettings .dotsToolList { display: grid; gap: 10px; }
+.dotsSettings .dotsToolList p { font-size: 12px; }
+.dotsSettings .dotsToolList code { font-size: 11px; overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .dotsSettings .dotsSettingsCard { padding: 14px; }
+  .dotsSettings .dotsChoices { gap: 8px 16px; }
+  .dotsSettings .dotsFieldRow { flex-wrap: wrap; }
+  .dotsSettings .dotsFieldRow > input:not([type=checkbox]) { min-width: 140px; }
+}

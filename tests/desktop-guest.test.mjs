@@ -58,6 +58,14 @@ test('DSH Desktop guest uses host-issued partition and renders Dot as a full bro
   calls.forwarded('file:///etc/passwd')
   await tick()
   assert.equal(view.navigations.length,2,'only HTTP(S) navigation requests are allowed')
+  view.canGoBack = () => true
+  let backs = 0
+  view.goBack = () => { backs++ }
+  opened.back()
+  assert.equal(backs,1)
+  opened.home()
+  await tick()
+  assert.equal(view.navigations.at(-1),'https://chatgpt.com/dots/home')
   opened.reload()
   assert.equal(view.reloads,1)
   await opened.dispose()

@@ -7,7 +7,7 @@ const DOTS_URL = 'https://chatgpt.com/dots/home'
 
 const zh = {
   panel: 'DSH Dots', title: 'Dots',
-  inBrowser: '在浏览器打开', reload: '刷新',
+  inBrowser: '在浏览器打开', reload: '刷新', back: '后退', home: '返回 Dot 首页',
   openFailed: '未能打开网页，请使用系统浏览器访问 ChatGPT Dots。',
   guestFailed: 'DSH 桌面网页载体未能启动，可在浏览器中打开。',
   guestLoading: '正在连接 Dots…',
@@ -25,7 +25,7 @@ const zh = {
 }
 const en = {
   panel: 'DSH Dots', title: 'Dots',
-  inBrowser: 'Open in browser', reload: 'Reload',
+  inBrowser: 'Open in browser', reload: 'Reload', back: 'Back', home: 'Back to Dot home',
   openFailed: 'Could not open the site. Open ChatGPT Dots in your system browser.',
   guestFailed: 'The DSH Desktop web carrier could not start. Open in your browser.',
   guestLoading: 'Connecting to Dots…',
@@ -56,7 +56,7 @@ function desktopBrowserBridge() {
  * The DSH bridge owns and approves the lease, partition and navigation policy.
  * `dispose` closes this exact guest; no native API or cookies enter the model.
  */
-function mountDesktopDotGuest(host, bridge, onError, onLoaded) {
+function mountDesktopDotGuest(host, bridge, onError, onLoaded, onHistoryChange = () => {}) {
   let disposed = false
   let disposePromise
   let lease
@@ -64,6 +64,11 @@ function mountDesktopDotGuest(host, bridge, onError, onLoaded) {
   let unsubscribe = () => {}
   let navigated = false
   const safe = work => { if (!disposed) return work() }
+  const updateHistory = () => safe(() => {
+    let canBack = false
+    try { canBack = Boolean(guest?.canGoBack?.()) } catch {}
+    onHistoryChange(canBack)
+  })
   const navigate = url => {
     if (disposed || !guest || typeof url !== 'string') return
     let parsed
@@ -87,7 +92,9 @@ function mountDesktopDotGuest(host, bridge, onError, onLoaded) {
         navigated = true
         navigate(DOTS_URL)
       })
-      guest.addEventListener('did-finish-load', () => safe(onLoaded))
+      guest.addEventListener('did-navigate', updateHistory)
+      guest.addEventListener('did-navigate-in-page', updateHistory)
+      guest.addEventListener('did-finish-load', () => safe(() => { onLoaded(); updateHistory() }))
       guest.addEventListener('did-fail-load', event => {
         // -3 is Chromium's expected cancellation during a new navigation.
         if (event.isMainFrame && event.errorCode !== -3) safe(() => onError(event.errorDescription || 'Page load failed'))
@@ -109,6 +116,10 @@ function mountDesktopDotGuest(host, bridge, onError, onLoaded) {
     }
   })()
   return {
+    back() { if (guest && navigated && !disposed) {
+      try { if (guest.canGoBack?.()) guest.goBack?.() } catch (error) { safe(() => onError(error)) }
+    } },
+    home() { if (guest && navigated && !disposed) navigate(DOTS_URL) },
     reload() { if (guest && navigated && !disposed) {
       try { guest.reload() } catch (error) { safe(() => onError(error)) }
     } },
@@ -129,6 +140,11 @@ function mountDesktopDotGuest(host, bridge, onError, onLoaded) {
       return disposePromise
     },
   }
+}
+
+/** Report release failures at the UI boundary, after disposal has already been requested. */
+function disposeDesktopGuest(guest) {
+  if (guest) void guest.dispose().catch(error => console.error('DSH Dots: desktop browser release failed', error))
 }
 
 /** Plain-DOM ring used by the persistent page; the React icon stays for the Web panel. */
@@ -159,6 +175,7 @@ function mountPersistentDotsPage(bridge, t, openExternal) {
   let notice
   let noticeText
   let guest
+  let back
   let observer
   let error = ''
   const labels = []
@@ -187,8 +204,11 @@ function mountPersistentDotsPage(bridge, t, openExternal) {
     node.style.display = 'none'
     const toolbar = document.createElement('header')
     toolbar.className = 'dotsToolbar'
-    const brand = document.createElement('div')
+    const brand = document.createElement('button')
     brand.className = 'dotsBrand'
+    brand.setAttribute('type', 'button')
+    translate(brand, 'home', 'title')
+    translate(brand, 'home', 'aria-label')
     const mark = document.createElement('span')
     mark.className = 'dotsMark'
     mark.setAttribute('aria-hidden', 'true')
@@ -197,8 +217,15 @@ function mountPersistentDotsPage(bridge, t, openExternal) {
     name.className = 'dotsBrandName'
     translate(name, 'title')
     brand.append(mark, name)
+    brand.addEventListener('click', () => guest?.home())
     const actions = document.createElement('div')
     actions.className = 'dotsToolbarActions'
+    back = document.createElement('button')
+    back.className = 'dotsTool dotsBack'
+    back.setAttribute('type', 'button')
+    back.disabled = true
+    translate(back, 'back')
+    back.addEventListener('click', () => guest?.back())
     const reload = document.createElement('button')
     reload.className = 'dotsTool dotsReload'
     reload.setAttribute('type', 'button')
@@ -210,7 +237,7 @@ function mountPersistentDotsPage(bridge, t, openExternal) {
     translate(open, 'inBrowser')
     translate(open, 'fallback', 'title')
     open.addEventListener('click', external)
-    actions.append(reload, open)
+    actions.append(back, reload, open)
     toolbar.append(brand, actions)
     const content = document.createElement('section')
     content.className = 'dotsContent'
@@ -252,7 +279,7 @@ function mountPersistentDotsPage(bridge, t, openExternal) {
     // its own contents, so this node stays connected with its guest alive.
     column.append(page)
     hide()
-    guest = mountDesktopDotGuest(host, bridge, () => setError('guestFailed'), () => setError(''))
+    guest = mountDesktopDotGuest(host, bridge, () => setError('guestFailed'), () => setError(''), canGoBack => { back.disabled = !canGoBack })
     observer?.disconnect()
     observer = undefined
     return true
@@ -269,30 +296,36 @@ function mountPersistentDotsPage(bridge, t, openExternal) {
     dispose() {
       disposed = true
       observer?.disconnect()
-      guest?.dispose()
+      disposeDesktopGuest(guest)
       page?.remove()
       page = undefined
     },
   }
 }
 
-function DotsWebSurface({ reloadCount, onFailure, onLoaded, t }) {
+function DotsWebSurface({ reloadCount, homeCount, backCount, onHistoryChange, onFailure, onLoaded, t }) {
   const container = useRef(null)
   const owner = useRef(null)
   const bridge = desktopBrowserBridge()
   useEffect(() => {
     if (!bridge || !container.current) return
     const mounted = mountDesktopDotGuest(container.current, bridge,
-      () => onFailure(t('guestFailed')), onLoaded)
+      () => onFailure(t('guestFailed')), onLoaded, onHistoryChange)
     owner.current = mounted
-    return () => { owner.current = null; void mounted.dispose() }
+    return () => { owner.current = null; disposeDesktopGuest(mounted) }
   }, [bridge])
   useEffect(() => {
     if (reloadCount > 0 && bridge) owner.current?.reload()
   }, [reloadCount, bridge])
+  useEffect(() => {
+    if (homeCount > 0 && bridge) owner.current?.home()
+  }, [homeCount, bridge])
+  useEffect(() => {
+    if (backCount > 0 && bridge) owner.current?.back()
+  }, [backCount, bridge])
   return bridge
     ? h('div', { ref: container, className: 'dotsGuestHost', 'data-testid': 'dots-desktop-webview-host' })
-    : h('iframe', { key: reloadCount, className: 'dotsWebFrame', title: 'ChatGPT Dots',
+    : h('iframe', { key: `${reloadCount}:${homeCount}`, className: 'dotsWebFrame', title: 'ChatGPT Dots',
         src: DOTS_URL, referrerPolicy: 'no-referrer',
         sandbox: 'allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox' })
 }
@@ -309,6 +342,9 @@ function DotsSidebarIcon({ size = 18 }) {
 /** DSH-native full-bleed shell. The actual Dots website owns its content. */
 function DotsPage({ t, openExternal }) {
   const [reloadCount, setReloadCount] = useState(0)
+  const [homeCount, setHomeCount] = useState(0)
+  const [backCount, setBackCount] = useState(0)
+  const [canGoBack, setCanGoBack] = useState(false)
   const [error, setError] = useState('')
   const launchExternal = () => {
     try { setError(openExternal() === false ? 'openFailed' : '') }
@@ -316,14 +352,17 @@ function DotsPage({ t, openExternal }) {
   }
   return h('main', { className: 'dotsPage', 'aria-label': 'DSH Dots' },
     h('header', { className: 'dotsToolbar' },
-      h('div', { className: 'dotsBrand' },
+      h('button', { className: 'dotsBrand', type: 'button', title: t('home'),
+        'aria-label': t('home'), onClick: () => setHomeCount(n => n + 1) },
         h('span', { className: 'dotsMark', 'aria-hidden': 'true' }, h(RingIcon, { size: 23 })),
         h('span', { className: 'dotsBrandName' }, t('title'))),
       h('div', { className: 'dotsToolbarActions' },
+        h('button', { className: 'dotsTool dotsBack', type: 'button', disabled: !canGoBack,
+          onClick: () => setBackCount(n => n + 1) }, t('back')),
         h('button', { className: 'dotsTool', type: 'button', onClick: () => setReloadCount(n => n + 1) }, t('reload')),
         h('button', { className: 'dotsTool dotsOpen', type: 'button', onClick: launchExternal, title: t('fallback') }, t('inBrowser')))),
     h('section', { className: 'dotsContent', 'data-testid': 'dots-native-content' },
-      h(DotsWebSurface, { reloadCount, onFailure: () => setError('guestFailed'), onLoaded: () => setError(''), t }),
+      h(DotsWebSurface, { reloadCount, homeCount, backCount, onHistoryChange: setCanGoBack, onFailure: () => setError('guestFailed'), onLoaded: () => setError(''), t }),
       error ? h('div', { className: 'dotsEmbedNotice', role: 'alert' },
         h('span', null, t(error)),
         h('button', { className: 'dotsTool dotsOpen', type: 'button', onClick: launchExternal }, t('inBrowser'))) : null))
@@ -331,7 +370,7 @@ function DotsPage({ t, openExternal }) {
 
 
 /** DSH Settings section: maintenance stays outside the Dots main page and Plugins page. */
-function DotsPersistenceSettings({ t, rpc }) {
+function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop = true }) {
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -344,7 +383,7 @@ function DotsPersistenceSettings({ t, rpc }) {
   useEffect(() => {
     alive.current = true
     const controller = new AbortController()
-    void check(controller.signal).catch(error => { if (!controller.signal.aborted && alive.current) setMessage(t('persistenceError') + String(error.message || error)) })
+    if (desktop) void check(controller.signal).catch(error => { if (!controller.signal.aborted && alive.current) setMessage(t('persistenceError') + String(error.message || error)) })
     return () => { alive.current = false; controller.abort() }
   }, [])
   const act = async endpoint => {
@@ -368,21 +407,20 @@ function DotsPersistenceSettings({ t, rpc }) {
     : state === 'not-found' ? t('persistenceMissing')
     : state === 'incompatible' ? t('persistenceIncompatible') : t('persistenceWaiting')
   const button = (key, action, enabled = true) => h('button', {
-    type: 'button', disabled: busy || !enabled, onClick: action,
-    style: { border: '1px solid var(--dsw-alias-border-l3, #8886)', borderRadius: 7,
-      padding: '8px 12px', background: 'transparent', color: 'inherit', cursor: 'pointer' },
+    type: 'button', className: 'dotsMcpButton', disabled: busy || !enabled, onClick: action,
   }, t(key))
-  return h('section', { 'data-testid': 'dots-persistence-settings', style: { padding: 16, maxWidth: 760 } },
-    h('h3', { style: { marginTop: 0 } }, t('persistenceTitle')),
-    h('p', null, t('persistenceDescription')),
-    h('p', { 'data-testid': 'dots-persistence-status' }, summary),
+  const persistence = h('section', { 'data-testid': 'dots-persistence-settings', className: 'dotsSettingsCard' },
+    h('div', { className: 'dotsCardHeader' }, h('h3', null, t('persistenceTitle'))),
+    h('p', { className: 'dotsCardIntro' }, t('persistenceDescription')),
+    h('p', { className: 'dotsStatus', 'data-testid': 'dots-persistence-status' }, summary),
     status?.archive ? h('p', { style: { overflowWrap: 'anywhere', opacity: .7, fontSize: 12 } },
       t('persistencePath') + ': ' + status.archive) : null,
-    h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' } },
+    h('div', { className: 'dotsMcpRow dotsActions' },
       button('persistenceCheck', () => { setMessage(''); void check().catch(error => setMessage(t('persistenceError') + String(error.message || error))) }),
       button('persistenceApply', () => { void act('apply') }, state === 'available'),
       button('persistenceRestore', () => { void act('restore') }, state === 'applied' && status?.canRestore === true)),
     message ? h('p', { role: 'status' }, message) : null)
+  return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc, tunnelRpc, notifyRpc }) : null)
 }
 
 exports.name = 'dsh-dots-client'
@@ -413,7 +451,7 @@ exports.apply = function apply(ctx) {
     return true
   }
   const persistent = Boolean(desktopBrowserBridge())
-  if (persistent) {
+  {
     const rpc = async (endpoint, signal) => {
       const connection = ctx.get?.('connection') ?? ctx.connection
       if (!connection?.rpc) throw new Error('DSH connection is not available')
@@ -421,9 +459,30 @@ exports.apply = function apply(ctx) {
       if (!response?.ok) throw new Error(response?.error?.message || 'Dots persistence request failed')
       return response.value
     }
+    const mcpRpc = async (endpoint, payload = {}, signal) => {
+      const connection = ctx.get?.('connection') ?? ctx.connection
+      if (!connection?.rpc) throw new Error('DSH connection is not available')
+      const response = await connection.rpc.call('/api', 'dsh-dots-mcp/' + endpoint, payload, signal)
+      if (!response?.ok) throw new Error(response?.error?.message || 'Dots MCP request failed')
+      return response.value
+    }
+    const notifyRpc = async (endpoint, payload = {}, signal) => {
+      const connection = ctx.get?.('connection') ?? ctx.connection
+      if (!connection?.rpc) throw new Error('DSH connection is not available')
+      const response = await connection.rpc.call('/api', 'dsh-dots-notify/' + endpoint, payload, signal)
+      if (!response?.ok) throw new Error(response?.error?.message || 'Dots notification request failed')
+      return response.value
+    }
+    const tunnelRpc = async (endpoint, payload = {}, signal) => {
+      const connection = ctx.get?.('connection') ?? ctx.connection
+      if (!connection?.rpc) throw new Error('DSH connection is not available')
+      const response = await connection.rpc.call('/api', 'dsh-dots-tunnel/' + endpoint, payload, signal)
+      if (!response?.ok) throw new Error(response?.error?.message || 'Tunnel request failed')
+      return response.value
+    }
     ctx.slots.inject('settings.section', () => ctx.slots.register({
       name: 'settings.section', id: 'dsh-dots-login-retention', order: 25,
-      locale: NAMESPACE, label: () => t('persistenceNav'), inject: () => ({ t, rpc }),
+      locale: NAMESPACE, label: () => t('persistenceNav'), inject: () => ({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop: persistent }),
     }, DotsPersistenceSettings))
   }
   let persistentPage
