@@ -9,8 +9,8 @@ function render(page, extra = {}) { return flatten(page.runtime.expand(page.runt
 test('official entry preserves main/sidebar and shares the Dots settings section', async () => {
   const page = await loadNativeClient()
   assert.deepEqual([...page.slots.map(s => s.options.name)].sort(), ['main', 'settings.section', 'sidebar.panellist'])
-  assert.equal(page.main.options.key, 'dsh-dots')
-  assert.equal(page.icon.options.id, 'dsh-dots')
+  assert.equal(page.main.options.key, 'dsh-dot-mcp')
+  assert.equal(page.icon.options.id, 'dsh-dot-mcp')
   assert.equal(page.icon.options.label(), 'DSH Dots')
   assert.ok(page.styles[0].textContent.includes('.dotsPage'))
 })
@@ -85,7 +85,7 @@ test('system browser entry targets only the official Dots webpage', async () => 
 
 test('production host registers persistence and optional MCP through native connection', async () => {
   const host = await import('../lib/host.js')
-  assert.equal(host.name, 'dsh-dots')
+  assert.equal(host.name, 'dsh-dot-mcp')
   assert.deepEqual(host.inject, [])
   const routes = [], effects = [], nested = []
   const scoped = {

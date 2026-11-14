@@ -66,7 +66,7 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
       addEventListener(k, fn) { windowEvents.set(k, fn) },
       removeEventListener(k) { windowEvents.delete(k) },
       dshDesktop: desktopBridge,
-      __ModuleLoader__: { load({ id, factory }) { if (id !== 'dsh-dots') throw new Error('Wrong module'); client = factory(id => {
+      __ModuleLoader__: { load({ id, factory }) { if (id !== 'dsh-dot-mcp') throw new Error('Wrong module'); client = factory(id => {
         if (id === 'react') return runtime.React
         throw new Error(`Unexpected dependency ${id}`)
       }) } },

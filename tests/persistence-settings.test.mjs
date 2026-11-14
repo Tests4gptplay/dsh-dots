@@ -30,8 +30,8 @@ test('Dots persistence section is registered in DSH Settings (not Plugins or the
   assert.equal(page.slots.some(s => s.options.name === 'settings.plugins.tab'), false)
   assert.equal(page.slots.filter(s => s.options.name === 'settings.section').length, 1)
   assert.equal(sectionOf(page).options.label(), 'Dots')
-  assert.equal(page.main.options.key, 'dsh-dots')
-  assert.equal(page.icon.options.id, 'dsh-dots')
+  assert.equal(page.main.options.key, 'dsh-dot-mcp')
+  assert.equal(page.icon.options.id, 'dsh-dot-mcp')
   const nodes = flattenSection(page)
   assert.equal(nodes.some(n => n.props?.['data-testid'] === 'dots-persistence-settings'), true)
   assert.equal(nodes.some(n => n.type === 'button' && n.props?.children === '一键应用'), true)
@@ -59,13 +59,13 @@ test('Settings action uses authenticated DSH RPC endpoints rather than renderer 
   assert.equal(apply.props.disabled, false)
   apply.props.onClick()
   await tick()
-  assert.equal(opts.calls.some(x => x.method === 'dsh-dots-persistence/apply'), true)
+  assert.equal(opts.calls.some(x => x.method === 'dsh-dot-mcp-persistence/apply'), true)
   nodes = flatten(page.runtime.mount(slot.component, slot.options.inject()))
   const restored = nodes.find(n => n.type === 'button' && n.props?.children === '恢复原版')
   assert.equal(restored.props.disabled, false)
   restored.props.onClick()
   await tick()
-  assert.equal(opts.calls.some(x => x.method === 'dsh-dots-persistence/restore'), true)
+  assert.equal(opts.calls.some(x => x.method === 'dsh-dot-mcp-persistence/restore'), true)
   page.runtime.unmount()
   await page.dispose()
 })
@@ -83,11 +83,11 @@ test('Host registers exactly three authenticated DSH endpoints, no new listening
     async restorePersistence() { events.push('restore'); return { state: 'available' } },
   }
   const dispose = registerPersistenceTransport(connection, service)
-  assert.deepEqual([...endpoints.keys()].sort(), ['status','apply','restore'].map(s => `/api/dsh-dots-persistence/${s}`).sort())
+  assert.deepEqual([...endpoints.keys()].sort(), ['status','apply','restore'].map(s => `/api/dsh-dot-mcp-persistence/${s}`).sort())
   for (const method of ['status','apply','restore']) {
-    const url = `/api/dsh-dots-persistence/${method}`
+    const url = `/api/dsh-dot-mcp-persistence/${method}`
     const request = new Request('http://localhost'+url,{ method:'POST', headers: { 'content-type':'application/json' },
-      body: JSON.stringify({ type: 'client-request', method:`dsh-dots-persistence/${method}`, rpcId:method, payload:{} }) })
+      body: JSON.stringify({ type: 'client-request', method:`dsh-dot-mcp-persistence/${method}`, rpcId:method, payload:{} }) })
     const response = await endpoints.get(url).fetch(request)
     const result = await response.json()
     assert.equal(result.result.ok,true)

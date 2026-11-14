@@ -131,8 +131,8 @@ test('tunnel operations register only on DSH authenticated UI transport', async 
   const routes = [], calls = [], connection = { fetch: { register(route) { routes.push(route); return () => {} } } }
   const undo = registerTunnelTransport(connection, { status: async () => ({ running: false }), start: async payload => { calls.push(payload); return { running: true } } })
   const route = routes.find(r => r.path.endsWith('/start'))
-  assert.ok(routes.every(route => route.path.startsWith('/api/dsh-dots-tunnel/')))
-  const response = await route.fetch(new Request('http://localhost' + route.path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'client-request', method: 'dsh-dots-tunnel/start', rpcId: 'test', payload: { tunnelId: 'provided' } }) }))
+  assert.ok(routes.every(route => route.path.startsWith('/api/dsh-dot-mcp-tunnel/')))
+  const response = await route.fetch(new Request('http://localhost' + route.path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ type: 'client-request', method: 'dsh-dot-mcp-tunnel/start', rpcId: 'test', payload: { tunnelId: 'provided' } }) }))
   assert.equal((await response.json()).result.ok, true); assert.equal(calls[0].tunnelId, 'provided'); await undo()
 })
 

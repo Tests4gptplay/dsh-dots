@@ -165,8 +165,8 @@ test('notification settings RPC is only registered on DSH authenticated settings
   const routes = []
   const undo = registerNotificationTransport({ fetch: { register(route) { routes.push(route); return () => {} } } }, f.controller)
   const route = routes.find(route => route.path.endsWith('/configure'))
-  assert.equal(route.path, '/api/dsh-dots-notify/configure')
-  const method = 'dsh-dots-notify/configure'
+  assert.equal(route.path, '/api/dsh-dot-mcp-notify/configure')
+  const method = 'dsh-dot-mcp-notify/configure'
   const response = await route.fetch(new Request('http://localhost' + route.path, { method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ type: 'client-request', method, rpcId: 'one', payload: { enabled: true, sessions: ['s1'], types: ['dsh.session.error'] } }),

@@ -171,7 +171,7 @@ test('tool errors are reported as MCP errors rather than successful text', () =>
 test('settings RPC uses native envelopes and validates only transport structure', async () => {
  const routes = [], removed = [];const off = registerMcpTransport({ fetch: { register(route) { routes.push(route);return () => removed.push(route.path) } } }, { status: () => ({ enabled: false }) })
  const route = routes.find(r => r.path.endsWith('/status'))
- const payload = { type: 'client-request', method: 'dsh-dots-mcp/status', rpcId: 'native-rpc', payload: {} }
+ const payload = { type: 'client-request', method: 'dsh-dot-mcp-mcp/status', rpcId: 'native-rpc', payload: {} }
  const r = await route.fetch(new Request('http://localhost'+route.path,{ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }))
  assert.deepEqual(await r.json(), { type: 'server-response', rpcId: 'native-rpc', result: { ok: true, value: { enabled: false } } })
  assert.equal((await route.fetch(new Request('http://localhost'+route.path,{ method: 'POST',body: '{}' }))).status, 415)
