@@ -8,7 +8,7 @@ on:
     inputs:
       publish:
         type: boolean
-        description: Publish reviewed dsh-dot-mcp@1.0.0 via npm Trusted Publishing
+        description: Publish reviewed dsh-dot-mcp@1.0.1 via npm Trusted Publishing
         required: true
         default: false
 
@@ -70,9 +70,9 @@ jobs:
       matrix:
         include:
           - package_name: dsh-dot-mcp
-            version: 1.0.0
-            ref: c1e957731e4f0c4e533beaaae7c2f5209f86eadc
-            sha: c1e957731e4f0c4e533beaaae7c2f5209f86eadc
+            version: 1.0.1
+            ref: dsh-dot-mcp-v1.0.1
+            sha: c132c6228ff63f801f0b0d9d230d79517a4a04e9
     steps:
       - name: Read immutable version source in the same repository
         uses: actions/checkout@v4
