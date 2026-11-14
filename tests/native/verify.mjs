@@ -52,6 +52,9 @@ try{
  assert.ok(tunnelState.result.value.installDirectory.includes('dsh-dots'));assert.equal(tunnelState.result.value.keyAvailable,false);pass('Native tunnel Settings endpoint starts stopped with a profile-owned path')
  let state=await rpc('status');assert.equal(state.enabled,false);assert.equal(state.running,false);pass('Packed plugin starts with MCP off')
  state=await rpc('configure',{enabled:true});assert.equal(state.running,true);const firstUrl=state.localUrl
+ const probe=await fetch(firstUrl,{method:'POST',headers:{accept:'application/json'}});assert.equal(probe.status,415);await probe.text();
+ const afterProbe=await rpc('status');assert.equal(afterProbe.running,true);assert.equal(afterProbe.error,'');
+ const afterCheck=await rpc('check');assert.equal(afterCheck.lastCheck.ok,true);assert.equal(afterCheck.error,'');pass('Probe request diagnostics stay separate from native connection status')
  client=await open(firstUrl);const list=await client.listTools();assert.equal(list.tools.length,17);pass('Official MCP client discovers 17 tools')
  const native=await call('dsh_status');assert.ok(native.nativeApiCount>0);pass('Native API registry discovered',{apiCount:native.nativeApiCount,namespaces:native.namespaces.length})
  const created=await call('dsh_session_create',{cwd:workspace}),id=created.sessionId;assert.ok(id);assert.ok(!id.startsWith('dsh-dot-mcp-'));pass('Native MCP Session uses ordinary visible identity')
