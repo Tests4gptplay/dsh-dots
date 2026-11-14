@@ -1,4 +1,4 @@
-name: Publish DSH Dots and Dot MCP npm packages
+name: Verify classic Dots and publish Dot MCP npm package
 on:
   push:
     branches: [main]
@@ -8,7 +8,7 @@ on:
     inputs:
       publish:
         type: boolean
-        description: Publish both reviewed unscoped packages via npm Trusted Publishing
+        description: Publish reviewed dsh-dot-mcp@1.0.0 via npm Trusted Publishing
         required: true
         default: false
 
@@ -20,6 +20,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify-classic:
+    name: Verify existing classic Dots npm package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v1.0.12
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Verify 1.0.12 immutable source and runtime
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = '806b9f48ea447ef448e5c197d88b8c99229ff509'
+          test "$(node -p 'require("./package.json").name')" = 'dsh-dots'
+          test "$(node -p 'require("./package.json").version')" = '1.0.12'
+          npm run pack:check
+          node --check lib/host.js
+          node --check lib/client.js
+      - name: Verify existing scoped npm version and downloaded bytes
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict'
+          import {createHash} from 'node:crypto'
+          const r=await fetch('https://registry.npmjs.org/@tests4gptplay%2fdsh-dots/1.0.12')
+          assert.equal(r.status,200)
+          const p=await r.json()
+          assert.equal(p.name,'@tests4gptplay/dsh-dots')
+          assert.equal(p.version,'1.0.12')
+          const dl=await fetch(p.dist.tarball)
+          assert.equal(dl.status,200)
+          const data=Buffer.from(await dl.arrayBuffer())
+          const sha256=createHash('sha256').update(data).digest('hex')
+          assert.equal(sha256,'e03ef368dafcb71368421653148198128aba583461d245a1c755540555aefe9b')
+          console.log(JSON.stringify({name:p.name,version:p.version,sha256,bytes:data.length}))
+          JS
+
   prepare:
     name: Verify ${{ matrix.package_name }}
     runs-on: ubuntu-24.04
@@ -27,14 +69,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package_name: dsh-dots
-            version: 1.0.12
-            ref: f2a196459168318d400a6865764973f74205664a
-            sha: f2a196459168318d400a6865764973f74205664a
           - package_name: dsh-dot-mcp
             version: 1.0.0
-            ref: c1e957731e4f0c4e533beaaae7c2f5209f86eadc
-            sha: c1e957731e4f0c4e533beaaae7c2f5209f86eadc
+            ref: dsh-dot-mcp-v1.0.0
+            sha: 99e050006a7ef1d8408d2603865c79fa9b08cc06
     steps:
       - name: Read immutable version source in the same repository
         uses: actions/checkout@v4
@@ -86,7 +124,7 @@ jobs:
           const p=JSON.parse(readFileSync(path,'utf8'))
           assert.equal(p.name,process.env.EXPECTED_NAME)
           assert.equal(p.version,process.env.EXPECTED_VERSION)
-          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dots.git')
+          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dot-mcp.git')
           JS
           (cd npm-stage/package && npm pack --ignore-scripts --pack-destination ../../npm-dist >/dev/null)
           node --input-type=module <<'JS'
@@ -100,7 +138,7 @@ jobs:
           const p=JSON.parse(execFileSync('tar',['-xOzf','npm-dist/'+filename,'package/package.json'],{encoding:'utf8'}))
           assert.equal(p.name,name)
           assert.equal(p.version,version)
-          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dots.git')
+          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dot-mcp.git')
           const record={name,version,filename,
             sha256:createHash('sha256').update(file).digest('hex'),
             integrity:'sha512-'+createHash('sha512').update(file).digest('base64')}
@@ -136,13 +174,13 @@ jobs:
 
   publish:
     name: Publish ${{ matrix.package_name }}
-    if: github.event_name == 'workflow_dispatch' && inputs.publish == true
-    needs: prepare
+    if: github.event_name == 'workflow_dispatch' && inputs.publish == true && github.repository == 'Tests4gptplay/dsh-dot-mcp'
+    needs: [prepare, verify-classic]
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        package_name: [dsh-dots, dsh-dot-mcp]
+        package_name: [dsh-dot-mcp]
     permissions:
       contents: read
       id-token: write
