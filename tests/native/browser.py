@@ -61,8 +61,8 @@ with sync_playwright() as p:
         held=[]
         def hold_check(route):
             held.append(route)
-        page.route('**/api/dsh-dots-mcp/check',hold_check)
-        with page.expect_request('**/api/dsh-dots-mcp/check'):
+        page.route('**/api/dsh-dot-mcp-mcp/check',hold_check)
+        with page.expect_request('**/api/dsh-dot-mcp-mcp/check'):
             panel.get_by_role('button',name=re.compile(r'Check local connection|检查本地连接')).click()
         expect(switch).to_be_enabled()
         page.screenshot(path=str(out/'native-check-pending.png'),full_page=True)
@@ -70,7 +70,7 @@ with sync_playwright() as p:
         expect(switch).to_be_enabled()
         for route in held:
             route.abort()
-        page.unroute('**/api/dsh-dots-mcp/check',hold_check)
+        page.unroute('**/api/dsh-dot-mcp-mcp/check',hold_check)
         expect(panel.get_by_test_id('dots-mcp-state')).to_have_text(re.compile(r'^Off$|已关闭'))
         page.reload(wait_until='domcontentloaded')
         # Native model onboarding is deliberately deferred, so it reappears on reload.
