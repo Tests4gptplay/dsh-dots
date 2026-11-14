@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {readFileSync, readdirSync} from 'node:fs'
 import {spawnSync} from 'node:child_process'
+import {fileURLToPath} from 'node:url'
 
 const root=new URL('../',import.meta.url)
 const sub=new URL('../packages/dsh-dot-mcp/',import.meta.url)
@@ -24,7 +25,7 @@ test('market subpackage installs the same Dot MCP production runtime and identit
   }
   const command=process.platform==='win32'?'npm.cmd':'npm'
   const run=spawnSync(command,['pack','--dry-run','--ignore-scripts','--json'],{
-    cwd:sub.pathname,encoding:'utf8',shell:process.platform==='win32'
+    cwd:fileURLToPath(sub),encoding:'utf8',shell:process.platform==='win32'
   })
   assert.equal(run.status,0,run.stderr)
   const pack=JSON.parse(run.stdout)[0]
