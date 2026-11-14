@@ -1,8 +1,8 @@
-# DSH Dots 2.0.1-test.8
+# DSH Dots 2.0.1-test.9
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
-[中文](README.md) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
+[中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
 
 DSH Dots brings [ChatGPT Dots](https://chatgpt.com/dots/home) into DeepSeek Harness. Chat with your own Dot inside DSH, or enable MCP so your Dot can use DSH's AI sessions, tools and workspaces to submit tasks and retrieve results.
 
@@ -22,19 +22,21 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls.
 
-## Install the 2.0.1-test.8 branch
+## Install the 2.0.1-test.9 branch
 
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.8
+github:Tests4gptplay/dsh-dots#2.0.1-test.9
 ```
 
-This page describes the `2.0.1-test.8` test branch. Published versions and packages are available under [Releases](https://github.com/Tests4gptplay/dsh-dots/releases).
+This page describes the `2.0.1-test.9` test branch. Published versions and packages are available under [Releases](https://github.com/Tests4gptplay/dsh-dots/releases).
+
+For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 
 Open **DSH Dots** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dots**.
 
-This update refines the Dots settings layout: consistent typography, aligned checkboxes and labels, grouped connection and tunnel controls, and compact expandable guidance. See the [update record](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.8/docs/releases/v2.0.1-test.8.md) for screenshots and verification.
+This update preserves the test.8 settings design, adds Back and a clickable Dot-home brand, moves the full guide below all three settings cards, and remembers tunnel start/stop across restarts. See the [update record](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.9/docs/releases/v2.0.1-test.9.md) for screenshots and verification.
 
 ## Selective proactive notifications to Dot
 
@@ -54,7 +56,7 @@ ChatGPT Dot's proactive event-triggered monitoring uses the official MCP Events 
 
 1. **Enable MCP.** Open Settings → Dots and run **Check local connection**.
 2. **Create a Tunnel.** Open [Tunnel settings](https://platform.openai.com/settings/organization/tunnels), use `DSH-Dots` as the name, and select your organization/workspace. This personal setup leaves **Restrict client network access** unchecked; follow administrator requirements for managed networks. Copy the full Tunnel ID and obtain a runtime key from [Runtime API Keys](https://platform.openai.com/settings/organization/api-keys).
-3. **Set up locally in Dots.** In **OpenAI Secure MCP Tunnel**, keep the default installation directory or select another location, then **Download and install official client**. An existing executable can also be selected by its full path. Enter Tunnel ID and Runtime API Key, **Start tunnel**, then **Refresh tunnel status**. The plugin supplies its current local MCP endpoint to the official client. No terminal window is required. The location and Tunnel ID persist; the key remains in memory for this DSH run.
+3. **Set up locally in Dots.** In **OpenAI Secure MCP Tunnel**, keep the default installation directory or select another location, then **Download and install official client**. An existing executable can also be selected by its full path. Enter Tunnel ID and Runtime API Key, **Start tunnel**, then **Refresh tunnel status**. The plugin supplies its current local MCP endpoint to the official client. No terminal window is required. The location and Tunnel ID persist; the runtime key is saved in a separate access-restricted file in this DSH user profile for automatic tunnel restoration.
 
 **Client updates:** Each download checks OpenAI's latest official GitHub Release and verifies its SHA-256 before installation. The Dots package contains no tunnel-client executable. Only the current installed client and one previous version are retained; an older executable still in use is cleaned up after its process stops.
 4. **Register and install in ChatGPT.** On the web, open [Plugins](https://chatgpt.com/plugins) → **＋ / Add → Add custom MCP server**, choose **Tunnel** and enter its ID. Select **No authentication**, acknowledge the official notice and choose **Create as a plugin**. Install it under Personal plugins and enable it in Dot → **Customize → Plugins**.
@@ -62,7 +64,7 @@ ChatGPT Dot's proactive event-triggered monitoring uses the official MCP Events 
 
 An existing HTTPS forwarding endpoint can instead be entered above and registered using **Server URL**, without a tunnel. The full MCP URL contains an access key; hide it in screenshots and shared logs.
 
-[Update and verification](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.8/docs/releases/v2.0.1-test.8.md) · [Official tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [Official MCP registration](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
+[Update and verification](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.9/docs/releases/v2.0.1-test.9.md) · [Official tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [Official MCP registration](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## Everyday use
 
