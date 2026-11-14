@@ -77,12 +77,14 @@ test('remembered tunnel start automatically resumes after MCP is ready and manua
     await first.dispose()
     const second = create()
     try {
+      const { createTunnelStartup } = await import('../lib/host.js')
+      const auto = createTunnelStartup(second)
       assert.equal((await second.status()).enabled, true)
-      await second.initialize()
-      assert.equal(launches, 2, 'enabled profile launches exactly one new tunnel at startup')
+      await auto.restore()
+      assert.equal(launches, 2, 'enabled profile uses the same Start path to restore the saved client')
       assert.equal(currentEnv.CONTROL_PLANE_API_KEY, 'sk-resume-test-key')
-      await second.initialize()
-      assert.equal(launches, 2, 'repeated initialize reuses running tunnel')
+      await auto.restore()
+      assert.equal(launches, 2, 'a second ready signal reuses the running tunnel')
       await second.stop()
       assert.equal((await second.status()).enabled, false)
     } finally { await second.dispose() }
@@ -170,97 +172,71 @@ test('installer cleanup keeps current plus one previous copy, preserves a runnin
   assert.equal(await readFile(join(root, 'custom-user-directory', 'notes.txt'), 'utf8'), 'keep user data')
 })
 
-test('MCP ready queues only one deferred Tunnel attempt and never starts a background interval', async () => {
-  const { createOneShotTunnelStartup } = await import('../lib/host.js')
-  const jobs = new Map()
-  let timerId = 0, starts = 0, cancelled = 0, ready = false
-  const tunnel = { async initialize() { starts++; assert.equal(ready, true, 'Tunnel must start after host reaches ready state') } }
-  const scheduler = createOneShotTunnelStartup(tunnel, {
-    delayMs: 1500,
-    schedule(callback, ms) { assert.equal(ms, 1500); const id = ++timerId; jobs.set(id, callback); return id },
-    cancel(id) { cancelled++; jobs.delete(id) },
-  })
-  scheduler.ready()
-  scheduler.ready()
-  assert.equal(jobs.size, 1)
-  assert.equal(starts, 0, 'MCP listener readiness alone must not immediately launch Tunnel')
-  ready = true
-  const [id, callback] = [...jobs][0]
-  jobs.delete(id)
-  callback()
-  await new Promise(resolve => setImmediate(resolve))
+test('automatic restoration uses the same start(payload) operation as the manual Settings button', async () => {
+  const { createTunnelStartup } = await import('../lib/host.js')
+  const fields = { installDirectory: '/saved/tunnel-client', executable: '/saved/tunnel-client/tunnel-client', tunnelId: 'tunnel_saved' }
+  let state = { ...fields, enabled: true, running: false }
+  let starts = 0, argumentsSeen
+  const tunnel = {
+    async status() { return { ...state } },
+    async start(payload) {
+      starts++
+      argumentsSeen = payload
+      state = { ...state, running: true }
+      return { ...state }
+    },
+  }
+  const startup = createTunnelStartup(tunnel)
+  const result = await startup.restore()
+  assert.equal(result.running, true)
+  assert.deepEqual(argumentsSeen, fields, 'use the saved form fields, not a separate initialization protocol')
+  await startup.restore()
+  assert.equal(starts, 1, 'a running Tunnel is not relaunched')
+})
+test('initial Settings status returns the completed automatic start result without background polling', async () => {
+  const { createTunnelStartup } = await import('../lib/host.js')
+  let complete, starts = 0, reads = 0
+  const fields = { installDirectory: '/saved', executable: '/saved/client', tunnelId: 'tunnel_saved' }
+  const tunnel = {
+    async status() { reads++; return { ...fields, enabled: true, running: starts > 0 } },
+    async start() { return new Promise(resolve => { complete = () => { starts++; resolve({ ...fields, enabled: true, running: true }) } }) },
+  }
+  const startup = createTunnelStartup(tunnel)
+  const restoring = startup.restore()
+  await Promise.resolve()
+  let returned = false
+  const initialStatus = startup.status().then(value => { returned = true; return value })
+  await Promise.resolve()
+  assert.equal(returned, false)
+  complete()
+  await restoring
+  const state = await initialStatus
+  assert.equal(state.running, true)
   assert.equal(starts, 1)
-  assert.equal(jobs.size, 0, 'the one-shot timer is gone once fired')
-  scheduler.ready()
-  assert.equal(jobs.size, 0, 'subsequent ready signals do not schedule new attempts')
-  scheduler.dispose()
-  assert.equal(cancelled, 0)
+  assert.equal(reads, 2)
 })
-test('unloading before the one-shot startup fires cancels it without creating a Tunnel', async () => {
-  const { createOneShotTunnelStartup } = await import('../lib/host.js')
-  const jobs = new Map()
-  const tunnel = { async initialize() { throw new Error('should never start after unload') } }
-  const scheduler = createOneShotTunnelStartup(tunnel, {
-    schedule(callback) { jobs.set('only', callback); return 'only' },
-    cancel(id) { jobs.delete(id) },
-  })
-  scheduler.ready()
-  assert.equal(jobs.size, 1)
-  scheduler.dispose()
-  assert.equal(jobs.size, 0)
-  scheduler.ready()
-  assert.equal(jobs.size, 0)
+test('remembered Stop is immediate and never launches an automatic Tunnel', async () => {
+  const { createTunnelStartup } = await import('../lib/host.js')
+  const tunnel = {
+    async status() { return { enabled: false, running: false } },
+    async start() { throw new Error('Stopped Tunnel must remain stopped') },
+  }
+  const startup = createTunnelStartup(tunnel)
+  assert.equal((await startup.restore()).running, false)
+  assert.equal((await startup.status()).running, false)
 })
-test('remembered off state remains off if manually stopped before startup callback', async () => {
-  const { createOneShotTunnelStartup } = await import('../lib/host.js')
-  let scheduled, enabled = true, starts = 0
-  const tunnel = { async initialize() { if (enabled) starts++ } }
-  const scheduler = createOneShotTunnelStartup(tunnel, { schedule(fn) { scheduled = fn; return 1 } })
-  scheduler.ready()
-  enabled = false
-  scheduled()
-  await new Promise(resolve => setImmediate(resolve))
-  assert.equal(starts, 0, 'user stop wins over deferred automatic start')
-})
-test('one-shot startup failure is reported once without scheduling a retry', async () => {
-  const { createOneShotTunnelStartup } = await import('../lib/host.js')
-  let scheduled, errors = 0, attempts = 0, queued = 0
-  const scheduler = createOneShotTunnelStartup({
-    async initialize() { attempts++; throw new Error('official client startup failed') },
-  }, {
-    schedule(fn) { queued++; scheduled = fn; return 1 },
-    onError(e) { errors++; assert.match(String(e), /startup failed/) },
-  })
-  scheduler.ready()
-  scheduled()
-  await new Promise(resolve => setImmediate(resolve))
-  assert.equal(attempts, 1)
-  assert.equal(errors, 1)
-  assert.equal(queued, 1)
-  scheduler.ready()
-  assert.equal(queued, 1)
-})
-
-test('MCP off cancels a pending one-shot start and MCP on gets one fresh attempt', async () => {
-  const { createOneShotTunnelStartup } = await import('../lib/host.js')
-  const callbacks = new Map()
-  let id = 0, attempts = 0
-  const start = createOneShotTunnelStartup({ async initialize() { attempts++ } }, {
-    schedule(callback) { const next = ++id; callbacks.set(next, callback); return next },
-    cancel(value) { callbacks.delete(value) },
-  })
-  start.ready()
-  assert.equal(callbacks.size, 1)
-  start.suspend()
-  assert.equal(callbacks.size, 0)
-  start.ready()
-  start.ready()
-  assert.equal(callbacks.size, 1)
-  const [key, run] = [...callbacks][0]
-  callbacks.delete(key)
-  run()
-  await new Promise(resolve => setImmediate(resolve))
-  assert.equal(attempts, 1)
-  assert.equal(callbacks.size, 0)
-  start.dispose()
+test('startup failure stays visible on the next Settings status without retrying', async () => {
+  const { createTunnelStartup } = await import('../lib/host.js')
+  let starts = 0, error = ''
+  const tunnel = {
+    async status() { return { enabled: true, running: false, error } },
+    async start() { starts++; error = 'Official tunnel-client exited (1)'; throw new Error(error) },
+  }
+  const startup = createTunnelStartup(tunnel)
+  const restoring = startup.restore()
+  const stateRead = startup.status()
+  await assert.rejects(restoring, /exited/)
+  const value = await stateRead
+  assert.match(value.error, /exited/)
+  assert.equal(starts, 1)
 })

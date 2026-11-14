@@ -169,3 +169,32 @@ test('Desktop guest release failure is handled at the retiring UI boundary', asy
     assert.ok(failures.some(text => text.includes('native browser release failed')), JSON.stringify(failures))
   } finally { console.error = previousError }
 })
+
+test('MCP becomes available while the single saved-config Tunnel start is still in flight', async t => {
+  const { createTunnelStartup } = await import('../lib/host.js')
+  const dir = await mkdtemp(join(tmpdir(), 'dots-mcp-restore-test-'))
+  let finishTunnel, started = 0
+  const saved = { enabled: true, running: false, installDirectory: '/saved', executable: '/saved/client', tunnelId: 'tunnel_saved' }
+  const tunnel = {
+    async status() { return { ...saved, running: started > 0 } },
+    async start(payload) {
+      assert.deepEqual(payload, { installDirectory: saved.installDirectory, executable: saved.executable, tunnelId: saved.tunnelId })
+      return new Promise(resolve => { finishTunnel = () => { started++; resolve({ ...saved, running: true }) } })
+    },
+  }
+  const startup = createTunnelStartup(tunnel)
+  const controller = createMcpController({
+    connection: { createPeer() { return { async dispose() {} } } },
+  }, {
+    configPath: join(dir, 'mcp.json'),
+    onReady: () => { void startup.restore().catch(() => {}) },
+  })
+  t.after(async () => { await controller.dispose(); await rm(dir, { recursive: true, force: true }) })
+  const mcpState = await controller.configure({ enabled: true })
+  assert.equal(mcpState.running, true, 'MCP must not wait for the external Tunnel child')
+  assert.equal(typeof finishTunnel, 'function')
+  assert.equal(started, 0)
+  finishTunnel()
+  assert.equal((await startup.status()).running, true)
+  assert.equal(started, 1)
+})
