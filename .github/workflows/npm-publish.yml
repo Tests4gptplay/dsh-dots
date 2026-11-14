@@ -59,7 +59,18 @@ jobs:
           const data=Buffer.from(await dl.arrayBuffer())
           const sha256=createHash('sha256').update(data).digest('hex')
           assert.equal(sha256,'e03ef368dafcb71368421653148198128aba583461d245a1c755540555aefe9b')
-          console.log(JSON.stringify({name:p.name,version:p.version,sha256,bytes:data.length}))
+          const response=await fetch('https://registry.npmjs.org/@tests4gptplay%2fdsh-dots',{headers:{Accept:'application/json'}})
+          assert.equal(response.status,200)
+          const metadata=await response.json()
+          console.log(JSON.stringify({
+            package:p.name,latest:metadata['dist-tags']?.latest,
+            packageDescription:metadata.description??null,
+            classicDescription:metadata.versions?.['1.0.12']?.description??null,
+            version202StillExists:Boolean(metadata.versions?.['2.0.2']),
+            packageRepository:metadata.repository?.url??null,
+            packageReadmeChars:metadata.readme?.length??0,
+            packageReadmeStart:(metadata.readme??'').slice(0,140)
+          }))
           JS
 
   prepare:
