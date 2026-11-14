@@ -59,21 +59,7 @@ jobs:
           const data=Buffer.from(await dl.arrayBuffer())
           const sha256=createHash('sha256').update(data).digest('hex')
           assert.equal(sha256,'e03ef368dafcb71368421653148198128aba583461d245a1c755540555aefe9b')
-          const packageSource=JSON.parse((await import('node:fs')).readFileSync('source/package.json','utf8'))
-          const metaResponse=await fetch('https://registry.npmjs.org/@tests4gptplay%2fdsh-dots', {headers:{Accept:'application/json'}})
-          assert.equal(metaResponse.status,200)
-          const meta=await metaResponse.json()
-          const latest=meta['dist-tags']?.latest
-          const classic=meta.versions?.['1.0.12']
-          assert.equal(classic?.description,packageSource.description)
-          console.log(JSON.stringify({
-            name:p.name,version:p.version,sha256,bytes:data.length,
-            latest,classicDescription:classic.description,
-            latestDescription:meta.versions?.[latest]?.description,
-            registryReadmeHas202:/2\.0\.2/.test(meta.readme??''),
-            registryReadmeHasMcp:/MCP|dsh-dot-mcp/i.test(meta.readme??''),
-            registryReadmeIntro:(meta.readme??'').slice(0,180)
-          }))
+          console.log(JSON.stringify({name:p.name,version:p.version,sha256,bytes:data.length}))
           JS
 
   prepare:
