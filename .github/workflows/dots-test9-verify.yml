@@ -1,0 +1,82 @@
+name: DSH Dots 2.0.1-test.9 candidate verification
+on:
+  push:
+    branches: ['2.0.1-test.9']
+permissions:
+  contents: write
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install candidate dependencies
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Build and run regression tests
+        run: npm test
+      - name: Check production package contents
+        run: npm run pack:check
+      - name: Pack production files
+        run: npm pack --ignore-scripts
+      - name: Chromium UI layout acceptance
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+          python tests/browser/settings-layout.py
+      - name: Install real native DSH
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/dsh-native"
+          cd "$RUNNER_TEMP/dsh-native"
+          npm init -y
+          npm install --no-audit --no-fund @deepseek-ai/dsh@0.2.2-rc.1 @deepseek-ai/dsh-client-connection@0.2.2-rc.1 @deepseek-ai/dsh-api-gateway@0.2.2-rc.1 @deepseek-ai/dsh-api-session-controller@0.2.2-rc.1 @deepseek-ai/dsh-api-remote-access@0.2.2-rc.1 @deepseek-ai/dsh-typert-registry@0.2.2-rc.1
+          mkdir -p node_modules/dsh-dots
+          tar -xzf "$GITHUB_WORKSPACE/dsh-dots-2.0.1-test.9.tgz" --strip-components=1 -C node_modules/dsh-dots
+      - name: Real DSH and native Chromium acceptance
+        if: runner.os == 'Linux'
+        env:
+          DSH_NATIVE_ROOT: ${{ runner.temp }}/dsh-native
+          DSH_TEST_OUTPUT: ${{ runner.temp }}/dots-native-evidence
+          DSH_BROWSER_TEST: '1'
+        run: node tests/native/verify.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dots-test9-${{ matrix.os }}-evidence
+          path: |
+            dsh-dots-2.0.1-test.9.tgz
+            ui-evidence/
+            ${{ runner.temp }}/dots-native-evidence/
+          if-no-files-found: ignore
+          retention-days: 14
+  build-commit:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 2.0.1-test.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - run: npm run build
+      - name: Commit verified compiled runtime to candidate branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib THIRD-PARTY-NOTICES.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "build(dots): compile verified 2.0.1-test.9 runtime"
+            git push origin HEAD:refs/heads/2.0.1-test.9
+          fi
