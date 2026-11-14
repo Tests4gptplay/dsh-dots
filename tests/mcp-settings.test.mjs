@@ -26,6 +26,9 @@ test('rendered Settings default off, toggle on/off and preserve native guide lin
  const f=await fixture(t),d=f.dom.window.document
  const toggle=d.querySelector('[role=switch]');assert.equal(toggle.checked,false);assert.equal(toggle.disabled,false)
  assert.match(f.text(),/官方 MCP 注册指南/)
+ const guide=d.querySelector('[data-testid="dots-connection-guide"]')
+ assert.ok(guide);assert.equal(guide.tagName,'DETAILS');assert.equal(guide.open,false)
+ assert.ok(guide.querySelector('a'), 'full registration guide keeps its official links')
  const links=[...d.querySelectorAll('a')];assert.equal(links.length,4);assert.ok(links.every(a=>new URL(a.href).hostname.endsWith('openai.com')))
  await f.click(toggle);assert.deepEqual(JSON.parse(JSON.stringify(f.calls.at(-1))),{name:'configure',value:{enabled:true}});assert.equal(toggle.checked,true)
  assert.equal(d.querySelector('input[aria-label="本机 MCP 地址"]').type,'password')

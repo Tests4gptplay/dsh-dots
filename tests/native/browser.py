@@ -55,7 +55,7 @@ with sync_playwright() as p:
         page.set_viewport_size({'width':1440,'height':1050})
         (out/'native-layout-metrics.json').write_text(json.dumps({'checkboxes':measured,'fontSize':13,'viewportWidths':[900,1280],'horizontalOverflow':False},indent=2))
 
-        panel.locator('summary').filter(has_text=re.compile(r'Connect your ChatGPT Dot|连接到 ChatGPT Dot')).click()
+        page.get_by_test_id('dots-connection-guide').locator('summary').click()
         page.screenshot(path=str(out/'native-connection-guide.png'),full_page=True)
         # Delay only the diagnostic request to exercise the real UI cancellation path.
         held=[]
