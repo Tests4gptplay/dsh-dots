@@ -1,6 +1,6 @@
 {
   "name": "dsh-dot-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "在 DeepSeek Harness 中使用 ChatGPT Dots，并通过 MCP 连接让 Dot 管理 DSH 会话、工具和工作区。",
   "type": "module",
   "main": "./lib/host.js",

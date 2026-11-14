@@ -1,12 +1,12 @@
-# DSH Dot MCP 1.0.0
+# DSH Dot MCP 1.0.1
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
 [中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
 
-**Independent MCP edition 1.0.0:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
+**Independent MCP edition 1.0.1:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
 
-[Dot MCP 1.0.0 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
+[Dot MCP 1.0.0 release history](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
 
 DSH Dot MCP brings [ChatGPT Dots](https://chatgpt.com/dots/home) into DeepSeek Harness. Chat with your own Dot inside DSH, or enable MCP so your Dot can use DSH's AI sessions, tools and workspaces to submit tasks and retrieve results.
 
@@ -17,8 +17,8 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 | New capability | What you can do |
 | --- | --- |
 | MCP connection | Register DSH as a tool service available to your Dot and submit tasks from the conversation. |
-| Sessions and tasks | Create or continue a session, add instructions, check progress and results, or cancel execution. |
-| Workspaces and tools | Read and edit files, receive image results, and use the command and plugin capabilities enabled in DSH. |
+| Sessions and tasks | Create or continue sessions, inspect results and cancel work; MCP internal sessions stay out of the Ungrouped sidebar. |
+| Workspaces and tools | Dot directly uses available native DSH APIs, installed plugins and tools for files, commands and image results. |
 | Unified settings | Manage the MCP switch, connection URLs, call status and login retention under Settings → Dots. |
 | Guided setup | Copy connection details, check the local service, and follow official guides through registration and the first tool call. |
 
@@ -26,15 +26,15 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls. The toolbar adds Back navigation, and clicking the Dots icon or title returns to Dot home.
 
-## Install DSH Dot MCP 1.0.0
+## Install DSH Dot MCP 1.0.1
 
-In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
+In DSH, open **Plugins → Add plugin** and install the current main branch:
 
 ```text
-github:Tests4gptplay/dsh-dots#dsh-dot-mcp-v1.0.0
+github:Tests4gptplay/dsh-dots#main
 ```
 
-This page describes the independent [dsh-dot-mcp-v1.0.0 release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/dsh-dot-mcp-v1.0.0). The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.12`.
+The previous release remains at [dsh-dot-mcp-v1.0.0](https://github.com/Tests4gptplay/dsh-dots/releases/tag/dsh-dot-mcp-v1.0.0). The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.12`.
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 

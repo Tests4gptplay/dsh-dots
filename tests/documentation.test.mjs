@@ -8,7 +8,7 @@ const text = path => readFile(new URL(path, root), 'utf8')
 const repositoryPrefix = 'https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/'
 const pages = ['README.md', 'README.en.md', 'CHANGELOG.md', 'SPONSOR.md', 'docs/releases/v2.0.0.md', 'docs/releases/v2.0.0.en.md']
 
-test('documentation: homepages introduce Dot MCP 1.0.0, link release notes and end with support', async () => {
+test('documentation: homepages introduce Dot MCP 1.0.1, link release notes and end with support', async () => {
   for (const [path, release, footer] of [
     ['README.md', 'v2.0.0.md', '## 支持项目'],
     ['README.en.md', 'v2.0.0.en.md', '## Support the project'],

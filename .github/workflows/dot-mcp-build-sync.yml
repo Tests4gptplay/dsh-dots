@@ -1,8 +1,8 @@
 name: Dot MCP candidate build sync
 on:
   push:
-    branches: ['split/dsh-dot-mcp']
-    paths: ['.github/workflows/dot-mcp-build-sync.yml']
+    branches: ['fix/dot-mcp-direct-tools-sidebar']
+    paths: ['src/**', 'tests/**', 'package.json', 'package-lock.json', 'README*', 'CHANGELOG.md', '.github/workflows/dot-mcp-build-sync.yml']
 permissions:
   contents: write
 jobs:
@@ -25,10 +25,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add lib THIRD-PARTY-NOTICES.txt
+          cp lib/client.js lib/mcp-adapter.mjs lib/mcp-server.mjs packages/dsh-dot-mcp/lib/
+          cp THIRD-PARTY-NOTICES.txt packages/dsh-dot-mcp/
+          git add lib THIRD-PARTY-NOTICES.txt packages/dsh-dot-mcp/lib packages/dsh-dot-mcp/THIRD-PARTY-NOTICES.txt
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "build(dot-mcp): synchronize compiled 1.0.0 runtime"
-            git push origin HEAD:split/dsh-dot-mcp
+            git push origin HEAD:fix/dot-mcp-direct-tools-sidebar
           fi
