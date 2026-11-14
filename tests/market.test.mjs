@@ -26,7 +26,7 @@ test('market: actual DSH bundle manifest and source-loadable production entries'
   for (const [name] of Object.entries(manifest.dependencies ?? {})) {
     assert.ok(!name.startsWith('@deepseek-ai/'), `DSH-owned package ${name} should be a peer`)
   }
-  assert.equal(manifest.repository?.url, 'git+https://github.com/Tests4gptplay/dsh-dot-mcp.git')
+  assert.equal(manifest.repository?.url, 'git+https://github.com/Tests4gptplay/dsh-dots.git')
 })
 
 test('market: Chinese + English metadata and concise user-facing features', async () => {

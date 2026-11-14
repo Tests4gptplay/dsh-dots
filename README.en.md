@@ -2,11 +2,11 @@
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
-[中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dot-mcp/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dot-mcp/issues)
+[中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
 
 **Independent MCP edition 1.0.0:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
 
-[Dot MCP 1.0.0 release notes](https://github.com/Tests4gptplay/dsh-dot-mcp/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dot-mcp/blob/v2.0.0/docs/releases/v2.0.0.en.md)
+[Dot MCP 1.0.0 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
 
 DSH Dot MCP brings [ChatGPT Dots](https://chatgpt.com/dots/home) into DeepSeek Harness. Chat with your own Dot inside DSH, or enable MCP so your Dot can use DSH's AI sessions, tools and workspaces to submit tasks and retrieve results.
 
@@ -31,16 +31,16 @@ Existing features remain available: startup preload, retained pages across panel
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
 ```text
-github:Tests4gptplay/dsh-dot-mcp#dsh-dot-mcp-v1.0.0
+github:Tests4gptplay/dsh-dots#dsh-dot-mcp-v1.0.0
 ```
 
-This page describes the independent [dsh-dot-mcp-v1.0.0 release](https://github.com/Tests4gptplay/dsh-dot-mcp/releases/tag/dsh-dot-mcp-v1.0.0). The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dot-mcp/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dot-mcp#1.0.12`.
+This page describes the independent [dsh-dot-mcp-v1.0.0 release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/dsh-dot-mcp-v1.0.0). The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.12`.
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 
 Open **DSH Dot MCP** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dots**.
 
-This release provides a unified Dots settings design, Back and clickable Dot-home navigation, the complete guide below all three settings cards, and remembered tunnel start/stop across restarts. See the [update record](https://github.com/Tests4gptplay/dsh-dot-mcp/blob/v2.0.0/docs/releases/v2.0.0.md) for screenshots and verification.
+This release provides a unified Dots settings design, Back and clickable Dot-home navigation, the complete guide below all three settings cards, and remembered tunnel start/stop across restarts. See the [update record](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) for screenshots and verification.
 
 ## Selective proactive notifications to Dot
 
@@ -68,7 +68,7 @@ ChatGPT Dot's proactive event-triggered monitoring uses the official MCP Events 
 
 An existing HTTPS forwarding endpoint can instead be entered above and registered using **Server URL**, without a tunnel. The full MCP URL contains an access key; hide it in screenshots and shared logs.
 
-[Update and verification](https://github.com/Tests4gptplay/dsh-dot-mcp/blob/v2.0.0/docs/releases/v2.0.0.md) · [Official tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [Official MCP registration](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
+[Update and verification](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) · [Official tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [Official MCP registration](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## Everyday use
 
@@ -78,9 +78,9 @@ Dot in the embedded DSH page and Dot in the ChatGPT mobile app can use the confi
 
 ## Updates and feedback
 
-The [2.0.0 release notes](https://github.com/Tests4gptplay/dsh-dot-mcp/blob/v2.0.0/docs/releases/v2.0.0.en.md) contain actual screenshots, native-environment checks and the two-turn file-task experiment. See the [changelog](CHANGELOG.md) for other versions.
+The [2.0.0 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) contain actual screenshots, native-environment checks and the two-turn file-task experiment. See the [changelog](CHANGELOG.md) for other versions.
 
-When reporting an [issue](https://github.com/Tests4gptplay/dsh-dot-mcp/issues), include your DSH version, operating system and error message. Remove connection keys from screenshots and logs.
+When reporting an [issue](https://github.com/Tests4gptplay/dsh-dots/issues), include your DSH version, operating system and error message. Remove connection keys from screenshots and logs.
 
 ## Support the project
 
