@@ -11,7 +11,7 @@ test('official entry preserves main/sidebar and shares the Dots settings section
   assert.deepEqual([...page.slots.map(s => s.options.name)].sort(), ['main', 'settings.section', 'sidebar.panellist'])
   assert.equal(page.main.options.key, 'dsh-dot-mcp')
   assert.equal(page.icon.options.id, 'dsh-dot-mcp')
-  assert.equal(page.icon.options.label(), 'DSH Dots')
+  assert.equal(page.icon.options.label(), 'DSH Dot MCP')
   assert.ok(page.styles[0].textContent.includes('.dotsPage'))
 })
 
