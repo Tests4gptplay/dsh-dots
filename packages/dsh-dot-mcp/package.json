@@ -1,0 +1,87 @@
+{
+  "name": "dsh-dot-mcp",
+  "version": "1.0.0",
+  "description": "在 DeepSeek Harness 中使用 ChatGPT Dots，并通过 MCP 连接让 Dot 管理 DSH 会话、工具和工作区。",
+  "type": "module",
+  "main": "./lib/host.js",
+  "exports": {
+    ".": "./lib/host.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
+    "./icon": "./assets/dots-ring.svg",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "icon": "./assets/dots-ring.svg",
+  "files": [
+    "lib/host.js",
+    "lib/client.js",
+    "lib/persistence.mjs",
+    "lib/persistence-after-exit.mjs",
+    "assets/dots-ring.svg",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "SPONSOR.md",
+    "LICENSE",
+    "lib/mcp-control.mjs",
+    "lib/mcp-adapter.mjs",
+    "lib/mcp-server.mjs",
+    "THIRD-PARTY-NOTICES.txt",
+    "lib/tunnel-control.mjs",
+    "lib/notify-control.mjs"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-client-locale": "*",
+    "@deepseek-ai/dsh-client-ui-layout": "*",
+    "@deepseek-ai/dsh-client-ui-primitives": "*",
+    "@deepseek-ai/dsh-client-ui-renderer": "*",
+    "@deepseek-ai/dsh-client-ui-sidebar": "*",
+    "react": "*",
+    "@deepseek-ai/dsh-client-connection": "*",
+    "@deepseek-ai/dsh-client-ui-settings": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tests4gptplay/dsh-dots.git"
+  },
+  "homepage": "https://github.com/Tests4gptplay/dsh-dots#readme",
+  "license": "MIT",
+  "author": "Tests4gptplay",
+  "bugs": {
+    "url": "https://github.com/Tests4gptplay/dsh-dots/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "chatgpt",
+    "dots",
+    "browser",
+    "webview",
+    "mcp"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
