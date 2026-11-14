@@ -28,10 +28,10 @@ Existing features remain available: startup preload, retained pages across panel
 
 ## Install DSH Dot MCP 1.0.1-test.1-test.1
 
-In DSH, open **Plugins → Add plugin** and install the current main branch:
+In DSH, open **Plugins → Add plugin** and install this test branch for acceptance (the official main branch stays unchanged):
 
 ```text
-github:Tests4gptplay/dsh-dots#main
+github:Tests4gptplay/dsh-dots#fix/dot-mcp-direct-tools-sidebar
 ```
 
 The previous release remains at [dsh-dot-mcp-v1.0.0](https://github.com/Tests4gptplay/dsh-dots/releases/tag/dsh-dot-mcp-v1.0.0). The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.12`.

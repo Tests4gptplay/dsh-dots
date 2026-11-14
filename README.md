@@ -28,10 +28,10 @@ DSH Dot MCP 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Ha
 
 ## 安装 DSH Dot MCP 1.0.1-test.1-test.1
 
-在 DSH「插件 → 添加插件」的「包名或地址」中安装当前主线：
+在 DSH「插件 → 添加插件」的「包名或地址」中安装本次测试分支（正式 main 维持现状）：
 
 ```text
-github:Tests4gptplay/dsh-dots#main
+github:Tests4gptplay/dsh-dots#fix/dot-mcp-direct-tools-sidebar
 ```
 
 上一正式版本保留为 [dsh-dot-mcp-v1.0.0](https://github.com/Tests4gptplay/dsh-dots/releases/tag/dsh-dot-mcp-v1.0.0)。简洁版 Dots 保留在 [1.0.12 分支](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12)，可输入 `github:Tests4gptplay/dsh-dots#1.0.12` 安装。
