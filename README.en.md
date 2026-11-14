@@ -1,4 +1,4 @@
-# DSH Dots 2.0.0
+# DSH Dots 2.0.1-test.10
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
@@ -22,15 +22,15 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls. The toolbar adds Back navigation, and clicking the Dots icon or title returns to Dot home.
 
-## Install DSH Dots 2.0.0
+## Install the 2.0.1-test.10 test branch
 
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
 ```text
-github:Tests4gptplay/dsh-dots#v2.0.0
+github:Tests4gptplay/dsh-dots#2.0.1-test.10
 ```
 
-This page describes the official `v2.0.0` release. The installation package and release notes are available under [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.0).
+This page describes the `2.0.1-test.10` Tunnel startup-sequence test branch. The published release remains [v2.0.0](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.0).
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 

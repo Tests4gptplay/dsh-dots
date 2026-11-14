@@ -1,4 +1,4 @@
-# DSH Dots 2.0.0
+# DSH Dots 2.0.1-test.10
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
@@ -22,15 +22,15 @@ DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harne
 
 原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。顶部增加网页后退按钮，点击 Dots 图标与名称可返回 Dot 首页。
 
-## 安装 DSH Dots 2.0.0
+## 安装 2.0.1-test.10 测试分支
 
 在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
 ```text
-github:Tests4gptplay/dsh-dots#v2.0.0
+github:Tests4gptplay/dsh-dots#2.0.1-test.10
 ```
 
-本页对应正式发行版 `v2.0.0`。安装包及版本记录见 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.0)。
+本页对应 `2.0.1-test.10` Tunnel 启动时序测试分支。已发布的正式版本仍为 [v2.0.0](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.0)。
 
 安装与连接步骤见下方 [完整配置指南](#连接自己的-dot)，设置页底部也提供可折叠的五步引导。
 
