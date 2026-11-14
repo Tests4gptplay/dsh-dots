@@ -21,7 +21,7 @@ with sync_playwright() as p:
         page.get_by_role('menuitem',name=re.compile(r'^(Settings|设置)')).click()
         page.get_by_role('button',name='Dots',exact=True).click()
         panel=page.get_by_test_id('dots-mcp-settings');expect(panel).to_be_visible()
-        switch=panel.get_by_role('switch');expect(switch).not_to_be_checked();expect(switch).to_be_enabled()
+        switch=panel.get_by_role('switch',name=re.compile(r'^(Enable MCP Server|启用 MCP Server)$'));expect(switch).not_to_be_checked();expect(switch).to_be_enabled()
         page.screenshot(path=str(out/'native-settings-off.png'),full_page=True)
         # The controlled switch follows the completed native RPC, not an optimistic DOM flip.
         switch.click();expect(switch).to_be_checked()
@@ -37,7 +37,25 @@ with sync_playwright() as p:
         expect(tunnel.get_by_role('button',name=re.compile(r'Download and install official client|下载并安装官方客户端'))).to_be_enabled()
         assert tunnel.locator('input[type=password]').count()==1
         page.screenshot(path=str(out/'native-settings-on.png'),full_page=True)
-        panel.get_by_role('heading',name=re.compile(r'Connect your ChatGPT Dot|连接到 ChatGPT Dot')).scroll_into_view_if_needed()
+        notify=page.get_by_test_id('dots-notify-settings')
+        expect(notify).to_be_visible()
+        measured=panel.locator('.dotsMcpSwitch').evaluate_all("""nodes=>nodes.map(el=>{const i=el.querySelector('input'),t=el.querySelector('span'),a=i.getBoundingClientRect(),b=t.getBoundingClientRect();return {width:a.width,height:a.height,gap:b.x-a.right,vertical:Math.abs(a.y+a.height/2-b.y-b.height/2)}})""")
+        assert len(measured)==4,measured
+        assert all(x['width']==16 and x['height']==16 and 7<=x['gap']<=12 and x['vertical']<=1 for x in measured),measured
+        assert page.locator('.dotsSettings').evaluate('(el)=>getComputedStyle(el).fontSize')=='13px'
+        notify.screenshot(path=str(out/'native-notification-layout.png'))
+        notify_switch=notify.get_by_role('switch')
+        expect(notify_switch).not_to_be_checked()
+        notify_switch.locator('..').locator('span').click();expect(notify_switch).to_be_checked()
+        notify_switch.locator('..').locator('span').click();expect(notify_switch).not_to_be_checked()
+        for width in [900,1280]:
+            page.set_viewport_size({'width':width,'height':1050})
+            assert panel.evaluate('(el)=>el.scrollWidth<=el.clientWidth+1'),'Native settings horizontal overflow'
+            assert notify.locator('.dotsMcpSwitch input').evaluate_all('(nodes)=>nodes.every(n=>n.getBoundingClientRect().width===16)')
+        page.set_viewport_size({'width':1440,'height':1050})
+        (out/'native-layout-metrics.json').write_text(json.dumps({'checkboxes':measured,'fontSize':13,'viewportWidths':[900,1280],'horizontalOverflow':False},indent=2))
+
+        panel.locator('summary').filter(has_text=re.compile(r'Connect your ChatGPT Dot|连接到 ChatGPT Dot')).click()
         page.screenshot(path=str(out/'native-connection-guide.png'),full_page=True)
         # Delay only the diagnostic request to exercise the real UI cancellation path.
         held=[]
@@ -61,8 +79,8 @@ with sync_playwright() as p:
         page.get_by_role('button',name=re.compile(r'^(Account menu|账号菜单)$')).click()
         page.get_by_role('menuitem',name=re.compile(r'^(Settings|设置)')).click()
         page.get_by_role('button',name='Dots',exact=True).click()
-        expect(page.get_by_test_id('dots-mcp-settings').get_by_role('switch')).not_to_be_checked()
-        (out/'browser-report.json').write_text(json.dumps({'result':'passed','engine':'Chromium','checks':['same Dots settings entry','default off','enable','real local MCP check','masked connection URL','official registration and tunnel links','disable during delayed diagnostic','reload retains choice'],'pageErrors':errors},ensure_ascii=False,indent=2))
+        expect(page.get_by_test_id('dots-mcp-settings').get_by_role('switch',name=re.compile(r'^(Enable MCP Server|启用 MCP Server)$'))).not_to_be_checked()
+        (out/'browser-report.json').write_text(json.dumps({'result':'passed','engine':'Chromium','checks':['same Dots settings entry','default off','enable','real local MCP check','masked connection URL','official registration and tunnel links','disable during delayed diagnostic','reload retains choice','native checkbox label alignment','native text click toggles','900px and 1280px viewport widths'],'pageErrors':errors},ensure_ascii=False,indent=2))
     except Exception:
         (out/'browser-traceback.txt').write_text(traceback.format_exc())
         page.screenshot(path=str(out/'native-browser-failure.png'),full_page=True)

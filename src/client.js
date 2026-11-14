@@ -373,17 +373,15 @@ function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop
     : state === 'not-found' ? t('persistenceMissing')
     : state === 'incompatible' ? t('persistenceIncompatible') : t('persistenceWaiting')
   const button = (key, action, enabled = true) => h('button', {
-    type: 'button', disabled: busy || !enabled, onClick: action,
-    style: { border: '1px solid var(--dsw-alias-border-l3, #8886)', borderRadius: 7,
-      padding: '8px 12px', background: 'transparent', color: 'inherit', cursor: 'pointer' },
+    type: 'button', className: 'dotsMcpButton', disabled: busy || !enabled, onClick: action,
   }, t(key))
-  const persistence = h('section', { 'data-testid': 'dots-persistence-settings', style: { padding: 16, maxWidth: 760 } },
-    h('h3', { style: { marginTop: 0 } }, t('persistenceTitle')),
-    h('p', null, t('persistenceDescription')),
-    h('p', { 'data-testid': 'dots-persistence-status' }, summary),
+  const persistence = h('section', { 'data-testid': 'dots-persistence-settings', className: 'dotsSettingsCard' },
+    h('div', { className: 'dotsCardHeader' }, h('h3', null, t('persistenceTitle'))),
+    h('p', { className: 'dotsCardIntro' }, t('persistenceDescription')),
+    h('p', { className: 'dotsStatus', 'data-testid': 'dots-persistence-status' }, summary),
     status?.archive ? h('p', { style: { overflowWrap: 'anywhere', opacity: .7, fontSize: 12 } },
       t('persistencePath') + ': ' + status.archive) : null,
-    h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' } },
+    h('div', { className: 'dotsMcpRow dotsActions' },
       button('persistenceCheck', () => { setMessage(''); void check().catch(error => setMessage(t('persistenceError') + String(error.message || error))) }),
       button('persistenceApply', () => { void act('apply') }, state === 'available'),
       button('persistenceRestore', () => { void act('restore') }, state === 'applied' && status?.canRestore === true)),

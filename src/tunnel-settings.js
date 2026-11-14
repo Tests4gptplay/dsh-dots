@@ -1,6 +1,6 @@
 /** Native Dots settings for the unmodified OpenAI tunnel-client. */
 Object.assign(zh, {
-  tunnelTitle: 'OpenAI Secure MCP Tunnel', tunnelInstallDir: '客户端安装目录', tunnelPick: '选择目录',
+  tunnelTitle: 'OpenAI Secure MCP Tunnel', tunnelClientGroup: '客户端', tunnelConnectionGroup: '连接配置', tunnelInstallDir: '客户端安装目录', tunnelPick: '选择目录',
   tunnelExecutable: '已有客户端路径（可选）', tunnelId: 'Tunnel ID', tunnelKey: 'Runtime API Key',
   tunnelKeyHint: '密钥仅保留在本次 DSH 运行中，由环境变量交给官方客户端；重启 DSH 后重新填写。',
   tunnelKeySaved: '本次运行已有密钥；留空沿用', tunnelInstall: '下载并安装官方客户端', tunnelInstallHint: '每次点击均从 OpenAI 官方 GitHub 获取最新发行版；只保留当前客户端和一份上一版。', tunnelSave: '保存位置和 Tunnel ID',
@@ -16,7 +16,7 @@ Object.assign(zh, {
   tunnelExisting: '已经下载的客户端也可直接填写可执行文件完整路径。安装目录随当前 DSH 配置保存。',
 })
 Object.assign(en, {
-  tunnelTitle: 'OpenAI Secure MCP Tunnel', tunnelInstallDir: 'Client installation directory', tunnelPick: 'Choose directory',
+  tunnelTitle: 'OpenAI Secure MCP Tunnel', tunnelClientGroup: 'Client', tunnelConnectionGroup: 'Connection', tunnelInstallDir: 'Client installation directory', tunnelPick: 'Choose directory',
   tunnelExecutable: 'Existing client executable (optional)', tunnelId: 'Tunnel ID', tunnelKey: 'Runtime API Key',
   tunnelKeyHint: 'The key stays in memory for this DSH run and is passed to the official client through its environment. Enter it again after restarting DSH.',
   tunnelKeySaved: 'A runtime key is available; leave blank to reuse it', tunnelInstall: 'Download and install official client', tunnelInstallHint: 'Every download checks the latest official GitHub release. Keep the current client and one previous version.', tunnelSave: 'Save location and Tunnel ID',
@@ -63,39 +63,47 @@ function DotsTunnelSettings({ t, tunnelRpc, mcpRunning }) {
     try { const value = await window.__DSH_DIRECTORY_PICKER__.pick(); if (value && alive.current) setDirectory(value) }
     catch (error) { if (alive.current) setMessage(String(error.message || error)) }
   }
-  const field = (label, value, set, props = {}) => h('label', { className: 'dotsMcpField' }, t(label),
+  const field = (label, value, set, props = {}) => h('label', { className: 'dotsMcpField' }, h('span', { className: 'dotsFieldLabel' }, t(label)),
     h('input', { value, type: 'text', disabled: busy, spellCheck: false, onChange: event => set(event.target.value), ...props }))
-  const button = (label, action, fields, disabled = false) => h('button', { type: 'button', className: 'dotsMcpButton',
+  const button = (label, action, fields, disabled = false) => h('button', { type: 'button', className: 'dotsMcpButton' + (['install', 'start'].includes(action) ? ' dotsPrimaryButton' : ''),
     disabled: action === 'stop' ? false : busy || disabled, onClick: () => { void act(action, fields) } }, t(label))
   const official = status?.links ?? {
     settings: 'https://platform.openai.com/settings/organization/tunnels', keys: 'https://platform.openai.com/settings/organization/api-keys',
     download: 'https://github.com/openai/tunnel-client/releases/latest',
   }
-  return h('section', { className: 'dotsTunnelSettings', 'data-testid': 'dots-tunnel-settings' },
-    h('h4', null, t('tunnelTitle')),
-    h('p', null, t('tunnelHint')),
+  return h('section', { className: 'dotsTunnelSettings dotsSettingsCard', 'data-testid': 'dots-tunnel-settings' },
+    h('div', { className: 'dotsCardHeader' }, h('h4', null, t('tunnelTitle')),
+      h('p', { className: 'dotsStatus', 'data-active': status?.running === true, 'data-testid': 'dots-tunnel-state' },
+        busy ? t('tunnelBusy') : status?.running ? t('tunnelRunning') : t('tunnelStopped'))),
+    h('p', { className: 'dotsCardIntro' }, t('tunnelHint')),
     h('div', { className: 'dotsMcpLinks' },
       ...[['tunnelPlatform', official.settings], ['tunnelKeys', official.keys], ['tunnelDownload', official.download]]
         .map(([label, href]) => h('a', { key: label, href, target: '_blank', rel: 'noopener noreferrer' }, t(label)))),
-    field('tunnelInstallDir', directory, setDirectory),
-    typeof window === 'object' && typeof window.__DSH_DIRECTORY_PICKER__?.pick === 'function'
-      ? h('button', { type: 'button', className: 'dotsMcpButton', disabled: busy, onClick: () => { void choose() } }, t('tunnelPick')) : null,
-    field('tunnelExecutable', executable, setExecutable), h('p', { className: 'dotsMcpHint' }, t('tunnelExisting')),
-    button('tunnelInstall', 'install', true),
+    h('p', { className: 'dotsSectionTitle' }, t('tunnelClientGroup')),
+    h('div', { className: 'dotsMcpField' }, h('label', { htmlFor: 'dots-tunnel-directory' }, t('tunnelInstallDir')),
+      h('div', { className: 'dotsFieldRow' },
+        h('input', { id: 'dots-tunnel-directory', type: 'text', value: directory, disabled: busy, spellCheck: false,
+          onChange: event => setDirectory(event.target.value) }),
+        typeof window === 'object' && typeof window.__DSH_DIRECTORY_PICKER__?.pick === 'function'
+          ? h('button', { type: 'button', className: 'dotsMcpButton', disabled: busy, onClick: () => { void choose() } }, t('tunnelPick')) : null)),
+    h('details', { className: 'dotsDetails' }, h('summary', null, t('tunnelExecutable')),
+      field('tunnelExecutable', executable, setExecutable), h('p', { className: 'dotsMcpHint' }, t('tunnelExisting'))),
+    h('div', { className: 'dotsMcpRow dotsActions' }, button('tunnelInstall', 'install', true),
+      h('p', { className: 'dotsStatus', 'data-testid': 'dots-tunnel-installed' }, status?.installed ? t('tunnelInstalled') : t('tunnelMissing'))),
     h('p', { className: 'dotsMcpHint' }, t('tunnelInstallHint')),
-    h('p', { 'data-testid': 'dots-tunnel-installed' }, status?.installed ? t('tunnelInstalled') : t('tunnelMissing')),
+    h('hr', { className: 'dotsDivider' }),
+    h('p', { className: 'dotsSectionTitle' }, t('tunnelConnectionGroup')),
     field('tunnelId', id, setId, { placeholder: 'tunnel_…' }),
     field('tunnelKey', key, setKey, { type: 'password', autoComplete: 'off', placeholder: status?.keyAvailable ? t('tunnelKeySaved') : 'Runtime API Key' }),
     h('p', { className: 'dotsMcpHint' }, t('tunnelKeyHint')),
-    h('div', { className: 'dotsMcpRow' }, button('tunnelSave', 'configure', true),
-      button('tunnelStart', 'start', true, !mcpRunning), button('tunnelStop', 'stop', false),
-      button('tunnelDoctor', 'diagnose', true, !mcpRunning), button('tunnelRefresh', 'refresh', false)),
-    !mcpRunning ? h('p', null, t('tunnelMcpOff')) : null,
-    h('p', { 'data-testid': 'dots-tunnel-state' }, busy ? t('tunnelBusy') : status?.running ? t('tunnelRunning') : t('tunnelStopped')),
-    status?.pendingClientSwitch ? h('p', { role: 'status' }, t('tunnelPendingSwitch')) : null,
-    status?.running ? h('p', null, status.health ? t(status.health.ok ? 'tunnelConnected' : 'tunnelNotReady') : t('tunnelNoHealth')) : null,
-    (message || status?.error) ? h('p', { role: 'status' }, message || status.error) : null,
-    status?.lastDiagnosis || status?.health ? h('details', null, h('summary', null, t('tunnelReport')),
-      h('pre', { style: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } }, JSON.stringify(status.health ?? status.lastDiagnosis, null, 2))) : null)
+    h('div', { className: 'dotsMcpRow dotsActions' },
+      button('tunnelStart', 'start', true, !mcpRunning), button('tunnelStop', 'stop', false), button('tunnelSave', 'configure', true)),
+    h('div', { className: 'dotsMcpRow dotsActions' }, button('tunnelDoctor', 'diagnose', true, !mcpRunning), button('tunnelRefresh', 'refresh', false)),
+    !mcpRunning ? h('p', { className: 'dotsMcpHint' }, t('tunnelMcpOff')) : null,
+    status?.pendingClientSwitch ? h('p', { className: 'dotsMessage', role: 'status' }, t('tunnelPendingSwitch')) : null,
+    status?.running ? h('p', { className: 'dotsMcpHint' }, status.health ? t(status.health.ok ? 'tunnelConnected' : 'tunnelNotReady') : t('tunnelNoHealth')) : null,
+    (message || status?.error) ? h('p', { className: 'dotsMessage', role: 'status' }, message || status.error) : null,
+    status?.lastDiagnosis || status?.health ? h('details', { className: 'dotsDetails' }, h('summary', null, t('tunnelReport')),
+      h('pre', { className: 'dotsReport' }, JSON.stringify(status.health ?? status.lastDiagnosis, null, 2))) : null)
 }
 exports.DotsTunnelSettings = DotsTunnelSettings
