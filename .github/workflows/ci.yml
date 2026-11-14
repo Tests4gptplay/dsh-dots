@@ -1,7 +1,7 @@
 name: DSH Dot MCP cases
 on:
   push:
-    branches: [main, 'split/dsh-dot-mcp']
+    branches: [main, 'split/dsh-dot-mcp', 'fix/dot-mcp-direct-tools-sidebar']
   pull_request:
 permissions:
   contents: read
