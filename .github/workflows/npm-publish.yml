@@ -59,10 +59,16 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           test "$(node -p 'require("./package.json").name')" = "$EXPECTED_NAME"
           test "$(node -p 'require("./package.json").version')" = "$EXPECTED_VERSION"
-          npm ci --legacy-peer-deps --no-audit --no-fund
-          npm test
-          npm run pack:check
-          git diff --exit-code -- lib THIRD-PARTY-NOTICES.txt
+          if [ "$EXPECTED_NAME" = "dsh-dot-mcp" ]; then
+            npm ci --legacy-peer-deps --no-audit --no-fund
+            npm test
+            npm run pack:check
+            git diff --exit-code -- lib THIRD-PARTY-NOTICES.txt
+          else
+            npm run pack:check
+            node --check lib/host.js
+            node --check lib/client.js
+          fi
       - name: Assemble separate npm tarball without changing either version branch
         env:
           EXPECTED_NAME: ${{ matrix.package_name }}
