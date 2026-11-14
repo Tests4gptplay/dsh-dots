@@ -1,0 +1,18 @@
+name: Dots Settings UI verification
+on:
+  push:
+    branches: ['2.0.1-test.8']
+    paths: ['.github/workflows/dots-ui-accept-once.yml']
+permissions:
+  contents: read
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git archive --format=tar.gz HEAD -o "$RUNNER_TEMP/dots-ui-source.tar.gz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dots-ui-source
+          path: ${{ runner.temp }}/dots-ui-source.tar.gz
+          retention-days: 7
