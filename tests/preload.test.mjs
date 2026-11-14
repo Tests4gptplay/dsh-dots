@@ -33,6 +33,20 @@ test('startup keeps one page inside the native center column, never in a body ov
   assert.equal(view.navigations.length, 1, 'panel switches do not navigate again')
   assert.equal(view.reloads, 0, 'panel switches do not reload')
 
+  const back = find(page.root, node => node.className === 'dotsTool dotsBack')
+  const brand = find(page.root, node => node.className === 'dotsBrand')
+  assert.equal(back.disabled, true, 'back starts disabled on Dot home')
+  view.canGoBack = () => true
+  let backCalls = 0
+  view.goBack = () => { backCalls++ }
+  view.emit('did-navigate')
+  assert.equal(back.disabled, false)
+  back.emit('click')
+  assert.equal(backCalls, 1)
+  brand.emit('click')
+  await tick()
+  assert.equal(view.navigations.at(-1), 'https://chatgpt.com/dots/home')
+  assert.equal(calls.acquire, 1, 'navigation reuses the same preloaded guest')
   find(page.root, node => node.className === 'dotsTool dotsReload').emit('click')
   assert.equal(view.reloads, 1, 'the toolbar refresh explicitly reloads the page')
 
