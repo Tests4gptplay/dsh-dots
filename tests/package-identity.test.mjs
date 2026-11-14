@@ -8,7 +8,7 @@ test('Dot MCP has independent unscoped package, Cordis and client identity', asy
   const client = await readFile(new URL('../lib/client.js', import.meta.url), 'utf8')
   const host = await readFile(new URL('../lib/host.js', import.meta.url), 'utf8')
   assert.equal(manifest.name, 'dsh-dot-mcp')
-  assert.equal(manifest.version, '1.0.1')
+  assert.equal(manifest.version, '1.0.1-test.1')
   assert.match(patch, /^\s+- id: dsh-dot-mcp\s*$/m)
   assert.match(patch, /^\s+name: dsh-dot-mcp\s*$/m)
   assert.match(client, /__ModuleLoader__\.load\(\{\s*id: ['"]dsh-dot-mcp['"]/)

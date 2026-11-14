@@ -31,6 +31,6 @@ jobs:
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "build(dot-mcp): synchronize compiled 1.0.0 runtime"
+            git commit -m "build(dot-mcp): synchronize compiled 1.0.1-test.1 runtime"
             git push origin HEAD:fix/dot-mcp-direct-tools-sidebar
           fi

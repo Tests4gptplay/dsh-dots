@@ -63,7 +63,7 @@ export function createDshAdapter(ctx, peer) {
     run,
   })
   add('dsh_status', 'Inspect DSH native APIs. Prefer direct DSH API/plugin/tool calls for the user\'s task; use a chat session only for work that requires an Agent conversation.', schema(), true,
-    async () => ({ plugin: 'dsh-dot-mcp', version: '1.0.1',
+    async () => ({ plugin: 'dsh-dot-mcp', version: '1.0.1-test.1',
       namespaces: [...new Set(registry().map(d => d.namespace))].sort(),
       nativeApiCount: registry().length, nativeApiAvailable: Boolean(getService(ctx, 'typertGateway')), toolsAvailable: Boolean(getService(ctx, 'tools')),
       executionGuidance: 'When DSH native APIs, installed plugins or tools can complete the task, execute them directly and report the actual result. Use a DSH chat session only for work that needs an Agent conversation, rather than dispatching a chat to relay a direct tool operation.' }))
