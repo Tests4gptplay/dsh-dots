@@ -1,0 +1,82 @@
+name: DSH Dots one-off obsolete branch cleanup
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/dots-cleanup-v2.0.2.yml']
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    if: github.repository == 'Tests4gptplay/dsh-dots'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify released code and immutable installation asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v2.0.2" --jq '.object.sha')
+          test "$tag_sha" = '1f9aafa20347b03741c45255707dd614385448a0'
+          digest=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/v2.0.2" --jq '.assets[] | select(.name == "dsh-dots-2.0.2.tgz") | .digest')
+          test "$digest" = 'sha256:335797445ac5bf595ba5a9ced76a46dd17c5175e78109267b89ac47b6f3bac96'
+          checksums=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/v2.0.2" --jq '[.assets[].name] | index("SHA256SUMS.txt") != null')
+          test "$checksums" = true
+          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$tag_sha...main" --jq '.status')
+          case "$status" in ahead|identical) echo "Verified release ancestor of main: $status";; *) echo "Main does not contain release"; exit 1;; esac
+      - name: Delete only inventoried obsolete test and staging branch refs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          open_heads=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --jq '.[].head.ref')
+          failures=0
+          while read -r branch expected; do
+            test -n "$branch" || continue
+            case "$branch" in
+              2.0.1-test.*|2.0.2-test.*|test/*|release/2.0.*) ;;
+              *) echo "Unexpected target: $branch"; exit 1 ;;
+            esac
+            if grep -Fxq "$branch" <<<"$open_heads"; then
+              echo "SKIP open PR: $branch"
+              failures=1
+              continue
+            fi
+            if ! observed=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq '.object.sha'); then
+              echo "SKIP unreadable branch: $branch"
+              failures=1
+              continue
+            fi
+            if [ "$observed" != "$expected" ]; then
+              echo "SKIP changed branch: $branch expected $expected observed $observed"
+              failures=1
+              continue
+            fi
+            if gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch" >/dev/null; then
+              echo "DELETED $branch $observed"
+            else
+              echo "FAILED delete: $branch"
+              failures=1
+            fi
+          done <<'BRANCH_TARGETS'
+2.0.1-test.1 ef9b3f2471d4a48c521e2acaaf038cda1acf8096
+2.0.1-test.2 6c15705a32af498bd94d034b32c4592b239a268b
+2.0.1-test.3 a5cc4967b1d0d51e3d8283b00bba99f5ad3812d9
+2.0.1-test.4 ee14188975d349337754a97d6989f76f14f44c5d
+2.0.1-test.5 ca34bee0d4a42fd63b0ed5b9dbc5b21ff985b7ff
+2.0.1-test.6 ba885fe08da23738c5cd239743496ffa2bf17560
+2.0.1-test.7 b89481513b08744147b1ed85e4a93bd555d3ba7a
+2.0.1-test.8 b7873167f3857559c439bd671eb94f0668604bb2
+2.0.1-test.9 b09edace212de89e4c267f6f944d5a7b7d611d91
+2.0.1-test.10 83d7636f08a69ab5a76a6963a44326883923b5de
+2.0.1-test.11 7668e8ccc08e71e4a3a75e8ddb0a19e629e794ea
+2.0.1-test.12 c91887eb27f7bfb3a293e9d9869f0001feb85c17
+2.0.2-test.1 39d209f3909c1fb02851756b93bbf086ef516dbe
+2.0.2-test.2 39d209f3909c1fb02851756b93bbf086ef516dbe
+release/2.0.0 f46b17f463640fccfa6890412919493618eea0f7
+release/2.0.1 10a873689b9a5e8ad9691401d4d8cf9e5a4486e8
+release/2.0.2 1f9aafa20347b03741c45255707dd614385448a0
+test/login-retention-1.0.12 ba821839d35bdc627b3a4390cf1dc9a1ad3fbcb1
+BRANCH_TARGETS
+          if [ "$failures" -ne 0 ]; then exit 1; fi
