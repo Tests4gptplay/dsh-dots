@@ -107,41 +107,32 @@ jobs:
             node --check lib/host.js
             node --check lib/client.js
           fi
-      - name: Assemble separate npm tarball without changing either version branch
+      - name: Pack the reviewed source once and verify the exact tarball
         env:
           EXPECTED_NAME: ${{ matrix.package_name }}
           EXPECTED_VERSION: ${{ matrix.version }}
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p original npm-stage npm-dist
-          (cd source && npm pack --ignore-scripts --pack-destination ../original >/dev/null)
-          tar -xzf "original/$EXPECTED_NAME-$EXPECTED_VERSION.tgz" -C npm-stage
-          node --input-type=module <<'JS'
-          import assert from 'node:assert/strict'
-          import {readFileSync} from 'node:fs'
-          const path='npm-stage/package/package.json'
-          const p=JSON.parse(readFileSync(path,'utf8'))
-          assert.equal(p.name,process.env.EXPECTED_NAME)
-          assert.equal(p.version,process.env.EXPECTED_VERSION)
-          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dots.git')
-          JS
-          (cd npm-stage/package && npm pack --ignore-scripts --pack-destination ../../npm-dist >/dev/null)
+          mkdir -p npm-dist
+          (cd source && npm pack --ignore-scripts --pack-destination ../npm-dist >/dev/null)
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict'
           import {createHash} from 'node:crypto'
           import {execFileSync} from 'node:child_process'
           import {readFileSync,writeFileSync} from 'node:fs'
-          const name=process.env.EXPECTED_NAME,version=process.env.EXPECTED_VERSION
+          const name=process.env.EXPECTED_NAME, version=process.env.EXPECTED_VERSION
           const filename=name+'-'+version+'.tgz'
-          const file=readFileSync('npm-dist/'+filename)
-          const p=JSON.parse(execFileSync('tar',['-xOzf','npm-dist/'+filename,'package/package.json'],{encoding:'utf8'}))
-          assert.equal(p.name,name)
-          assert.equal(p.version,version)
-          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dots.git')
-          const record={name,version,filename,
-            sha256:createHash('sha256').update(file).digest('hex'),
-            integrity:'sha512-'+createHash('sha512').update(file).digest('base64')}
+          const bytes=readFileSync('npm-dist/'+filename)
+          const manifest=JSON.parse(execFileSync('tar',['-xOzf','npm-dist/'+filename,'package/package.json'],{encoding:'utf8'}))
+          assert.equal(manifest.name,name)
+          assert.equal(manifest.version,version)
+          assert.equal(manifest.repository?.url,'git+https://github.com/Tests4gptplay/dsh-dots.git')
+          const record={
+            name,version,filename,
+            sha256:createHash('sha256').update(bytes).digest('hex'),
+            integrity:'sha512-'+createHash('sha512').update(bytes).digest('base64')
+          }
           writeFileSync('npm-dist/package-verification.json',JSON.stringify(record,null,2)+'\n')
           console.log(JSON.stringify(record))
           JS
