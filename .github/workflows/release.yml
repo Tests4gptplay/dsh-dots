@@ -22,12 +22,14 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
+      - name: Install exact locked dependencies
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
       - name: Validate production and mock-test boundaries
         run: |
           npm test
           npm run pack:check
-          git diff --exit-code -- lib/host.js lib/client.js
+          git diff --exit-code -- lib THIRD-PARTY-NOTICES.txt
       - name: Ensure release notes and version match
         id: release
         shell: bash
@@ -38,6 +40,11 @@ jobs:
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
       - name: Create exact release TGZ (no install scripts)
         run: npm pack --ignore-scripts
+      - name: Record release archive SHA-256
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        shell: bash
+        run: sha256sum "dsh-dots-${VERSION}.tgz" > SHA256SUMS.txt
       - name: Verify release TGZ installs with pnpm
         env:
           VERSION: ${{ steps.release.outputs.version }}
@@ -67,10 +74,10 @@ jobs:
             fi
             gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" \
               -f sha="$GITHUB_SHA" -F force=true >/dev/null
-            gh release upload "$TAG" "dsh-dots-${VERSION}.tgz" --clobber
+            gh release upload "$TAG" "dsh-dots-${VERSION}.tgz" SHA256SUMS.txt --clobber
             gh release edit "$TAG" --notes-file "docs/releases/$TAG.md" --target "$GITHUB_SHA"
           else
-            gh release create "$TAG" "dsh-dots-${VERSION}.tgz" \
+            gh release create "$TAG" "dsh-dots-${VERSION}.tgz" SHA256SUMS.txt \
               --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
               --title "DSH Dots $TAG" --latest \
               --notes-file "docs/releases/$TAG.md"
