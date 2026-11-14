@@ -54,7 +54,7 @@ try{
  state=await rpc('configure',{enabled:true});assert.equal(state.running,true);const firstUrl=state.localUrl
  client=await open(firstUrl);const list=await client.listTools();assert.equal(list.tools.length,17);pass('Official MCP client discovers 17 tools')
  const native=await call('dsh_status');assert.ok(native.nativeApiCount>0);pass('Native API registry discovered',{apiCount:native.nativeApiCount,namespaces:native.namespaces.length})
- const created=await call('dsh_session_create',{cwd:workspace}),id=created.sessionId;assert.ok(id);pass('Native Session created')
+ const created=await call('dsh_session_create',{cwd:workspace}),id=created.sessionId;assert.match(id,/^dsh-dot-mcp-[0-9a-f-]{36}$/);pass('Native MCP Session created with reserved sidebar identity')
  const sessions=await call('dsh_sessions');assert.ok(JSON.stringify(sessions).includes(id));pass('Native Session listed')
  const initialNotify=await notifyRpc('status')
  assert.equal(initialNotify.enabled,false);assert.equal(initialNotify.subscriptionCount,0)

@@ -24,7 +24,7 @@ export function resultOf(value) {
 export function makeHandler(adapter, { onCall = () => {}, onError = () => {}, events } = {}) {
   return createMcpHandler(() => {
     const server = new McpServer({ name: 'dsh-dot-mcp', version: VERSION }, { capabilities: events ? { events: {} } : {}, instructions:
-      'DSH is the execution environment. When a DSH native API, installed plugin, or tool can perform the user's requested work, invoke it directly through this MCP connection, inspect its result, and respond. Use dsh_session_create and dsh_session_prompt for work that actually needs an Agent conversation or multi-turn execution, rather than dispatching direct tool operations to a separate chat. Reuse native session IDs. Create/prompt returns acceptance; use state, wait and events for completion. Discover APIs with dsh_api_list and describe. Follow DSH native approvals. MCP disconnection does not cancel accepted sessions.' })
+      'DSH is the execution environment. When a DSH native API, installed plugin, or tool can perform the requested work, invoke it directly through this MCP connection, inspect its result, and respond. Use dsh_session_create and dsh_session_prompt for work that actually needs an Agent conversation or multi-turn execution, rather than dispatching direct tool operations to a separate chat. Reuse native session IDs. Create/prompt returns acceptance; use state, wait and events for completion. Discover APIs with dsh_api_list and describe. Follow DSH native approvals. MCP disconnection does not cancel accepted sessions.' })
     if (events) {
       for (const [method, action] of [
         ['events/list', 'list'], ['events/subscribe', 'subscribe'], ['events/unsubscribe', 'unsubscribe'],
