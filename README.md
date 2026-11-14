@@ -22,7 +22,7 @@ github:Tests4gptplay/dsh-dots#v1.0.12
 
 [下载 1.0.12 发行安装包](https://github.com/Tests4gptplay/dsh-dots/releases/download/v1.0.12/dsh-dots-1.0.12.tgz) · [1.0.12 更新与安装说明](docs/releases/v1.0.12.md)
 
-**npm 包名**：`dsh-dots@1.0.12`（首次发布完成后可直接使用）。
+**npm 已发布包名**：`@tests4gptplay/dsh-dots@1.0.12`。
 
 安装后在侧栏打开 **DSH Dots**，使用 ChatGPT 官方网页登录；桌面登录保持功能在 DSH 设置中管理。
 
