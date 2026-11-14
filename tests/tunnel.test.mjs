@@ -240,3 +240,27 @@ test('one-shot startup failure is reported once without scheduling a retry', asy
   scheduler.ready()
   assert.equal(queued, 1)
 })
+
+test('MCP off cancels a pending one-shot start and MCP on gets one fresh attempt', async () => {
+  const { createOneShotTunnelStartup } = await import('../lib/host.js')
+  const callbacks = new Map()
+  let id = 0, attempts = 0
+  const start = createOneShotTunnelStartup({ async initialize() { attempts++ } }, {
+    schedule(callback) { const next = ++id; callbacks.set(next, callback); return next },
+    cancel(value) { callbacks.delete(value) },
+  })
+  start.ready()
+  assert.equal(callbacks.size, 1)
+  start.suspend()
+  assert.equal(callbacks.size, 0)
+  start.ready()
+  start.ready()
+  assert.equal(callbacks.size, 1)
+  const [key, run] = [...callbacks][0]
+  callbacks.delete(key)
+  run()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(attempts, 1)
+  assert.equal(callbacks.size, 0)
+  start.dispose()
+})
