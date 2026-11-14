@@ -105,7 +105,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
-          registry-url: 'https://registry.npmjs.org/'
+      - name: Verify GitHub OIDC environment (no npm token)
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${NODE_AUTH_TOKEN:-}" || { echo 'Unexpected npm token in OIDC job'; exit 1; }
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" || { echo 'GitHub Actions OIDC unavailable'; exit 1; }
+          echo 'OIDC runtime available; no npm token injected'
       - name: Use npm CLI supporting GitHub Actions OIDC
         run: npm install --global npm@11.9.0 --ignore-scripts
       - uses: actions/download-artifact@v4
