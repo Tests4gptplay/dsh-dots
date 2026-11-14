@@ -5,7 +5,7 @@ import { McpServer, createMcpHandler, fromJsonSchema } from '@modelcontextprotoc
 import { toNodeHandler, hostHeaderValidation, originValidation } from '@modelcontextprotocol/node'
 import * as z from 'zod/v4'
 
-export const VERSION = '2.0.1-test.9'
+export const VERSION = '2.0.0'
 // The SDK requires a finite byte count. Use the JavaScript counting boundary,
 // not a product-specific file/message quota, in both HTTP layers.
 const maxRequestBodySize = Number.MAX_SAFE_INTEGER
