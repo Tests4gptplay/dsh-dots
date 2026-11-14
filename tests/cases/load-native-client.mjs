@@ -33,7 +33,7 @@ function createNode(tag, created) {
 }
 
 /** Executes the actual production client bundle behind a fake DSH Slot Host. */
-export async function loadNativeClient({ language = 'zh', browserAvailable = true, registryAvailable = true, desktopBridge, onUpdate, connection } = {}) {
+export async function loadNativeClient({ language = 'zh', browserAvailable = true, registryAvailable = true, desktopBridge, onUpdate, connection, sessions, workspaces } = {}) {
   const runtime = createTestReact(onUpdate)
   const slots = []
   let dictionaries = {}
@@ -97,6 +97,8 @@ export async function loadNativeClient({ language = 'zh', browserAvailable = tru
     },
     get(name) {
       if (name === 'layout') return layout
+      if (name === 'sessions' && sessions) return { list: sessions }
+      if (name === 'workspaces' && workspaces) return { list: workspaces }
       if (name === 'sidebarRight') return browser
       if (name === 'sidebarRightTabs' && registryAvailable) return { get: kind => kind === 'browser' && browserAvailable ? { id: 'builtin-browser' } : undefined }
       return undefined

@@ -1,8 +1,8 @@
 name: Dot MCP candidate build sync
 on:
   push:
-    branches: ['split/dsh-dot-mcp']
-    paths: ['.github/workflows/dot-mcp-build-sync.yml']
+    branches: ['fix/dot-mcp-direct-tools-sidebar']
+    paths: ['src/**', 'tests/**', '.github/workflows/dot-mcp-build-sync.yml']
 permissions:
   contents: write
 jobs:
@@ -30,5 +30,5 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "build(dot-mcp): synchronize compiled 1.0.0 runtime"
-            git push origin HEAD:split/dsh-dot-mcp
+            git push origin HEAD:fix/dot-mcp-direct-tools-sidebar
           fi

@@ -191,3 +191,15 @@ test('native image outputs are returned as model-visible MCP image blocks', () =
  assert.equal(resultOf(native).content[1].mimeType, 'image/jpeg')
  assert.deepEqual(resultOf(native).structuredContent, { results: [] })
 })
+
+
+test('the connected Dot receives the preference for direct native API/plugin execution', async t => {
+  const { ctx } = context()
+  const s = await server(t, { adapter: createDshAdapter(ctx, {}) })
+  const c = await client(t, s.localUrl)
+  const tools = (await c.listTools()).tools
+  assert.match(tools.find(x => x.name === 'dsh_api_list').description, /instead of creating a chat session/)
+  assert.match(tools.find(x => x.name === 'dsh_api_call').description, /Directly execute/)
+  const status = await c.callTool({ name: 'dsh_status', arguments: {} })
+  assert.match(status.structuredContent.executionGuidance, /execute them directly/)
+})

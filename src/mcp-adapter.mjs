@@ -36,7 +36,18 @@ export function createDshAdapter(ctx, peer) {
     return service
   }
   const descriptor = (namespace, method) => registry().find(d => d.namespace === namespace && d.method === method)
-  const invoke = (namespace, method, args, signal) => gateway().invoke({ namespace, method, args, peer, signal })
+  const invoke = (namespace, method, args, signal) => {
+    if (namespace === 'session' && method === 'create') {
+      // Mark only MCP-created ungrouped sessions. Explicit IDs and named workspaces stay user-visible.
+      const wire = descriptor('session', 'create')?.parameters?.find(p => p.source === 'json')?.wire ?? 'request'
+      const request = args[wire]
+      if (request && typeof request === 'object' && !Array.isArray(request)
+        && !Object.hasOwn(request, 'sessionId') && !Object.hasOwn(request, 'workspaceId')) {
+        args = { ...args, [wire]: { ...request, sessionId: 'dsh-dot-mcp-' + randomUUID() } }
+      }
+    }
+    return gateway().invoke({ namespace, method, args, peer, signal })
+  }
   const request = (method, value, signal) => {
     const d = descriptor('session', method)
     // Reflection preserves the actual wire name (list currently names its argument _request).
@@ -51,13 +62,14 @@ export function createDshAdapter(ctx, peer) {
     ...(readOnly ? { annotations: { readOnlyHint: true } } : {}),
     run,
   })
-  add('dsh_status', 'Inspect the connected DSH environment and available native API namespaces. This does not start a task.', schema(), true,
+  add('dsh_status', 'Inspect DSH native APIs. Prefer direct DSH API/plugin/tool calls for the user\'s task; use a chat session only for work that requires an Agent conversation.', schema(), true,
     async () => ({ plugin: 'dsh-dot-mcp', version: '1.0.0',
       namespaces: [...new Set(registry().map(d => d.namespace))].sort(),
-      nativeApiCount: registry().length, nativeApiAvailable: Boolean(getService(ctx, 'typertGateway')), toolsAvailable: Boolean(getService(ctx, 'tools')) }))
+      nativeApiCount: registry().length, nativeApiAvailable: Boolean(getService(ctx, 'typertGateway')), toolsAvailable: Boolean(getService(ctx, 'tools')),
+      executionGuidance: 'When DSH native APIs, installed plugins or tools can complete the task, execute them directly and report the actual result. Use a DSH chat session only for work that needs an Agent conversation, rather than dispatching a chat to relay a direct tool operation.' }))
   add('dsh_sessions', 'List existing DSH conversations. Use an existing sessionId to continue work.', nativeSchema(), true,
     (a, signal) => request('list', a, signal))
-  add('dsh_session_create', 'Create a native DSH conversation in a workspace or directory. Returns its sessionId; DSH owns its lifetime.',
+  add('dsh_session_create', 'Create a native DSH conversation when an Agent/session is needed. Automatically created ungrouped MCP work sessions stay off the ordinary chat sidebar. Explicit session IDs and named workspaces remain visible. Returns a native sessionId; DSH owns its lifetime.',
     nativeSchema({ workspaceId: str, cwd: str, sessionId: str, agentPreset: str }), false,
     (a, signal) => request('create', a, signal))
   add('dsh_session_prompt', 'Send or append instructions to a DSH session. queue adds a next turn; steer gives input to the current turn. Returns acceptance, not completion. Use state/wait/events for results. Empty content requests native retry.',
@@ -85,7 +97,7 @@ export function createDshAdapter(ctx, peer) {
   add('dsh_session_model', 'Select a native provider, model and optional reasoning effort for future turns of a session.',
     nativeSchema({ ...session, provider: str, model: str, reasoningEffort: str }, ['sessionId', 'provider', 'model']), false,
     (a, signal) => request('selectModel', a, signal))
-  add('dsh_api_list', 'Discover all currently registered DSH native API methods, including workspace, files, terminal, jobs, agents, configuration and installed plugins. Filter by namespace or description; then describe the exact method.',
+  add('dsh_api_list', 'Discover native DSH APIs, plugins and tools for direct execution. Prefer calling the relevant API/plugin/tool instead of creating a chat session just to dispatch the operation. Filter by namespace or description; then describe the exact method.',
     schema({ namespace: str, query: str }), true,
     async ({ namespace, query }) => ({ methods: registry().filter(d => (!namespace || d.namespace === namespace)
       && (!query || `${d.namespace}/${d.method} ${d.description ?? ''}`.toLowerCase().includes(query.toLowerCase())))
@@ -97,7 +109,7 @@ export function createDshAdapter(ctx, peer) {
       if (!d) throw new Error(`Native API ${namespace}/${method} is not registered. Use dsh_api_list to inspect this profile.`)
       return describeMethod(d)
     })
-  add('dsh_api_call', 'Invoke a discovered unary DSH API with its exact named wire args. Uses native validation, resource authorization and execution. This can write files/configuration or manage plugins depending on the selected method.',
+  add('dsh_api_call', 'Directly execute a discovered DSH native API with its exact named wire args. Prefer this for operations exposed by installed plugins and native tools rather than dispatching a chat turn. Uses native authorization and execution.',
     schema(apiArgs, ['namespace', 'method', 'args']), false,
     ({ namespace, method, args }, signal) => invoke(namespace, method, args, signal))
   add('dsh_api_snapshot', 'Read the first value from a discovered native streaming API, then close only that subscription. Useful for workspace/follow and other current-state snapshots. Use native session events for durable history.',

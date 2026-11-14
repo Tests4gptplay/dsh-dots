@@ -293,3 +293,17 @@ test('subscription without MCP progress support reports its transport requiremen
   assert.match(result.body.result.structuredContent.error.message, /progressToken/)
   assert.equal(started, false)
 })
+
+
+test('new MCP work sessions receive a reserved ID for native sidebar display only', async t => {
+  const { server, calls } = await fixture(t)
+  const result = await rpc(server.localUrl, 'dsh_session_create', {})
+  assert.equal(result.body.result.isError, undefined)
+  assert.match(calls.at(-1).args.request.sessionId, /^dsh-dot-mcp-[0-9a-f-]{36}$/)
+  await rpc(server.localUrl, 'dsh_session_create', { sessionId: 'user-visible-id' })
+  assert.equal(calls.at(-1).args.request.sessionId, 'user-visible-id')
+  await rpc(server.localUrl, 'dsh_session_create', { workspaceId: 'my-workspace' })
+  assert.equal('sessionId' in calls.at(-1).args.request, false)
+  await rpc(server.localUrl, 'dsh_api_call', { namespace: 'session', method: 'create', args: { request: { cwd: '/work' } } })
+  assert.match(calls.at(-1).args.request.sessionId, /^dsh-dot-mcp-/)
+})
