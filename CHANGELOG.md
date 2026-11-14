@@ -1,10 +1,10 @@
 # 更新记录
 
-## 2.0.2-test.1（测试分支）
+## 2.0.2（正式版，2026-11-14）
 
 基于正式 2.0.1，调整 Tunnel 自动恢复为直接读取已保存的客户端安装目录、可执行文件和 Tunnel ID，调用与手动按钮相同的 `start(配置)`。MCP HTTP 监听建立后执行一次，运行中不重复启动；设置页读到启动完成后的状态，启动失败仍能显示原有错误。移除延时器、轮询及原先单次延后启动的测试夹具。保留已有 MCP 关闭时中断 Tunnel 操作和再次启用时恢复的行为。
 
-[测试说明](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.2-test.1/docs/releases/v2.0.2-test.1.md)
+[正式版说明与实机验收](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.2.md)
 
 ## 2.0.1（正式修正版，2026-11-14）
 
@@ -26,13 +26,13 @@ Windows、Linux 各 142 项源码测试通过，Chromium 16 组组件布局检�
 
 Tunnel Client 记住上次启动／停止选择，在 DSH 本地 MCP 服务就绪后自动恢复已启用的隧道。Runtime API Key 保存在当前 DSH 用户配置目录的独立权限受限凭据文件中，避免每次重新输入。
 
-[本版安装与功能说明](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.9/docs/releases/v2.0.1-test.9.md)
+[本版安装与功能说明](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.1-test.9.md)
 
 ## 2.0.1-test.8（2026-11-14）
 
 调整 Dots 设置页的字号、卡片层级与控件对齐。MCP 开关、主动通知开关和事件勾选框统一为左侧控件、右侧标签；客户端目录与选择按钮并排，隧道安装与连接操作分组。长说明和诊断使用可展开区域，中英文及明暗主题采用统一布局。
 
-[界面与验证记录](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.8/docs/releases/v2.0.1-test.8.md)
+[界面与验证记录](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.1-test.8.md)
 
 ## 2.0.1-test.7（2026-11-11）
 
@@ -40,7 +40,7 @@ Tunnel Client 记住上次启动／停止选择，在 DSH 本地 MCP 服务就�
 
 使用 DSH 已有 `session/event` 与 `agent/error` 事件，不轮询任务；通知包含会话 ID 和状态，不上传完整会话内容。保留原有 17 个 MCP 工具、请求内进度流及 Tunnel Client 管理。
 
-[功能说明与验收](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.7/docs/releases/v2.0.1-test.7.md)
+[功能说明与验收](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.1-test.7.md)
 
 
 ## 2.0.1-test.6（2026-11-11）
@@ -51,7 +51,7 @@ Tunnel Client 记住上次启动／停止选择，在 DSH 本地 MCP 服务就�
 - 根据 OpenAI MCP Events 官方说明，明确请求内 `notifications/progress` 流与 Dot 主动事件 Webhook 订阅的区别，不将两者测试结果混同。
 - 保留原有 MCP 转发、工具行为、端口及下载逻辑；不增加定时轮询或内容审查。
 
-[本版修复与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.6/docs/releases/v2.0.1-test.6.md)
+[本版修复与验证](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.1-test.6.md)
 
 
 ## 2.0.1-test.5（2026-11-11）
@@ -60,7 +60,7 @@ Tunnel Client 记住上次启动／停止选择，在 DSH 本地 MCP 服务就�
 
 官方 Tunnel Client 更新后，设置页明确提示正在运行的仍是旧客户端；点击「启动隧道」会切换到已经下载并选中的新客户端。保留旧版回退与清理规则，其他 MCP 工具、流订阅、端口策略不变。
 
-[本版修复与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.5/docs/releases/v2.0.1-test.5.md)
+[本版修复与验证](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.1-test.5.md)
 
 ## 2.0.1-test.4（2026-11-11）
 
@@ -68,7 +68,7 @@ Tunnel Client 记住上次启动／停止选择，在 DSH 本地 MCP 服务就�
 
 校准 MCP Tools 元数据：仅对确定的只读操作声明 `readOnlyHint: true`，对通用转发、会话创建和执行类工具省略无法从桥接层确定的危险性与网络范围标签；具体操作及权限仍按 DSH 原生行为执行。
 
-[本版说明](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.4/docs/releases/v2.0.1-test.4.md)
+[本版说明](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.1-test.4.md)
 
 ## 2.0.1-test.3（2026-11-11）
 
@@ -80,7 +80,7 @@ Tunnel Client 记住上次启动／停止选择，在 DSH 本地 MCP 服务就�
 
 完善 Tunnel 创建和 ChatGPT 注册引导。网页入口、登录保持和现有 MCP 工具保持原有行为。
 
-[更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.2/docs/releases/v2.0.1-test.2.md)
+[更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.1-test.2.md)
 
 ## 2.0.0（2026-11-09）
 
