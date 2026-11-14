@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/releases/v*.md'
+      - 'docs/releases/dsh-dot-mcp-v*.md'
 
 permissions:
   contents: write
@@ -35,9 +35,9 @@ jobs:
         shell: bash
         run: |
           VERSION=$(node -p 'require("./package.json").version')
-          test -f "docs/releases/v${VERSION}.md"
+          test -f "docs/releases/dsh-dot-mcp-v${VERSION}.md"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=dsh-dot-mcp-v${VERSION}" >> "$GITHUB_OUTPUT"
       - name: Resolve release-note links against the immutable version tag
         env:
           VERSION: ${{ steps.release.outputs.version }}
@@ -50,7 +50,7 @@ jobs:
           from pathlib import Path
           version = os.environ['VERSION']
           repo = os.environ['GITHUB_REPOSITORY']
-          source = Path('docs/releases') / f'v{version}.md'
+          source = Path('docs/releases') / f'dsh-dot-mcp-v{version}.md'
           markdown = source.read_text(encoding='utf-8')
           def resolve_link(match):
               label, target = match.groups()
@@ -60,8 +60,8 @@ jobs:
               if not filename:
                   return match.group(0)
               repo_path = posixpath.normpath('docs/releases/' + filename)
-              base = (f'https://raw.githubusercontent.com/{repo}/v{version}/'
-                      if label.startswith('!') else f'https://github.com/{repo}/blob/v{version}/')
+              base = (f'https://raw.githubusercontent.com/{repo}/dsh-dot-mcp-v{version}/'
+                      if label.startswith('!') else f'https://github.com/{repo}/blob/dsh-dot-mcp-v{version}/')
               return f'{label}({base}{repo_path}{sep}{fragment})'
           resolved = re.sub(r'(!?\[[^\]\n]+\])\(([^)\s]+)\)', resolve_link, markdown)
           Path('release-notes-for-github.md').write_text(resolved, encoding='utf-8')
@@ -72,7 +72,7 @@ jobs:
         env:
           VERSION: ${{ steps.release.outputs.version }}
         shell: bash
-        run: sha256sum "dsh-dots-${VERSION}.tgz" > SHA256SUMS.txt
+        run: sha256sum "dsh-dot-mcp-${VERSION}.tgz" > SHA256SUMS.txt
       - name: Verify release TGZ installs with pnpm
         env:
           VERSION: ${{ steps.release.outputs.version }}
@@ -81,32 +81,20 @@ jobs:
           npm install -g pnpm@10
           mkdir -p _release-pnpm-test
           cd _release-pnpm-test
-          printf '%s\n' '{"name":"dsh-dots-release-install-check","private":true}' > package.json
-          pnpm add "../dsh-dots-${VERSION}.tgz" --ignore-scripts --config.auto-install-peers=false
+          printf '%s\n' '{"name":"dsh-dot-mcp-release-install-check","private":true}' > package.json
+          pnpm add "../dsh-dot-mcp-${VERSION}.tgz" --ignore-scripts --config.auto-install-peers=false
       - name: Publish version tag and release asset
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.release.outputs.tag }}
           VERSION: ${{ steps.release.outputs.version }}
         run: |
+          set -euo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
-            # One-time, user-authorized in-place compatibility repair of v0.1.1 only.
-            if [ "$TAG" != "v0.1.1" ]; then
-              echo "Release $TAG already exists; refusing silent overwrite"
-              exit 1
-            fi
-            OLD_REF=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --jq '.object.sha')
-            if [ "$OLD_REF" != "0f4e19788ecc6f4a51aa88b9d916dda7198567e7" ]; then
-              echo "Repair already applied or tag changed; stop without replacing assets"
-              exit 1
-            fi
-            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" \
-              -f sha="$GITHUB_SHA" -F force=true >/dev/null
-            gh release upload "$TAG" "dsh-dots-${VERSION}.tgz" SHA256SUMS.txt --clobber
-            gh release edit "$TAG" --notes-file "release-notes-for-github.md" --target "$GITHUB_SHA"
-          else
-            gh release create "$TAG" "dsh-dots-${VERSION}.tgz" SHA256SUMS.txt \
-              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-              --title "DSH Dots $TAG" --latest \
-              --notes-file "release-notes-for-github.md"
+            echo "Release $TAG already exists; keep immutable tag and assets"
+            exit 1
           fi
+          gh release create "$TAG" "dsh-dot-mcp-${VERSION}.tgz" SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "DSH Dot MCP $TAG" --latest \
+            --notes-file "release-notes-for-github.md"
