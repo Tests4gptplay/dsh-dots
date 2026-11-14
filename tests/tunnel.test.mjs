@@ -169,3 +169,74 @@ test('installer cleanup keeps current plus one previous copy, preserves a runnin
   assert.deepEqual(folders, [names[2], names[3], 'custom-user-directory'].sort())
   assert.equal(await readFile(join(root, 'custom-user-directory', 'notes.txt'), 'utf8'), 'keep user data')
 })
+
+test('MCP ready queues only one deferred Tunnel attempt and never starts a background interval', async () => {
+  const { createOneShotTunnelStartup } = await import('../lib/host.js')
+  const jobs = new Map()
+  let timerId = 0, starts = 0, cancelled = 0, ready = false
+  const tunnel = { async initialize() { starts++; assert.equal(ready, true, 'Tunnel must start after host reaches ready state') } }
+  const scheduler = createOneShotTunnelStartup(tunnel, {
+    delayMs: 1500,
+    schedule(callback, ms) { assert.equal(ms, 1500); const id = ++timerId; jobs.set(id, callback); return id },
+    cancel(id) { cancelled++; jobs.delete(id) },
+  })
+  scheduler.ready()
+  scheduler.ready()
+  assert.equal(jobs.size, 1)
+  assert.equal(starts, 0, 'MCP listener readiness alone must not immediately launch Tunnel')
+  ready = true
+  const [id, callback] = [...jobs][0]
+  jobs.delete(id)
+  callback()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(starts, 1)
+  assert.equal(jobs.size, 0, 'the one-shot timer is gone once fired')
+  scheduler.ready()
+  assert.equal(jobs.size, 0, 'subsequent ready signals do not schedule new attempts')
+  scheduler.dispose()
+  assert.equal(cancelled, 0)
+})
+test('unloading before the one-shot startup fires cancels it without creating a Tunnel', async () => {
+  const { createOneShotTunnelStartup } = await import('../lib/host.js')
+  const jobs = new Map()
+  const tunnel = { async initialize() { throw new Error('should never start after unload') } }
+  const scheduler = createOneShotTunnelStartup(tunnel, {
+    schedule(callback) { jobs.set('only', callback); return 'only' },
+    cancel(id) { jobs.delete(id) },
+  })
+  scheduler.ready()
+  assert.equal(jobs.size, 1)
+  scheduler.dispose()
+  assert.equal(jobs.size, 0)
+  scheduler.ready()
+  assert.equal(jobs.size, 0)
+})
+test('remembered off state remains off if manually stopped before startup callback', async () => {
+  const { createOneShotTunnelStartup } = await import('../lib/host.js')
+  let scheduled, enabled = true, starts = 0
+  const tunnel = { async initialize() { if (enabled) starts++ } }
+  const scheduler = createOneShotTunnelStartup(tunnel, { schedule(fn) { scheduled = fn; return 1 } })
+  scheduler.ready()
+  enabled = false
+  scheduled()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(starts, 0, 'user stop wins over deferred automatic start')
+})
+test('one-shot startup failure is reported once without scheduling a retry', async () => {
+  const { createOneShotTunnelStartup } = await import('../lib/host.js')
+  let scheduled, errors = 0, attempts = 0, queued = 0
+  const scheduler = createOneShotTunnelStartup({
+    async initialize() { attempts++; throw new Error('official client startup failed') },
+  }, {
+    schedule(fn) { queued++; scheduled = fn; return 1 },
+    onError(e) { errors++; assert.match(String(e), /startup failed/) },
+  })
+  scheduler.ready()
+  scheduled()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(attempts, 1)
+  assert.equal(errors, 1)
+  assert.equal(queued, 1)
+  scheduler.ready()
+  assert.equal(queued, 1)
+})
