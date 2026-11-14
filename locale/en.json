@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "DSH Dots · ChatGPT & MCP",
-    "description": "Use ChatGPT Dots inside DSH with startup preload, retained pages across panel switches, theme-aware controls, reload and external-browser opening; manage login retention and restore the original host from Settings. Optional MCP lets your Dot use DSH; the same settings page provides its switch, connection details and official setup guides."
+    "title": "DSH Dot MCP · ChatGPT & DSH",
+    "description": "Use ChatGPT Dots within DSH and connect Dot to native DSH sessions, tools and workspaces through MCP, with Secure MCP Tunnel, selected-session notifications, login retention and guided setup."
   }
 }
