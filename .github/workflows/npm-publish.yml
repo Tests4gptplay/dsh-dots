@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          FILE="source/${NPM_NAME}-${NPM_VERSION}.tgz"
+          FILE="./source/${NPM_NAME}-${NPM_VERSION}.tgz"
           if npm view "${NPM_NAME}@${NPM_VERSION}" version --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
             echo "${NPM_NAME}@${NPM_VERSION} already exists; comparing actual published bytes"
           else
