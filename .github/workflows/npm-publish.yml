@@ -89,12 +89,12 @@ jobs:
           // The 1.0.12 branch stays untouched. Only npm's staged metadata
           // points the classic package to the retained, renamed GitHub repository.
           if(p.name==='dsh-dots'){
-            p.repository.url='git+https://github.com/Tests4gptplay/dsh-dot-mcp.git'
-            p.homepage='https://github.com/Tests4gptplay/dsh-dot-mcp#readme'
-            p.bugs.url='https://github.com/Tests4gptplay/dsh-dot-mcp/issues'
+            p.repository.url='git+https://github.com/Tests4gptplay/dsh-dots.git'
+            p.homepage='https://github.com/Tests4gptplay/dsh-dots#readme'
+            p.bugs.url='https://github.com/Tests4gptplay/dsh-dots/issues'
             writeFileSync(path,JSON.stringify(p,null,2)+'\n')
           }
-          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dot-mcp.git')
+          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dots.git')
           JS
           (cd npm-stage/package && npm pack --ignore-scripts --pack-destination ../../npm-dist >/dev/null)
           node --input-type=module <<'JS'
@@ -108,7 +108,7 @@ jobs:
           const p=JSON.parse(execFileSync('tar',['-xOzf','npm-dist/'+filename,'package/package.json'],{encoding:'utf8'}))
           assert.equal(p.name,name)
           assert.equal(p.version,version)
-          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dot-mcp.git')
+          assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dots.git')
           const record={name,version,filename,
             sha256:createHash('sha256').update(file).digest('hex'),
             integrity:'sha512-'+createHash('sha512').update(file).digest('base64')}
