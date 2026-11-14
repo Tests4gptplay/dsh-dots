@@ -80,4 +80,4 @@ When reporting an [issue](https://github.com/Tests4gptplay/dsh-dots/issues), inc
 
 ## Support the project
 
-Thank you for supporting DSH Dots development and maintenance. [Donations and sponsorship](SPONSOR.md) · [Ko-fi](https://ko-fi.com/kou392350) · [Alipay](SPONSOR.md#alipay--支付宝)
+Thank you for supporting DSH Dots development and maintenance. [Donations and sponsorship](SPONSOR.md) · [GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [Alipay](SPONSOR.md#alipay--支付宝)

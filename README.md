@@ -80,4 +80,4 @@ ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议�
 
 ## 支持项目
 
-感谢支持 DSH Dots 的开发与维护。[捐赠与赞助](SPONSOR.md) · [Ko-fi](https://ko-fi.com/kou392350) · [支付宝](SPONSOR.md#alipay--支付宝)
+感谢支持 DSH Dots 的开发与维护。[捐赠与赞助](SPONSOR.md) · [GitHub Sponsors](https://github.com/sponsors/Tests4gptplay) · [Ko-fi](https://ko-fi.com/kou392350) · [支付宝](SPONSOR.md#alipay--支付宝)
