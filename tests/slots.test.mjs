@@ -36,7 +36,9 @@ test('production page has a full-bleed DSH content surface, not a framed browser
   assert.equal(nodes.some(n => n.props?.className === 'dotsFrameWrap'), false)
   assert.equal(nodes.some(n => n.props?.className === 'dotsBanner'), false)
   const buttons = nodes.filter(n => n.type === 'button')
-  assert.equal(buttons.length, 2)
+  assert.equal(buttons.length, 4)
+  assert.ok(buttons.some(b => b.props?.className === 'dotsBrand'), 'Dots mark and title form a clickable home button')
+  assert.ok(buttons.some(b => b.props?.className === 'dotsTool dotsBack'), 'Back is available in the toolbar')
   assert.match(JSON.stringify(buttons), /在浏览器打开/)
 })
 
@@ -45,7 +47,7 @@ test('the old unavailable right-sidebar browser action is not present', async ()
   const nodes = render(page)
   assert.equal(nodes.some(n => typeof n.props?.children === 'string' && n.props.children.includes('DSH 浏览器')), false)
   assert.equal(nodes.some(n => n.props?.role === 'alert'), false)
-  nodes.filter(n => n.type === 'button')[1].props.onClick()
+  nodes.find(n => n.type === 'button' && n.props?.className === 'dotsTool dotsOpen').props.onClick()
   assert.equal(page.nativeOpened.filter(x => x.kind === 'external').length, 1)
   assert.equal(page.nativeOpened.filter(x => x.kind === 'browser').length, 0)
 })
@@ -76,7 +78,7 @@ test('full-bleed Dots main panel does not depend on any sidebar session Browser'
 
 test('system browser entry targets only the official Dots webpage', async () => {
   const page = await loadNativeClient()
-  render(page).filter(node => node.type === 'button')[1].props.onClick()
+  render(page).find(node => node.type === 'button' && node.props?.className === 'dotsTool dotsOpen').props.onClick()
   assert.equal(page.nativeOpened.filter(x => x.kind === 'external').length, 1)
   assert.doesNotMatch(JSON.stringify(render(page)), /模拟 Dot · 仅供测试/)
 })

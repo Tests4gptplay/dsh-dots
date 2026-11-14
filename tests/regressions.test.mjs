@@ -60,13 +60,14 @@ test('web controls reload and recover from external-open failures in the current
  const render=()=>flatten(page.runtime.expand(page.runtime.React.createElement(page.main.component,props)))
  const buttons=()=>render().filter(n=>n.type==='button')
  const first=render().find(n=>n.type==='iframe').props.key
- buttons()[0].props.onClick()
- assert.equal(render().find(n=>n.type==='iframe').props.key,first+1)
- buttons()[1].props.onClick()
+ const button=className=>buttons().find(n=>n.props?.className===className)
+ button('dotsTool').props.onClick()
+ assert.notEqual(render().find(n=>n.type==='iframe').props.key,first)
+ button('dotsTool dotsOpen').props.onClick()
  assert.match(JSON.stringify(render()),/Could not open the site/)
  page.setLanguage('zh')
  assert.match(JSON.stringify(render()),/未能打开网页/)
- opened=true;buttons()[1].props.onClick()
+ opened=true;button('dotsTool dotsOpen').props.onClick()
  assert.equal(render().some(n=>n.props?.role==='alert'),false)
 })
 
