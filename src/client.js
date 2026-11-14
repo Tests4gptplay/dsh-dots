@@ -144,7 +144,7 @@ function mountDesktopDotGuest(host, bridge, onError, onLoaded, onHistoryChange =
 
 /** Report release failures at the UI boundary, after disposal has already been requested. */
 function disposeDesktopGuest(guest) {
-  if (guest) void guest.dispose().catch(error => console.error('DSH Dots: desktop browser release failed', error))
+  if (guest) void guest.dispose().catch(error => console.error('DSH Dot MCP: desktop browser release failed', error))
 }
 
 /** Plain-DOM ring used by the persistent page; the React icon stays for the Web panel. */
@@ -200,7 +200,7 @@ function mountPersistentDotsPage(bridge, t, openExternal) {
   const build = () => {
     const node = document.createElement('div')
     node.className = 'dotsPage dotsPersistentPage'
-    node.setAttribute('aria-label', 'DSH Dots')
+    node.setAttribute('aria-label', 'DSH Dot MCP')
     node.style.display = 'none'
     const toolbar = document.createElement('header')
     toolbar.className = 'dotsToolbar'
@@ -350,7 +350,7 @@ function DotsPage({ t, openExternal }) {
     try { setError(openExternal() === false ? 'openFailed' : '') }
     catch { setError('openFailed') }
   }
-  return h('main', { className: 'dotsPage', 'aria-label': 'DSH Dots' },
+  return h('main', { className: 'dotsPage', 'aria-label': 'DSH Dot MCP' },
     h('header', { className: 'dotsToolbar' },
       h('button', { className: 'dotsBrand', type: 'button', title: t('home'),
         'aria-label': t('home'), onClick: () => setHomeCount(n => n + 1) },

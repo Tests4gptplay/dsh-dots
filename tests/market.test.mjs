@@ -12,11 +12,11 @@ const bytes = path => readFile(new URL(path, root))
 
 test('market: actual DSH bundle manifest and source-loadable production entries', async () => {
   const manifest = JSON.parse(await text('package.json'))
-  assert.equal(manifest.name, 'dsh-dots')
+  assert.equal(manifest.name, 'dsh-dot-mcp')
   assert.equal(manifest.dsh?.bundle?.patch, './cordis.patch.yml')
   const patch = await text('cordis.patch.yml')
-  assert.match(patch, /id:\s*dsh-dots/)
-  assert.match(patch, /name:\s*[\'"]?dsh-dots/)
+  assert.match(patch, /id:\s*dsh-dot-mcp/)
+  assert.match(patch, /name:\s*[\'"]?dsh-dot-mcp/)
   for (const p of ['lib/client.js', 'lib/host.js', 'assets/dots-ring.svg']) {
     assert.ok((await bytes(p)).length > 0, `${p} is missing or empty`)
   }
