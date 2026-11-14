@@ -68,13 +68,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Tests4gptplay/dsh-dots.git"
+    "url": "git+https://github.com/Tests4gptplay/dsh-dot-mcp.git"
   },
-  "homepage": "https://github.com/Tests4gptplay/dsh-dots#readme",
+  "homepage": "https://github.com/Tests4gptplay/dsh-dot-mcp#readme",
   "license": "MIT",
   "author": "Tests4gptplay",
   "bugs": {
-    "url": "https://github.com/Tests4gptplay/dsh-dots/issues"
+    "url": "https://github.com/Tests4gptplay/dsh-dot-mcp/issues"
   },
   "keywords": [
     "deepseek-harness",
