@@ -1,8 +1,8 @@
-# DSH Dots 2.0.1-test.9
+# DSH Dots 2.0.0
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
-[English](README.en.md) · [完整配置指南](#连接自己的-dot) · [2.0.0 更新记录与实机展示](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.md) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues)
+[English](README.en.md) · [完整配置指南](#连接自己的-dot) · [2.0.0 更新记录与实机展示](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues)
 
 DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harness。你可以在 DSH 内与自己的 Dot 对话，也可以开启 MCP，让 Dot 使用 DSH 的 AI 会话、工具和工作区，提交任务并取回结果。
 
@@ -20,23 +20,23 @@ DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harne
 
 **MCP 默认关闭，按需开启。** 开关状态和连接设置随当前 DSH 配置保存，重启后继续生效。关闭 MCP 会结束外部接入；已经交给 DSH 的任务继续执行，取消任务则使用单独的取消操作。
 
-原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。
+原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。顶部增加网页后退按钮，点击 Dots 图标与名称可返回 Dot 首页。
 
-## 安装 2.0.1-test.9 测试分支
+## 安装 DSH Dots 2.0.0
 
 在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.9
+github:Tests4gptplay/dsh-dots#v2.0.0
 ```
 
-本页对应 `2.0.1-test.9` 测试分支。正式发行版本和安装包见 [Releases](https://github.com/Tests4gptplay/dsh-dots/releases)。
+本页对应正式发行版 `v2.0.0`。安装包及版本记录见 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.0)。
 
 安装与连接步骤见下方 [完整配置指南](#连接自己的-dot)，设置页底部也提供可折叠的五步引导。
 
 安装后，从侧栏打开 **DSH Dots**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
 
-本版保留 test.8 设置页样式，增加网页后退与点击 Dots 标识返回首页；完整连接指南放在三块设置下方，隧道启停选择可在重启后恢复。详细画面与验证见[本版更新记录](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.9/docs/releases/v2.0.1-test.9.md)。
+本版采用统一的 Dots 设置页设计，完整连接指南位于三块设置区域下方，隧道启停选择会在 DSH 重启后恢复。详细画面与验证见[本版更新记录](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)。
 
 ## 选择性主动通知 Dot
 
@@ -48,7 +48,7 @@ github:Tests4gptplay/dsh-dots#2.0.1-test.9
 
 `dsh_api_subscribe` 在 MCP 工具调用期间，使用 `notifications/progress` 连续传递 DSH 原生事件；支持该通知的 MCP 客户端可用 `progressToken` 接收，取消请求就会释放订阅。`dsh_api_snapshot` 继续提供单次快照。
 
-ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议（`events/list`、`events/subscribe`、`events/unsubscribe`）。两种通道用途不同；本测试版提供请求内事件流，不把它标作 Dot 的后台事件订阅。
+ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议（`events/list`、`events/subscribe`、`events/unsubscribe`）。两种通道用途不同；本版提供请求内事件流，不把它标作 Dot 的后台事件订阅。
 
 **本轮修复：** 关闭 MCP 时即使官方隧道进程停止报错，仍会保存 MCP 关闭状态并显示实际错误。下载新版隧道客户端后，设置页会提示“待切换”；用户点击「启动隧道」时，停止旧进程并启动新客户端。
 
@@ -64,7 +64,7 @@ ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议�
 
 使用已有 HTTPS 转发时，可直接填写上方转发地址并在 ChatGPT 选择 **Server URL**，无须运行隧道。MCP 完整地址中带有访问密钥；截图或反馈日志时隐藏该地址。
 
-[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.9/docs/releases/v2.0.1-test.9.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
+[本版更新与验证](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) · [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [官方 MCP 注册指南](https://help.openai.com/zh-hans-cn/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## 日常使用
 
@@ -74,7 +74,7 @@ ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议�
 
 ## 更新与反馈
 
-实机截图、原生环境验证和两轮文件任务实验，集中在 [2.0.0 更新记录](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.md)。其他版本见 [更新记录索引](CHANGELOG.md)。
+实机截图、原生环境验证和两轮文件任务实验，集中在 [2.0.0 更新记录](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)。其他版本见 [更新记录索引](CHANGELOG.md)。
 
 遇到问题可在 [Issues](https://github.com/Tests4gptplay/dsh-dots/issues) 提交 DSH 版本、系统和错误提示；连接密钥请从截图与日志中移除。
 

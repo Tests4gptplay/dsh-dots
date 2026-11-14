@@ -1,5 +1,13 @@
 # 更新记录
 
+## 2.0.0（正式版，2026-11-14）
+
+正式发布 DSH Dots 2.0.0，集成 ChatGPT Dot 与 DSH 的双向 MCP 协作、17 个工具入口、请求内事件流与按指定 Session 的主动通知，提供 OpenAI Secure MCP Tunnel 的安装和连接管理。保留并采用测试版 2.0.1-test.9 验收通过的 UI 和运行逻辑：网页后退、点击 Dots 返回首页、统一设置页及底部可折叠配置指南、Tunnel 启停状态和运行密钥持久化。
+
+Windows、Linux 各 142 项源码测试通过，Chromium 16 组组件布局检查通过，Linux 真实 DSH 0.2.2-rc.1 完成 31 项原生验收。正式版的安装包及发行记录见 [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.0)。
+
+[正式发行说明](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)
+
 ## 2.0.1-test.9（2026-11-14）
 
 保持 test.8 设置页视觉设计。Dots 主页面新增“后退”，点击顶部 Dots 圆环和文字返回 Dot 首页。原有五步接入说明移到 MCP、Tunnel、主动通知卡片之后，使用独立折叠卡片展示；中英文 README 顶部增加配置指南入口。

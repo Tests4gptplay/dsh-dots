@@ -1,8 +1,8 @@
-# DSH Dots 2.0.1-test.9
+# DSH Dots 2.0.0
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
-[中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
+[中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
 
 DSH Dots brings [ChatGPT Dots](https://chatgpt.com/dots/home) into DeepSeek Harness. Chat with your own Dot inside DSH, or enable MCP so your Dot can use DSH's AI sessions, tools and workspaces to submit tasks and retrieve results.
 
@@ -20,23 +20,23 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 **MCP starts off and can be enabled when needed.** The switch and connection settings are saved for the current DSH profile and restored after a restart. Turning MCP off closes external access while DSH continues tasks already submitted; cancelling a task is a separate action.
 
-Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls.
+Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls. The toolbar adds Back navigation, and clicking the Dots icon or title returns to Dot home.
 
-## Install the 2.0.1-test.9 branch
+## Install DSH Dots 2.0.0
 
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
 ```text
-github:Tests4gptplay/dsh-dots#2.0.1-test.9
+github:Tests4gptplay/dsh-dots#v2.0.0
 ```
 
-This page describes the `2.0.1-test.9` test branch. Published versions and packages are available under [Releases](https://github.com/Tests4gptplay/dsh-dots/releases).
+This page describes the official `v2.0.0` release. The installation package and release notes are available under [GitHub Releases](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.0).
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 
 Open **DSH Dots** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dots**.
 
-This update preserves the test.8 settings design, adds Back and a clickable Dot-home brand, moves the full guide below all three settings cards, and remembers tunnel start/stop across restarts. See the [update record](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.9/docs/releases/v2.0.1-test.9.md) for screenshots and verification.
+This release provides a unified Dots settings design, Back and clickable Dot-home navigation, the complete guide below all three settings cards, and remembered tunnel start/stop across restarts. See the [update record](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) for screenshots and verification.
 
 ## Selective proactive notifications to Dot
 
@@ -50,7 +50,7 @@ Event payloads contain only the session ID and status metadata. Dot can retrieve
 
 ChatGPT Dot's proactive event-triggered monitoring uses the official MCP Events **webhook** protocol (`events/list`, `events/subscribe`, `events/unsubscribe`). The request-scoped progress stream is a separate capability and is described accordingly.
 
-**This test update:** Disabling MCP still saves the off state if stopping the tunnel reports an error, while keeping that error visible. After downloading a newer official tunnel client, Settings shows the pending switch; selecting **Start tunnel** moves the running process to that client.
+**This release update:** Disabling MCP still saves the off state if stopping the tunnel reports an error, while keeping that error visible. After downloading a newer official tunnel client, Settings shows the pending switch; selecting **Start tunnel** moves the running process to that client.
 
 ## Connect your Dot
 
@@ -64,7 +64,7 @@ ChatGPT Dot's proactive event-triggered monitoring uses the official MCP Events 
 
 An existing HTTPS forwarding endpoint can instead be entered above and registered using **Server URL**, without a tunnel. The full MCP URL contains an access key; hide it in screenshots and shared logs.
 
-[Update and verification](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.1-test.9/docs/releases/v2.0.1-test.9.md) · [Official tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [Official MCP registration](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
+[Update and verification](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) · [Official tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) · [Official MCP registration](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt)
 
 ## Everyday use
 
@@ -74,7 +74,7 @@ Dot in the embedded DSH page and Dot in the ChatGPT mobile app can use the confi
 
 ## Updates and feedback
 
-The [2.0.0 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/docs/releases/v2.0.0.en.md) contain actual screenshots, native-environment checks and the two-turn file-task experiment. See the [changelog](CHANGELOG.md) for other versions.
+The [2.0.0 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) contain actual screenshots, native-environment checks and the two-turn file-task experiment. See the [changelog](CHANGELOG.md) for other versions.
 
 When reporting an [issue](https://github.com/Tests4gptplay/dsh-dots/issues), include your DSH version, operating system and error message. Remove connection keys from screenshots and logs.
 

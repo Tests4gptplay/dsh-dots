@@ -5,7 +5,7 @@ import { readFile, access } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 const root = new URL('../', import.meta.url)
 const text = path => readFile(new URL(path, root), 'utf8')
-const repositoryPrefix = 'https://github.com/Tests4gptplay/dsh-dots/blob/2.0.0/'
+const repositoryPrefix = 'https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/'
 const pages = ['README.md', 'README.en.md', 'CHANGELOG.md', 'SPONSOR.md', 'docs/releases/v2.0.0.md', 'docs/releases/v2.0.0.en.md']
 
 test('documentation: homepages introduce 2.0.0, link release notes and end with support', async () => {
