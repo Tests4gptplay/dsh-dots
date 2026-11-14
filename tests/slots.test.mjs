@@ -11,7 +11,7 @@ test('official entry preserves main/sidebar and shares the Dots settings section
   assert.deepEqual([...page.slots.map(s => s.options.name)].sort(), ['main', 'settings.section', 'sidebar.panellist'])
   assert.equal(page.main.options.key, 'dsh-dot-mcp')
   assert.equal(page.icon.options.id, 'dsh-dot-mcp')
-  assert.equal(page.icon.options.label(), 'DSH Dot MCP')
+  assert.equal(page.icon.options.label(), 'Dot')
   assert.ok(page.styles[0].textContent.includes('.dotsPage'))
 })
 
@@ -101,35 +101,34 @@ test('production host registers persistence and optional MCP through native conn
 })
 
 
-test('Dot MCP internal sessions hide only their sidebar rows, preserving ordinary conversations', async () => {
-  let sessionState = { phase: 'ready', ids: ['dsh-dot-mcp-a'], byId: {
-    'dsh-dot-mcp-a': { id: 'dsh-dot-mcp-a', retainedBy: {} },
-  } }
-  const workspacesState = { phase: 'ready', items: [] }
-  const sessionListeners = new Set(), workspaceListeners = new Set()
-  const observable = (snapshot, listeners) => ({
-    getSnapshot: snapshot,
-    subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
-  })
+test('MCP conversations remain in the normal sidebar without session filtering', async () => {
+  for (const language of ['zh', 'en']) {
+    const page = await loadNativeClient({ language })
+    assert.equal(page.icon.options.label(), 'Dot')
+    assert.equal(page.slots.find(s => s.options.name === 'settings.section').options.label(), 'Dot MCP')
+    assert.doesNotMatch(page.styles[0].textContent, /data-row-key|servant-worker-|dsh-dot-mcp-/)
+    await page.dispose()
+  }
+})
+
+test('current workspace follows native mainView selection without polling', async () => {
+  let state = { phase: 'ready', ids: ['a', 'b'], byId: { a: { retainedBy: { mainView: 1 } }, b: { retainedBy: {} } } }
+  const sessionListeners = new Set(), workspaceListeners = new Set(), calls = []
+  const observable = (snapshot, listeners) => ({ getSnapshot: snapshot, subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) } })
   const page = await loadNativeClient({
-    sessions: observable(() => sessionState, sessionListeners),
-    workspaces: observable(() => workspacesState, workspaceListeners),
+    sessions: observable(() => state, sessionListeners),
+    workspaces: observable(() => ({ phase: 'ready', items: [{ workspaceId: 'one', sessionIds: ['a'] }, { workspaceId: 'two', sessionIds: ['b'] }] }), workspaceListeners),
+    connection: { rpc: { async call(_path, method, payload) { calls.push({ method, payload }); return { ok: true, value: {} } } } },
   })
-  const style = page.styles[0]
-  assert.match(style.textContent, /session:dsh-dot-mcp-/)
-  assert.match(style.textContent, /workspace:\s*"/)
-  assert.match(style.textContent, /display: none !important/)
-  sessionState = { ...sessionState, ids: [...sessionState.ids, 'normal-chat'], byId: {
-    ...sessionState.byId, 'normal-chat': { id: 'normal-chat', retainedBy: {} },
-  } }
+  assert.equal(calls.at(-1).payload.workspaceId, 'one')
   for (const fn of sessionListeners) fn()
-  assert.ok(!style.textContent.includes('div:has(> [role="treeitem"][data-row-key="workspace:"]) { display: none !important; }'))
-  assert.ok(style.textContent.includes(':not(:has([data-row-key="overflow:"]))'))
-  sessionState = { ...sessionState, ids: ['dsh-dot-mcp-a', 'servant-worker-1'],
-    byId: { 'dsh-dot-mcp-a': { id: 'dsh-dot-mcp-a', retainedBy: {} },
-      'servant-worker-1': { id: 'servant-worker-1', retainedBy: {} } } }
+  assert.equal(calls.length, 1)
+  state = { ...state, byId: { a: { retainedBy: {} }, b: { retainedBy: { mainView: 1 } } } }
   for (const fn of sessionListeners) fn()
-  assert.ok(style.textContent.includes('div:has(> [role="treeitem"][data-row-key="workspace:"]) { display: none !important; }'))
+  assert.equal(calls.at(-1).payload.workspaceId, 'two')
+  state = { ...state, byId: {} }
+  for (const fn of sessionListeners) fn()
+  assert.equal(calls.at(-1).payload.workspaceId, null)
   await page.dispose()
   assert.equal(sessionListeners.size + workspaceListeners.size, 0)
 })

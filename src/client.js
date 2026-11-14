@@ -5,34 +5,8 @@ const NAMESPACE = 'dsh.dotmcp'
 const PANEL_ID = 'dsh-dot-mcp'
 const DOTS_URL = 'https://chatgpt.com/dots/home'
 
-/** Dot MCP internal Session IDs are display-only, like DSS role sessions. */
-const DOT_MCP_SESSION_PREFIX = 'dsh-dot-mcp-'
-const dotMcpRowSelector = '[role="treeitem"][data-row-key^="session:dsh-dot-mcp-"]'
-const otherInternalPrefixes = ['servant-foreground-', 'servant-planner-', 'servant-worker-', 'servant-helper-', 'dss-coop-']
-const internalRowSelector = [dotMcpRowSelector, ...otherInternalPrefixes.map(p => '[role="treeitem"][data-row-key^="session:' + p + '"]')].join(', ')
-const dotMcpRowsCss = dotMcpRowSelector + ' { display: none !important; }'
-const dotMcpVisibleEmptyGroupCss =
-  'div:has(> [role="treeitem"][data-row-key="workspace:"][aria-expanded="true"])'
-  + ':has(' + dotMcpRowSelector + ')'
-  + ':not(:has([role="treeitem"][data-row-key^="session:"]:not(:is(' + internalRowSelector + '))))'
-  + ':not(:has([data-row-key="overflow:"])) { display: none !important; }'
-const dotMcpOnlyUngroupedCss = 'div:has(> [role="treeitem"][data-row-key="workspace:"]) { display: none !important; }'
-function dotMcpOnlyUngrouped(sessions, workspaces) {
-  if (sessions?.phase !== 'ready' || workspaces?.phase !== 'ready') return false
-  const assigned = new Set((workspaces.items ?? []).flatMap(w => w.sessionIds ?? []))
-  let foundDotMcp = false
-  for (const id of sessions.ids ?? []) {
-    const s = sessions.byId?.[id]
-    if (!s || assigned.has(id) || s.origin === 'subagent' || (s.blank && !s.retainedBy?.mainView)) continue
-    if (id.startsWith(DOT_MCP_SESSION_PREFIX)) foundDotMcp = true
-    else if (!otherInternalPrefixes.some(prefix => id.startsWith(prefix))) return false
-  }
-  return foundDotMcp
-}
-
-
 const zh = {
-  panel: 'DSH Dot MCP', title: 'Dots',
+  panel: 'Dot', title: 'Dots',
   inBrowser: '在浏览器打开', reload: '刷新', back: '后退', home: '返回 Dot 首页',
   openFailed: '未能打开网页，请使用系统浏览器访问 ChatGPT Dots。',
   guestFailed: 'DSH 桌面网页载体未能启动，可在浏览器中打开。',
@@ -50,7 +24,7 @@ const zh = {
   persistencePath: '目标文件', persistenceError: '操作失败：',
 }
 const en = {
-  panel: 'DSH Dot MCP', title: 'Dots',
+  panel: 'Dot', title: 'Dots',
   inBrowser: 'Open in browser', reload: 'Reload', back: 'Back', home: 'Back to Dot home',
   openFailed: 'Could not open the site. Open ChatGPT Dots in your system browser.',
   guestFailed: 'The DSH Desktop web carrier could not start. Open in your browser.',
@@ -466,20 +440,9 @@ exports.apply = function apply(ctx) {
   ctx.effect(() => {
     const style = document.createElement('style')
     style.dataset.dshDots = 'client'
-    const sessions = (ctx.get?.('sessions', true) ?? ctx.sessions)?.list
-    const workspaces = (ctx.get?.('workspaces', true) ?? ctx.workspaces)?.list
-    const baseCss = __DOTS_CLIENT_CSS__ + '\n' + dotMcpRowsCss + '\n' + dotMcpVisibleEmptyGroupCss
-    let previous
-    const sync = () => {
-      const css = baseCss + (sessions?.getSnapshot && workspaces?.getSnapshot
-        && dotMcpOnlyUngrouped(sessions.getSnapshot(), workspaces.getSnapshot()) ? '\n' + dotMcpOnlyUngroupedCss : '')
-      if (css !== previous) { previous = css; style.textContent = css }
-    }
-    const stopSessions = sessions?.subscribe?.(sync)
-    const stopWorkspaces = workspaces?.subscribe?.(sync)
-    sync()
+    style.textContent = __DOTS_CLIENT_CSS__
     document.head.append(style)
-    return () => { stopSessions?.(); stopWorkspaces?.(); style.remove() }
+    return () => style.remove()
   }, 'dsh-dot-mcp.style')
   const t = ctx.locale.bind(NAMESPACE)
   const openExternal = () => {
@@ -503,6 +466,24 @@ exports.apply = function apply(ctx) {
       if (!response?.ok) throw new Error(response?.error?.message || 'Dots MCP request failed')
       return response.value
     }
+    ctx.effect(() => {
+      const sessions = (ctx.get?.('sessions', true) ?? ctx.sessions)?.list
+      const workspaces = (ctx.get?.('workspaces', true) ?? ctx.workspaces)?.list
+      if (!sessions || !workspaces) return
+      let previous
+      const sync = () => {
+        const sessionState = sessions.getSnapshot(), workspaceState = workspaces.getSnapshot()
+        if (sessionState.phase !== 'ready' || workspaceState.phase !== 'ready') return
+        const current = sessionState.ids.find(id => sessionState.byId[id]?.retainedBy?.mainView)
+        const workspaceId = workspaceState.items.find(item => item.sessionIds.includes(current))?.workspaceId ?? null
+        if (workspaceId === previous) return
+        previous = workspaceId
+        void mcpRpc('currentWorkspace', { workspaceId }).catch(error => console.warn('Dot MCP workspace selection:', error))
+      }
+      const stopSessions = sessions.subscribe(sync), stopWorkspaces = workspaces.subscribe(sync)
+      sync()
+      return () => { stopSessions(); stopWorkspaces() }
+    }, 'dsh-dot-mcp: current workspace')
     const notifyRpc = async (endpoint, payload = {}, signal) => {
       const connection = ctx.get?.('connection') ?? ctx.connection
       if (!connection?.rpc) throw new Error('DSH connection is not available')

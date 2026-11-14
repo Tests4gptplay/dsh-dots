@@ -1,10 +1,10 @@
-# DSH Dot MCP 1.0.1-test.1-test.1
+# DSH Dot MCP 1.0.1-test.2
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
 [中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
 
-**Independent MCP edition 1.0.1-test.1:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
+**Independent MCP edition 1.0.1-test.2:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
 
 [Dot MCP 1.0.0 release history](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
 
@@ -17,16 +17,16 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 | New capability | What you can do |
 | --- | --- |
 | MCP connection | Register DSH as a tool service available to your Dot and submit tasks from the conversation. |
-| Sessions and tasks | Create or continue sessions, inspect results and cancel work; MCP internal sessions stay out of the Ungrouped sidebar. |
+| Sessions and tasks | Create or continue sessions, inspect results and cancel work; MCP conversations appear in their workspace, with commands and replies visible in the normal conversation. |
 | Workspaces and tools | Dot directly uses available native DSH APIs, installed plugins and tools for files, commands and image results. |
-| Unified settings | Manage the MCP switch, connection URLs, call status and login retention under Settings → Dots. |
+| Unified settings | Manage the MCP switch, connection URLs, call status and login retention under Settings → Dot MCP. |
 | Guided setup | Copy connection details, check the local service, and follow official guides through registration and the first tool call. |
 
 **MCP starts off and can be enabled when needed.** The switch and connection settings are saved for the current DSH profile and restored after a restart. Turning MCP off closes external access while DSH continues tasks already submitted; cancelling a task is a separate action.
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls. The toolbar adds Back navigation, and clicking the Dots icon or title returns to Dot home.
 
-## Install DSH Dot MCP 1.0.1-test.1-test.1
+## Install DSH Dot MCP 1.0.1-test.2
 
 In DSH, open **Plugins → Add plugin** and install this test branch for acceptance (the official main branch stays unchanged):
 
@@ -38,13 +38,13 @@ The previous release remains at [dsh-dot-mcp-v1.0.0](https://github.com/Tests4gp
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 
-Open **DSH Dot MCP** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dots**.
+Open **Dot** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dot MCP**.
 
 This release provides a unified Dots settings design, Back and clickable Dot-home navigation, the complete guide below all three settings cards, and remembered tunnel start/stop across restarts. See the [update record](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) for screenshots and verification.
 
 ## Selective proactive notifications to Dot
 
-Under **DSH → Settings → Dots → Proactive notifications**, enable the independent notification switch, choose exact **Session IDs** (one per line), select turn-ended and/or execution-error events, and save. Notifications start only after Dot creates an [official MCP Events](https://developers.openai.com/plugins/build/mcp-events) subscription for one of those exact sessions. Turning the switch off revokes existing subscriptions. Unselected sessions never generate Dot notifications.
+Under **DSH → Settings → Dot MCP → Proactive notifications**, enable the independent notification switch, choose exact **Session IDs** (one per line), select turn-ended and/or execution-error events, and save. Notifications start only after Dot creates an [official MCP Events](https://developers.openai.com/plugins/build/mcp-events) subscription for one of those exact sessions. Turning the switch off revokes existing subscriptions. Unselected sessions never generate Dot notifications.
 
 Event payloads contain only the session ID and status metadata. Dot can retrieve actual results using the existing MCP tools. The notification toggle is independent of the MCP connection and preserves all 17 existing tools.
 
@@ -58,7 +58,7 @@ ChatGPT Dot's proactive event-triggered monitoring uses the official MCP Events 
 
 ## Connect your Dot
 
-1. **Enable MCP.** Open Settings → Dots and run **Check local connection**.
+1. **Enable MCP.** Open Settings → Dot MCP and run **Check local connection**.
 2. **Create a Tunnel.** Open [Tunnel settings](https://platform.openai.com/settings/organization/tunnels), use `DSH-Dots` as the name, and select your organization/workspace. This personal setup leaves **Restrict client network access** unchecked; follow administrator requirements for managed networks. Copy the full Tunnel ID and obtain a runtime key from [Runtime API Keys](https://platform.openai.com/settings/organization/api-keys).
 3. **Set up locally in Dots.** In **OpenAI Secure MCP Tunnel**, keep the default installation directory or select another location, then **Download and install official client**. An existing executable can also be selected by its full path. Enter Tunnel ID and Runtime API Key, **Start tunnel**, then **Refresh tunnel status**. The plugin supplies its current local MCP endpoint to the official client. No terminal window is required. The location and Tunnel ID persist; the runtime key is saved in a separate access-restricted file in this DSH user profile for automatic tunnel restoration.
 

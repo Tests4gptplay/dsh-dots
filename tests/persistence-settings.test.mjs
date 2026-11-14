@@ -29,7 +29,7 @@ test('Dots persistence section is registered in DSH Settings (not Plugins or the
   const page = await loadNativeClient(opts)
   assert.equal(page.slots.some(s => s.options.name === 'settings.plugins.tab'), false)
   assert.equal(page.slots.filter(s => s.options.name === 'settings.section').length, 1)
-  assert.equal(sectionOf(page).options.label(), 'Dots')
+  assert.equal(sectionOf(page).options.label(), 'Dot MCP')
   assert.equal(page.main.options.key, 'dsh-dot-mcp')
   assert.equal(page.icon.options.id, 'dsh-dot-mcp')
   const nodes = flattenSection(page)

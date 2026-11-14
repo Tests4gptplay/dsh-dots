@@ -54,7 +54,7 @@ try{
  state=await rpc('configure',{enabled:true});assert.equal(state.running,true);const firstUrl=state.localUrl
  client=await open(firstUrl);const list=await client.listTools();assert.equal(list.tools.length,17);pass('Official MCP client discovers 17 tools')
  const native=await call('dsh_status');assert.ok(native.nativeApiCount>0);pass('Native API registry discovered',{apiCount:native.nativeApiCount,namespaces:native.namespaces.length})
- const created=await call('dsh_session_create',{cwd:workspace}),id=created.sessionId;assert.match(id,/^dsh-dot-mcp-[0-9a-f-]{36}$/);pass('Native MCP Session created with reserved sidebar identity')
+ const created=await call('dsh_session_create',{cwd:workspace}),id=created.sessionId;assert.ok(id);assert.ok(!id.startsWith('dsh-dot-mcp-'));pass('Native MCP Session uses ordinary visible identity')
  const sessions=await call('dsh_sessions');assert.ok(JSON.stringify(sessions).includes(id));pass('Native Session listed')
  const initialNotify=await notifyRpc('status')
  assert.equal(initialNotify.enabled,false);assert.equal(initialNotify.subscriptionCount,0)
@@ -75,7 +75,7 @@ try{
  pass('Native tool metadata avoids invented risk rankings')
  const description=await call('dsh_api_describe',{namespace:'session',method:'list'});const wire=Object.keys(description.inputSchema.properties)[0]
  const generic=await call('dsh_api_call',{namespace:'session',method:'list',args:{[wire]:{}}});assert.ok(JSON.stringify(generic).includes(id));pass('Reflected API schema and generic invocation')
- const snapshot=await call('dsh_api_snapshot',{namespace:'workspace',method:'follow',args:{}});assert.equal(snapshot.value.type,'baseline');pass('Native stream snapshot and subscription cleanup')
+ const snapshot=await call('dsh_api_snapshot',{namespace:'workspace',method:'follow',args:{}});assert.equal(snapshot.value.type,'baseline');assert.ok(snapshot.value.value.items.some(w=>w.sessionIds.includes(id)&&w.path===workspace));pass('Native MCP Session is accounted to its directory workspace')
  const subscribeAbort=new AbortController(), continuousEvents=[]
  const streaming=client.callTool({name:'dsh_api_subscribe',arguments:{namespace:'workspace',method:'follow',args:{}}},{
    onprogress: event=>{continuousEvents.push(JSON.parse(event.message));subscribeAbort.abort('Received workspace baseline')},

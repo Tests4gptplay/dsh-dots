@@ -2,7 +2,7 @@ name: Dot MCP candidate build sync
 on:
   push:
     branches: ['fix/dot-mcp-direct-tools-sidebar']
-    paths: ['.github/workflows/dot-mcp-build-sync.yml', '.github/test2-edits.json']
+    paths: ['src/**', 'tests/**', 'package.json', 'package-lock.json', 'README*', 'CHANGELOG.md', '.github/workflows/dot-mcp-build-sync.yml']
 permissions:
   contents: write
 jobs:
@@ -15,27 +15,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Apply tested candidate source
-        shell: bash
+      - name: Build exactly locked source files
         run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json, subprocess
-          from pathlib import Path
-          edits = json.loads(Path('.github/test2-edits.json').read_text())
-          for path, changes in edits.items():
-              source = subprocess.check_output(['git', 'show', 'b9fbbd3b3d8b5b1d47eb9a8fdf6e237be921c415:' + path]).decode().splitlines(keepends=True)
-              for start, end, lines in reversed(changes):
-                  source[start:end] = lines
-              Path(path).write_text(''.join(source))
-          Path('.github/test2-edits.json').unlink()
-          PY
-      - name: Build and synchronize candidate distribution
-        shell: bash
-        run: |
-          set -euo pipefail
           npm ci --legacy-peer-deps --no-audit --no-fund
           npm run build
+          npm run pack:check
+          npm pack --ignore-scripts
+      - name: Synchronize compiled production files for the candidate
+        shell: bash
+        run: |
+          set -euo pipefail
           node --input-type=module <<'JS'
           import fs from 'node:fs'
           import path from 'node:path'
@@ -48,21 +37,10 @@ jobs:
           delete pkg.scripts; delete pkg.devDependencies
           fs.writeFileSync(path.join(target, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
           JS
-          npm test
-          npm run pack:check
-          npm pack --ignore-scripts
-      - name: Commit tested source and compiled production files
-        shell: bash
-        run: |
-          set -euo pipefail
-          git add src tests package.json package-lock.json README.md README.en.md CHANGELOG.md lib THIRD-PARTY-NOTICES.txt packages/dsh-dot-mcp .github/workflows/ci.yml .github/workflows/dot-mcp-build-sync.yml .github/test2-edits.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "fix(dot-mcp): visible workspace conversations and Dot UI labels in test.2"
-          git push origin HEAD:fix/dot-mcp-direct-tools-sidebar
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dot-mcp-1.0.1-test.2-candidate
-          path: dsh-dot-mcp-1.0.1-test.2.tgz
-          if-no-files-found: error
-          retention-days: 14
+          git add lib THIRD-PARTY-NOTICES.txt packages/dsh-dot-mcp
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "build(dot-mcp): synchronize compiled 1.0.1-test.2 runtime"
+            git push origin HEAD:fix/dot-mcp-direct-tools-sidebar
+          fi

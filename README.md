@@ -1,10 +1,10 @@
-# DSH Dot MCP 1.0.1-test.1-test.1
+# DSH Dot MCP 1.0.1-test.2
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
 [English](README.en.md) · [完整配置指南](#连接自己的-dot) · [2.0.0 更新记录与实机展示](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues)
 
-**独立 MCP 版 1.0.1-test.1：** Dot 与 DSH 通过 MCP 协作，包含完整工具调用、Secure MCP Tunnel、主动通知和原生工作区操作；与简洁版 Dots 使用不同的插件安装身份。
+**独立 MCP 版 1.0.1-test.2：** Dot 与 DSH 通过 MCP 协作，包含完整工具调用、Secure MCP Tunnel、主动通知和原生工作区操作；与简洁版 Dots 使用不同的插件安装身份。
 
 [Dot MCP 1.0.0 历史发行说明](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.md) · [原 2.0.0 实机说明](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)
 
@@ -17,16 +17,16 @@ DSH Dot MCP 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Ha
 | 新能力 | 可以怎样使用 |
 | --- | --- |
 | MCP 连接 | 将 DSH 注册为 Dot 可用的工具服务，在对话中下达任务。 |
-| 会话与任务管理 | 创建或继续会话、查看结果和取消执行；MCP 内部会话不会在侧栏增加「未分组」条目。 |
+| 会话与任务管理 | 创建或继续会话、查看结果和取消执行；MCP 创建的会话进入对应工作区，命令和回复在普通会话中完整显示。 |
 | 工作区与工具 | Dot 优先直接使用已启用的 DSH 原生 API、插件和工具，完成文件、命令和图片等操作。 |
-| 同页设置 | 在「设置 → Dots」管理 MCP 开关、连接地址、调用状态和登录保持。 |
+| 同页设置 | 在「设置 → Dot MCP」管理 MCP 开关、连接地址、调用状态和登录保持。 |
 | 完整接入引导 | 复制实际连接信息、检查本地服务，并通过官方指南完成注册和首次调用。 |
 
 **MCP 默认关闭，按需开启。** 开关状态和连接设置随当前 DSH 配置保存，重启后继续生效。关闭 MCP 会结束外部接入；已经交给 DSH 的任务继续执行，取消任务则使用单独的取消操作。
 
 原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。顶部增加网页后退按钮，点击 Dots 图标与名称可返回 Dot 首页。
 
-## 安装 DSH Dot MCP 1.0.1-test.1-test.1
+## 安装 DSH Dot MCP 1.0.1-test.2
 
 在 DSH「插件 → 添加插件」的「包名或地址」中安装本次测试分支（正式 main 维持现状）：
 
@@ -38,13 +38,13 @@ github:Tests4gptplay/dsh-dots#fix/dot-mcp-direct-tools-sidebar
 
 安装与连接步骤见下方 [完整配置指南](#连接自己的-dot)，设置页底部也提供可折叠的五步引导。
 
-安装后，从侧栏打开 **DSH Dot MCP**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
+安装后，从侧栏打开 **Dot**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dot MCP** 中管理。
 
 本版采用统一的 Dots 设置页设计，完整连接指南位于三块设置区域下方，隧道启停选择会在 DSH 重启后恢复。详细画面与验证见[本版更新记录](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)。
 
 ## 选择性主动通知 Dot
 
-在 **DSH → 设置 → Dots → 主动通知 Dot** 中，可以独立打开或关闭主动通知。首次安装默认关闭；先选定允许通知的 **Session ID**（每行一个），再勾选“会话轮次结束”或“会话执行错误”并保存。Dot 按 [OpenAI MCP Events 官方流程](https://developers.openai.com/plugins/build/mcp-events) 对选定会话建立订阅后，DSH 才通过已验证的官方 Webhook 回调发送对应状态事件。关闭开关会撤销当前订阅；不在允许列表中的会话不会触发通知。
+在 **DSH → 设置 → Dot MCP → 主动通知 Dot** 中，可以独立打开或关闭主动通知。首次安装默认关闭；先选定允许通知的 **Session ID**（每行一个），再勾选“会话轮次结束”或“会话执行错误”并保存。Dot 按 [OpenAI MCP Events 官方流程](https://developers.openai.com/plugins/build/mcp-events) 对选定会话建立订阅后，DSH 才通过已验证的官方 Webhook 回调发送对应状态事件。关闭开关会撤销当前订阅；不在允许列表中的会话不会触发通知。
 
 主动事件只携带会话 ID 与事件状态。需要读取任务成果时，Dot 继续使用原有 MCP 工具。MCP 工具连接和主动通知使用独立开关；主动通知不改变 17 个现有工具的能力。
 
@@ -58,7 +58,7 @@ ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议�
 
 ## 连接自己的 Dot
 
-1. **开启 MCP。** 在「设置 → Dots」打开 MCP，点击「检查本地连接」。
+1. **开启 MCP。** 在「设置 → Dot MCP」打开 MCP，点击「检查本地连接」。
 2. **创建官方 Tunnel。** 打开页面中的 [Tunnel 设置](https://platform.openai.com/settings/organization/tunnels)。名称填 `DSH-Dots`，描述填 `Connect ChatGPT Dot to DeepSeek Harness`，选择自己的组织与工作区。本指南的个人连接方式保持 **Restrict client network access** 未勾选；有组织网络策略时按管理员配置。创建后复制完整 Tunnel ID，并在 [Runtime API Keys](https://platform.openai.com/settings/organization/api-keys) 准备运行密钥。
 3. **在插件里完成本地连接。** 在 **OpenAI Secure MCP Tunnel** 区域确认默认安装目录，或选择自己的位置；点击 **下载并安装官方客户端**。已有客户端可直接填写可执行文件完整路径。填入 Tunnel ID 与 Runtime API Key，点击 **启动隧道**，再点击 **刷新隧道状态**。本地 MCP 地址自动填入官方客户端配置，无需复制命令或保持 PowerShell 窗口。安装位置和 Tunnel ID 会保存；运行密钥保存在当前 DSH 用户配置目录的独立权限受限文件中，用于自动恢复隧道。
 

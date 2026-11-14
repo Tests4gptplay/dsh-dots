@@ -295,15 +295,45 @@ test('subscription without MCP progress support reports its transport requiremen
 })
 
 
-test('new MCP work sessions receive a reserved ID for native sidebar display only', async t => {
-  const { server, calls } = await fixture(t)
-  const result = await rpc(server.localUrl, 'dsh_session_create', {})
+test('MCP creates ordinary visible sessions in current, recent, explicit and directory workspaces', async () => {
+  const calls = []
+  const workspaces = [
+    { workspaceId: 'older', sessionIds: ['a'], createdAt: '2026-01-01' },
+    { workspaceId: 'recent', sessionIds: ['b'], createdAt: '2026-01-01' },
+  ]
+  const ctx = { typertGateway: {
+    async invoke(call) {
+      calls.push(call)
+      if (call.namespace === 'workspace') return { workspace: { workspaceId: call.method === 'create' ? 'directory' : 'default' } }
+      if (call.method === 'list') return { items: [{ sessionId: 'a', updatedAt: 1 }, { sessionId: 'b', updatedAt: 2 }] }
+      return call.args.request
+    },
+    async *stream() { yield { type: 'baseline', value: { items: workspaces } } },
+  } }
+  let current = 'current'
+  const adapter = createDshAdapter(ctx, {}, { currentWorkspace: () => current })
+  const create = adapter.tools.find(t => t.name === 'dsh_session_create').run
+  assert.deepEqual(await create({}), { workspaceId: 'current' })
+  current = null
+  assert.deepEqual(await create({ agentPreset: 'standard' }), { workspaceId: 'recent', agentPreset: 'standard' })
+  const explicit = { workspaceId: 'explicit', agentPreset: 'standard' }
+  assert.deepEqual(await create(explicit), explicit)
+  const named = { sessionId: 'native-existing', nativeExtension: true }
+  assert.deepEqual(await create(named), named)
+  const generic = adapter.tools.find(t => t.name === 'dsh_api_call').run
+  assert.deepEqual(await generic({ namespace: 'session', method: 'create', args: { request: { cwd: '/work' } } }), { workspaceId: 'directory' })
+  assert.deepEqual(calls.find(c => c.method === 'create' && c.namespace === 'workspace').args, { request: { path: '/work' } })
+  workspaces.length = 0
+  assert.deepEqual(await create({}), { workspaceId: 'default' })
+  assert.ok(calls.filter(c => c.namespace === 'session' && c.method === 'create').every(c => !String(c.args.request.sessionId).startsWith('dsh-dot-mcp-')))
+})
+
+test('current workspace reaches the live MCP adapter without becoming a persisted preference', async t => {
+  const { control, configPath, calls } = await controller(t)
+  const state = await control.configure({ enabled: true })
+  control.currentWorkspace({ workspaceId: 'selected-workspace' })
+  const result = await rpc(state.localUrl, 'dsh_session_create', {})
   assert.equal(result.body.result.isError, undefined)
-  assert.match(calls.at(-1).args.request.sessionId, /^dsh-dot-mcp-[0-9a-f-]{36}$/)
-  await rpc(server.localUrl, 'dsh_session_create', { sessionId: 'user-visible-id' })
-  assert.equal(calls.at(-1).args.request.sessionId, 'user-visible-id')
-  await rpc(server.localUrl, 'dsh_session_create', { workspaceId: 'my-workspace' })
-  assert.equal('sessionId' in calls.at(-1).args.request, false)
-  await rpc(server.localUrl, 'dsh_api_call', { namespace: 'session', method: 'create', args: { request: { cwd: '/work' } } })
-  assert.match(calls.at(-1).args.request.sessionId, /^dsh-dot-mcp-/)
+  assert.deepEqual(calls.at(-1).args.request, { workspaceId: 'selected-workspace' })
+  assert.equal(Object.hasOwn(JSON.parse(await readFile(configPath, 'utf8')), 'workspaceId'), false)
 })

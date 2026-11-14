@@ -1,6 +1,6 @@
 /** Same Dots settings section, with official onboarding and copyable live connection data. */
 Object.assign(zh, {
-  persistenceNav: 'Dots', mcpTitle: 'MCP 连接 · 让 Dot 操作 DSH', mcpEnable: '启用 MCP Server',
+  persistenceNav: 'Dot MCP', mcpTitle: 'MCP 连接 · 让 Dot 操作 DSH', mcpEnable: '启用 MCP Server',
   mcpDescription: '由 ChatGPT Dot 调用 DSH 的会话、工具和工作区。首次安装默认关闭；开关状态随当前 DSH 配置保存。',
   mcpOff: '已关闭', mcpRunning: '正在运行', mcpError: '连接错误', mcpLoading: '正在读取设置…',
   mcpPort: '本地端口（0 自动选择）', mcpPublic: 'HTTPS 转发地址（使用官方隧道时可留空）',
@@ -21,7 +21,7 @@ Object.assign(zh, {
   mcpRegistration: '官方 MCP 注册指南', mcpTunnel: '官方 Secure MCP Tunnel 指南', mcpTunnelSettings: '官方隧道管理与下载', mcpDotGuide: '官方 Dot 与插件指南',
 })
 Object.assign(en, {
-  persistenceNav: 'Dots', mcpTitle: 'MCP · Let your Dot operate DSH', mcpEnable: 'Enable MCP Server',
+  persistenceNav: 'Dot MCP', mcpTitle: 'MCP · Let your Dot operate DSH', mcpEnable: 'Enable MCP Server',
   mcpDescription: 'Let ChatGPT Dot use DSH sessions, tools and workspaces. Off on first installation; your choice is saved for this DSH profile.',
   mcpOff: 'Off', mcpRunning: 'Running', mcpError: 'Connection error', mcpLoading: 'Loading settings…',
   mcpPort: 'Local port (0 chooses an available port)', mcpPublic: 'HTTPS forwarding base URL (optional with Secure MCP Tunnel)',

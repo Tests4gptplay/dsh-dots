@@ -175,7 +175,7 @@ test('settings RPC uses native envelopes and validates only transport structure'
  const r = await route.fetch(new Request('http://localhost'+route.path,{ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }))
  assert.deepEqual(await r.json(), { type: 'server-response', rpcId: 'native-rpc', result: { ok: true, value: { enabled: false } } })
  assert.equal((await route.fetch(new Request('http://localhost'+route.path,{ method: 'POST',body: '{}' }))).status, 415)
- await off();assert.equal(removed.length, 4)
+ await off();assert.equal(removed.length, 5)
 })
 
 test('modern 2026 MCP client discovers and invokes the same service', async t => {
