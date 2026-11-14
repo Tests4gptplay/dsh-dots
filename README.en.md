@@ -1,16 +1,16 @@
-# DSH Dots 2.0.2
+# DSH Dot MCP 1.0.0
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
 [中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
 
-**2.0.2 update:** Once MCP is ready, Dots restores Tunnel through the same Start path as Settings, using the saved configuration. Windows DSH connection and restart recovery were confirmed after re-entering the Runtime API Key; the established interface and other features remain unchanged.
+**Independent MCP edition 1.0.0:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
 
-[2.0.2 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.2.en.md) · [2.0.0 features and native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
+[Dot MCP 1.0.0 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
 
-DSH Dots brings [ChatGPT Dots](https://chatgpt.com/dots/home) into DeepSeek Harness. Chat with your own Dot inside DSH, or enable MCP so your Dot can use DSH's AI sessions, tools and workspaces to submit tasks and retrieve results.
+DSH Dot MCP brings [ChatGPT Dots](https://chatgpt.com/dots/home) into DeepSeek Harness. Chat with your own Dot inside DSH, or enable MCP so your Dot can use DSH's AI sessions, tools and workspaces to submit tasks and retrieve results.
 
-## What's new in 2.0.0
+## Dot MCP capabilities
 
 This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH, and let Dot call the DSH environment running on your computer.
 
@@ -26,19 +26,19 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls. The toolbar adds Back navigation, and clicking the Dots icon or title returns to Dot home.
 
-## Install DSH Dots 2.0.2
+## Install DSH Dot MCP 1.0.0
 
 In DSH, open **Plugins → Add plugin** and enter this in the package name or address field:
 
 ```text
-github:Tests4gptplay/dsh-dots#v2.0.2
+github:Tests4gptplay/dsh-dots#dsh-dot-mcp-v1.0.0
 ```
 
-This page describes the official [v2.0.2 release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.2), including the confirmed Tunnel restoration update. The package and SHA-256 checksum are available there.
+This page describes the independent [dsh-dot-mcp-v1.0.0 release](https://github.com/Tests4gptplay/dsh-dots/releases/tag/dsh-dot-mcp-v1.0.0). The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.12`.
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 
-Open **DSH Dots** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dots**.
+Open **DSH Dot MCP** in the sidebar and sign in on the official ChatGPT page. Manage login retention and MCP under **DSH → Settings → Dots**.
 
 This release provides a unified Dots settings design, Back and clickable Dot-home navigation, the complete guide below all three settings cards, and remembered tunnel start/stop across restarts. See the [update record](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) for screenshots and verification.
 

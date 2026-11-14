@@ -1,5 +1,13 @@
 # 更新记录
 
+## DSH Dot MCP 1.0.0（独立插件，2026-11-14）
+
+将 2.0.2 的完整 Dot × DSH MCP 协作作为独立插件 `dsh-dot-mcp` 发布，独立 Cordis ID、Client 注册及原生工具栏入口，继续提供 17 个 MCP 工具、Secure MCP Tunnel、按 Session 通知、完整配置指南和登录保持。
+
+简洁版 Dots 使用原 `dsh-dots` 安装身份，保留 `1.0.12` 分支与历史 Tag；MCP 版使用独立版本标签 `dsh-dot-mcp-v1.0.0`。两款共用一个 GitHub 仓库。
+
+[独立 MCP 发行说明](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.md)
+
 ## 2.0.2（正式版，2026-11-14）
 
 基于正式 2.0.1，调整 Tunnel 自动恢复为直接读取已保存的客户端安装目录、可执行文件和 Tunnel ID，调用与手动按钮相同的 `start(配置)`。MCP HTTP 监听建立后执行一次，运行中不重复启动；设置页读到启动完成后的状态，启动失败仍能显示原有错误。移除延时器、轮询及原先单次延后启动的测试夹具。保留已有 MCP 关闭时中断 Tunnel 操作和再次启用时恢复的行为。

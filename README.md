@@ -1,16 +1,16 @@
-# DSH Dots 2.0.2
+# DSH Dot MCP 1.0.0
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
 [English](README.en.md) · [完整配置指南](#连接自己的-dot) · [2.0.0 更新记录与实机展示](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md) · [问题反馈](https://github.com/Tests4gptplay/dsh-dots/issues)
 
-**2.0.2 更新：** MCP 就绪后依据已保存配置调用与设置页一致的 Tunnel 启动流程，沿用连接信息并在重启后恢复。Windows DSH 已在重新填写 Runtime API Key 后完成实际连接验收，保留其余已确认功能和界面。
+**独立 MCP 版 1.0.0：** Dot 与 DSH 通过 MCP 协作，包含完整工具调用、Secure MCP Tunnel、主动通知和原生工作区操作；与简洁版 Dots 使用不同的插件安装身份。
 
-[2.0.2 正式发行说明](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.2/docs/releases/v2.0.2.md) · [2.0.0 功能与实机说明](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)
+[Dot MCP 1.0.0 发行说明](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.md) · [原 2.0.0 实机说明](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)
 
-DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harness。你可以在 DSH 内与自己的 Dot 对话，也可以开启 MCP，让 Dot 使用 DSH 的 AI 会话、工具和工作区，提交任务并取回结果。
+DSH Dot MCP 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harness。你可以在 DSH 内与自己的 Dot 对话，也可以开启 MCP，让 Dot 使用 DSH 的 AI 会话、工具和工作区，提交任务并取回结果。
 
-## 2.0.0 带来了什么
+## Dot MCP 提供的功能
 
 这一版从网页入口扩展到 **Dot 与 DSH 之间的双向协作**：在 DSH 中使用 Dot，同时让 Dot 调用这台电脑上的 DSH。
 
@@ -26,19 +26,19 @@ DSH Dots 将 [ChatGPT Dots](https://chatgpt.com/dots/home) 带入 DeepSeek Harne
 
 原有体验继续保留：启动预加载、切换面板时保留页面、明暗主题适配、中英文界面、刷新、外部浏览器打开，以及 Desktop 登录保持的检查、应用和恢复。顶部增加网页后退按钮，点击 Dots 图标与名称可返回 Dot 首页。
 
-## 安装 DSH Dots 2.0.2
+## 安装 DSH Dot MCP 1.0.0
 
 在 DSH「插件 → 添加插件」的「包名或地址」中输入：
 
 ```text
-github:Tests4gptplay/dsh-dots#v2.0.2
+github:Tests4gptplay/dsh-dots#dsh-dot-mcp-v1.0.0
 ```
 
-本页对应正式发行版 [v2.0.2](https://github.com/Tests4gptplay/dsh-dots/releases/tag/v2.0.2)，包含已确认的 Tunnel 自动恢复改进。安装包与 SHA-256 校验文件见该 Release。
+本页对应独立 MCP 插件版本 [dsh-dot-mcp-v1.0.0](https://github.com/Tests4gptplay/dsh-dots/releases/tag/dsh-dot-mcp-v1.0.0)。简洁版 Dots 保留在 [1.0.12 分支](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12)，可输入 `github:Tests4gptplay/dsh-dots#1.0.12` 安装。
 
 安装与连接步骤见下方 [完整配置指南](#连接自己的-dot)，设置页底部也提供可折叠的五步引导。
 
-安装后，从侧栏打开 **DSH Dots**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
+安装后，从侧栏打开 **DSH Dot MCP**，在 ChatGPT 官方页面登录。登录保持与 MCP 均在 **DSH → 设置 → Dots** 中管理。
 
 本版采用统一的 Dots 设置页设计，完整连接指南位于三块设置区域下方，隧道启停选择会在 DSH 重启后恢复。详细画面与验证见[本版更新记录](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)。
 
