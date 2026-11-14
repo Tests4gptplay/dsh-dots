@@ -1,12 +1,12 @@
-# DSH Dot MCP 1.0.1-test.3
+# DSH Dot MCP 1.0.1
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
 [中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
 
-**Independent MCP edition 1.0.1-test.3:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
+**Independent MCP edition 1.0.1:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
 
-[Dot MCP 1.0.0 release history](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.0/docs/releases/dsh-dot-mcp-v1.0.0.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
+[Dot MCP 1.0.1 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.1/docs/releases/dsh-dot-mcp-v1.0.1.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
 
 DSH Dot MCP brings [ChatGPT Dots](https://chatgpt.com/dots/home) into DeepSeek Harness. Chat with your own Dot inside DSH, or enable MCP so your Dot can use DSH's AI sessions, tools and workspaces to submit tasks and retrieve results.
 
@@ -26,15 +26,15 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls. The toolbar adds Back navigation, and clicking the Dots icon or title returns to Dot home.
 
-## Install DSH Dot MCP 1.0.1-test.3
+## Install DSH Dot MCP 1.0.1
 
-In DSH, open **Plugins → Add plugin** and install this test branch for acceptance (the official main branch stays unchanged):
+In DSH, open **Plugins → Add plugin** and enter the fixed release:
 
 ```text
-github:Tests4gptplay/dsh-dots#fix/dot-mcp-direct-tools-sidebar
+github:Tests4gptplay/dsh-dots#dsh-dot-mcp-v1.0.1
 ```
 
-The previous release remains at [dsh-dot-mcp-v1.0.0](https://github.com/Tests4gptplay/dsh-dots/releases/tag/dsh-dot-mcp-v1.0.0). The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.12`.
+The npm package is `dsh-dot-mcp@1.0.1`, with `dsh-dot-mcp-1.0.1.tgz` in GitHub Releases. The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.12`.
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 
