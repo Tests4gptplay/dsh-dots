@@ -29,12 +29,12 @@ jobs:
         include:
           - package_name: dsh-dots
             version: 1.0.12
-            ref: v1.0.12
-            sha: 806b9f48ea447ef448e5c197d88b8c99229ff509
+            ref: f2a196459168318d400a6865764973f74205664a
+            sha: f2a196459168318d400a6865764973f74205664a
           - package_name: dsh-dot-mcp
             version: 1.0.0
-            ref: dsh-dot-mcp-v1.0.0
-            sha: 99e050006a7ef1d8408d2603865c79fa9b08cc06
+            ref: c1e957731e4f0c4e533beaaae7c2f5209f86eadc
+            sha: c1e957731e4f0c4e533beaaae7c2f5209f86eadc
     steps:
       - name: Read immutable version source in the same repository
         uses: actions/checkout@v4
@@ -81,19 +81,11 @@ jobs:
           tar -xzf "original/$EXPECTED_NAME-$EXPECTED_VERSION.tgz" -C npm-stage
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict'
-          import {readFileSync,writeFileSync} from 'node:fs'
+          import {readFileSync} from 'node:fs'
           const path='npm-stage/package/package.json'
           const p=JSON.parse(readFileSync(path,'utf8'))
           assert.equal(p.name,process.env.EXPECTED_NAME)
           assert.equal(p.version,process.env.EXPECTED_VERSION)
-          // The 1.0.12 branch stays untouched. Only npm's staged metadata
-          // points the classic package to the retained, renamed GitHub repository.
-          if(p.name==='dsh-dots'){
-            p.repository.url='git+https://github.com/Tests4gptplay/dsh-dots.git'
-            p.homepage='https://github.com/Tests4gptplay/dsh-dots#readme'
-            p.bugs.url='https://github.com/Tests4gptplay/dsh-dots/issues'
-            writeFileSync(path,JSON.stringify(p,null,2)+'\n')
-          }
           assert.equal(p.repository.url,'git+https://github.com/Tests4gptplay/dsh-dots.git')
           JS
           (cd npm-stage/package && npm pack --ignore-scripts --pack-destination ../../npm-dist >/dev/null)
