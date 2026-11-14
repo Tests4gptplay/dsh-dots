@@ -18,65 +18,134 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       publish: ${{ steps.request.outputs.publish }}
-      verify: ${{ steps.request.outputs.verify }}
       artifact-id: ${{ steps.upload.outputs.artifact-id }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout current publication controls and explicit manifest
+        uses: actions/checkout@v4
         with:
+          path: publisher
+          persist-credentials: false
+      - name: Checkout immutable Dots v2.0.2 source
+        uses: actions/checkout@v4
+        with:
+          repository: Tests4gptplay/dsh-dots
+          ref: v2.0.2
+          path: source
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
-      - name: Use the verified pack toolchain
+      - name: Use supported npm trusted-publishing toolchain
         run: npm install --global npm@11.9.0 --ignore-scripts
-      - name: Run existing Dots tests and package whitelist
+      - name: Confirm immutable released source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = '1f9aafa20347b03741c45255707dd614385448a0'
+          test "$(node -p 'require("./source/package.json").version')" = '2.0.2'
+          node --version
+          npm --version
+      - name: Check downloaded GitHub release asset and checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p source/_release-asset-check
+          gh release download v2.0.2 --repo Tests4gptplay/dsh-dots \
+            --pattern dsh-dots-2.0.2.tgz --pattern SHA256SUMS.txt \
+            --dir source/_release-asset-check
+          cd source/_release-asset-check
+          sha256sum -c SHA256SUMS.txt
+          test "$(sha256sum dsh-dots-2.0.2.tgz | cut -d' ' -f1)" = '335797445ac5bf595ba5a9ced76a46dd17c5175e78109267b89ac47b6f3bac96'
+      - name: Install exact source dependencies
+        working-directory: source
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Source regression tests and exact compiled runtime
+        working-directory: source
+        shell: bash
         run: |
           npm test
           npm run pack:check
-          git diff --exit-code -- lib
-      - name: Test publication safety gates
-        run: node --test scripts/npm/publish-guards.test.mjs
-      - name: Build scoped payload and verify every production byte
-        run: node scripts/npm/prepare-scoped-npm.mjs npm-dist
-      - name: Require an exact reviewed publication manifest
+          git diff --exit-code -- lib THIRD-PARTY-NOTICES.txt
+      - name: Test existing manifest and registry verification rules
+        run: node --test publisher/scripts/npm/publish-guards.test.mjs
+      - name: Build scoped npm package and inspect every installed byte
+        working-directory: source
+        run: node ../publisher/scripts/npm/prepare-scoped-npm.mjs npm-dist
+      - name: Check registry for this immutable package version (read only)
+        working-directory: source
+        run: node ../publisher/scripts/npm/check-registry.mjs
+      - name: Match npm package to an explicitly reviewed SHA-256 manifest
+        working-directory: source
         id: request
-        run: node scripts/npm/check-publish-request.mjs
-      - name: Include credential-free verification utility
-        run: cp scripts/npm/check-registry.mjs npm-dist/check-registry.mjs
+        shell: bash
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          node ../publisher/scripts/npm/check-publish-request.mjs "../publisher/release/npm/${VERSION}.json"
+      - name: Include registry verification utility in the exact artifact
+        run: cp publisher/scripts/npm/check-registry.mjs source/npm-dist/check-registry.mjs
       - uses: actions/upload-artifact@v4
         id: upload
         with:
-          name: scoped-npm-package
-          path: npm-dist/
+          name: dots-2.0.2-verified-npm-payload
+          path: source/npm-dist/
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
           compression-level: 0
+
   publish:
     needs: prepare
-    if: needs.prepare.outputs.publish == 'true' || needs.prepare.outputs.verify == 'true'
+    if: needs.prepare.outputs.publish == 'true'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
           registry-url: 'https://registry.npmjs.org/'
+      - name: Use npm CLI supporting GitHub Actions OIDC
+        run: npm install --global npm@11.9.0 --ignore-scripts
       - uses: actions/download-artifact@v4
         with:
           artifact-ids: ${{ needs.prepare.outputs.artifact-id }}
           path: npm-dist
           merge-multiple: true
-      - name: Check exact tarball and immutable registry version
+      - name: Verify staged bytes and immutable registry state
         id: registry
         run: node npm-dist/check-registry.mjs
-      - name: Publish the verified tarball with the short-lived secret
-        if: needs.prepare.outputs.publish == 'true' && steps.registry.outputs.exists != 'true'
+      - name: Publish exact reviewed npm tarball using Trusted Publishing (OIDC)
+        if: steps.registry.outputs.exists != 'true'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TARBALL: ${{ steps.registry.outputs.filename }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$NODE_AUTH_TOKEN" || { echo 'NPM_TOKEN repository secret is missing'; exit 1; }
-          npm publish "./npm-dist/$NPM_TARBALL" --access public --tag latest --ignore-scripts --provenance=false
-      - name: Verify public npm integrity without credentials
+          npm publish "./npm-dist/$NPM_TARBALL" \
+            --access public --tag latest --ignore-scripts
+      - name: Verify published npm integrity
         run: node npm-dist/check-registry.mjs --require-present
+      - name: Confirm public latest tag, repository identity and downloaded bytes
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict'
+          import { readFileSync } from 'node:fs'
+          const expected = JSON.parse(readFileSync('npm-dist/package-verification.json', 'utf8'))
+          const local = readFileSync('npm-dist/' + expected.filename)
+          const r = await fetch('https://registry.npmjs.org/@tests4gptplay%2fdsh-dots')
+          assert.equal(r.status, 200, 'npm packument HTTP')
+          const meta = await r.json()
+          assert.equal(meta['dist-tags'].latest, expected.version, 'latest dist-tag must match new version')
+          const published = meta.versions?.[expected.version]
+          assert.equal(published?.name, expected.name)
+          assert.equal(published?.dist?.integrity, expected.integrity)
+          assert.equal(published?.repository?.url, 'git+https://github.com/Tests4gptplay/dsh-dots.git')
+          const archiveResponse = await fetch(published.dist.tarball)
+          assert.ok(archiveResponse.ok, 'public tarball must download')
+          const archive = Buffer.from(await archiveResponse.arrayBuffer())
+          assert.ok(archive.equals(local), 'published tarball bytes must equal reviewed payload')
+          console.log(JSON.stringify({ package: expected.name, version: expected.version, latest: meta['dist-tags'].latest, sha256: expected.sha256, verifiedDownloadBytes: archive.length }))
+          JS

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync, appendFileSync, existsSync } from 'node:fs'
 const actual = JSON.parse(readFileSync('npm-dist/package-verification.json', 'utf8'))
-const path = `release/npm/${actual.version}.json`
+const path = process.argv[2] ?? `release/npm/${actual.version}.json`
 let requested = existsSync(path)
 let verifyOnly = false
 if (requested) {
