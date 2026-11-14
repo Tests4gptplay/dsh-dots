@@ -1,0 +1,72 @@
+{
+  "version": "2.0.1-test.9",
+  "date": "2026-11-14",
+  "workflowRun": "https://github.com/Tests4gptplay/dsh-dots/actions/runs/43588447901",
+  "compiledRuntimeCommit": "d649f3b24fd4e125bd666c155402202e14196eeb",
+  "sourceTests": {
+    "windows": {
+      "total": 143,
+      "passed": 142,
+      "failed": 0,
+      "skipped": 1
+    },
+    "linux": {
+      "total": 143,
+      "passed": 142,
+      "failed": 0,
+      "skipped": 1
+    },
+    "skippedCase": "Official tunnel-client binary end-to-end execution is a separate test."
+  },
+  "layout": {
+    "browser": "Chromium",
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "widths": [
+      320,
+      360,
+      530,
+      760
+    ],
+    "casesPassed": 16
+  },
+  "nativeHost": {
+    "platform": "linux",
+    "dsh": "0.2.2-rc.1",
+    "checksPassed": 31,
+    "browser": "Chromium"
+  },
+  "tunnelPreferenceRegression": {
+    "fixture": "controlled official-client process interface",
+    "verified": [
+      "persist enabled state",
+      "persist key separately in user profile",
+      "restart starts one client",
+      "repeat init does not duplicate",
+      "manual stop persists across restart"
+    ]
+  },
+  "package": {
+    "name": "dsh-dots",
+    "version": "2.0.1-test.9",
+    "approvedProductionFiles": 20
+  },
+  "artifacts": [
+    {
+      "name": "dots-test9-ubuntu-latest-evidence",
+      "id": 14111776328,
+      "digest": "sha256:9cfe2f4e20281683e3cd2ff2b687a5a4d3b3791ebfce9aefee8d063f6648bb95"
+    },
+    {
+      "name": "dots-test9-windows-latest-evidence",
+      "id": 14111721311,
+      "digest": "sha256:4efa176da001c4c0bdd840991e12137f429806c304d08b13cfcd9c22016b6e46"
+    }
+  ]
+}
