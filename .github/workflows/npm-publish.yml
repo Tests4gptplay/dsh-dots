@@ -216,9 +216,16 @@ jobs:
           import {readFileSync} from 'node:fs'
           import {createHash} from 'node:crypto'
           const p=JSON.parse(readFileSync('npm-dist/package-verification.json','utf8'))
-          const r=await fetch('https://registry.npmjs.org/'+encodeURIComponent(p.name))
-          assert.equal(r.status,200,'Registry packument HTTP')
-          const meta=await r.json()
+          // npm can accept a publish with HTTP 202 before its public metadata is updated.
+          let meta
+          for(let attempt=0;attempt<12;attempt++){
+            const r=await fetch('https://registry.npmjs.org/'+encodeURIComponent(p.name),{headers:{'cache-control':'no-cache'}})
+            assert.equal(r.status,200,'Registry packument HTTP')
+            meta=await r.json()
+            if(meta['dist-tags']?.latest===p.version && meta.versions?.[p.version]) break
+            console.log(JSON.stringify({name:p.name,expected:p.version,latest:meta['dist-tags']?.latest,registryPropagationCheck:attempt+1}))
+            if(attempt<11) await new Promise(resolve=>setTimeout(resolve,10000))
+          }
           assert.equal(meta['dist-tags'].latest,p.version)
           const version=meta.versions?.[p.version]
           assert.equal(version?.dist?.integrity,p.integrity)
