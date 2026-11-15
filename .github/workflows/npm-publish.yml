@@ -179,6 +179,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
+          registry-url: 'https://registry.npmjs.org/'
       - run: npm install --global npm@11.9.0 --ignore-scripts
       - uses: actions/download-artifact@v4
         with:
@@ -202,12 +203,16 @@ jobs:
           assert.equal(existing.dist?.integrity,p.integrity,'Immutable registry version has different bytes')
           appendFileSync(process.env.GITHUB_OUTPUT,'exists=true\nfilename='+p.filename+'\n')
           JS
-      - name: Publish exact package through GitHub OIDC
+      - name: Publish exact package using existing npm token
         if: steps.registry.outputs.exists != 'true'
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           PACKAGE_ARCHIVE: ${{ steps.registry.outputs.filename }}
         shell: bash
-        run: npm publish "./npm-dist/$PACKAGE_ARCHIVE" --access public --tag latest --ignore-scripts
+        run: |
+          set -euo pipefail
+          test -n "$NODE_AUTH_TOKEN" || { echo 'Existing NPM_TOKEN secret is unavailable'; exit 1; }
+          npm publish "./npm-dist/$PACKAGE_ARCHIVE" --access public --tag latest --ignore-scripts --provenance=false
       - name: Verify public version, latest tag and downloaded tarball bytes
         shell: bash
         run: |
