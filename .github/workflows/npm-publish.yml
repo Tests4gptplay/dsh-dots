@@ -1,5 +1,8 @@
 name: Verify classic Dots and publish Dot MCP npm package
 on:
+  workflow_run:
+    workflows: [Publish release]
+    types: [completed]
   push:
     branches: [main]
     paths:
@@ -8,7 +11,7 @@ on:
     inputs:
       publish:
         type: boolean
-        description: Publish reviewed dsh-dot-mcp@1.0.1 via npm Trusted Publishing
+        description: Publish the verified current Dot MCP release via npm Trusted Publishing
         required: true
         default: false
 
@@ -63,23 +66,28 @@ jobs:
           JS
 
   prepare:
-    name: Verify ${{ matrix.package_name }}
+    name: Verify dsh-dot-mcp
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - package_name: dsh-dot-mcp
-            version: 1.0.1
-            ref: dsh-dot-mcp-v1.0.1
-            sha: c132c6228ff63f801f0b0d9d230d79517a4a04e9
     steps:
       - name: Read immutable version source in the same repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.ref }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           path: source
           persist-credentials: false
+      - name: Resolve package version from the reviewed source
+        id: package
+        working-directory: source
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict'
+          import {readFileSync, appendFileSync} from 'node:fs'
+          const p=JSON.parse(readFileSync('package.json','utf8'))
+          assert.equal(p.name,'dsh-dot-mcp')
+          assert.match(p.version,/^\d+\.\d+\.\d+$/)
+          appendFileSync(process.env.GITHUB_OUTPUT,'version='+p.version+'\n')
+          JS
       - name: Install supported Node and npm
         uses: actions/setup-node@v4
         with:
@@ -88,9 +96,9 @@ jobs:
       - name: Verify pinned source, tests and compiled production output
         working-directory: source
         env:
-          EXPECTED_SHA: ${{ matrix.sha }}
-          EXPECTED_NAME: ${{ matrix.package_name }}
-          EXPECTED_VERSION: ${{ matrix.version }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          EXPECTED_NAME: dsh-dot-mcp
+          EXPECTED_VERSION: ${{ steps.package.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
@@ -109,8 +117,8 @@ jobs:
           fi
       - name: Pack the reviewed source once and verify the exact tarball
         env:
-          EXPECTED_NAME: ${{ matrix.package_name }}
-          EXPECTED_VERSION: ${{ matrix.version }}
+          EXPECTED_NAME: dsh-dot-mcp
+          EXPECTED_VERSION: ${{ steps.package.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
@@ -138,8 +146,8 @@ jobs:
           JS
       - name: Read the public npm Registry state
         env:
-          EXPECTED_NAME: ${{ matrix.package_name }}
-          EXPECTED_VERSION: ${{ matrix.version }}
+          EXPECTED_NAME: dsh-dot-mcp
+          EXPECTED_VERSION: ${{ steps.package.outputs.version }}
         shell: bash
         run: |
           node --input-type=module <<'JS'
@@ -154,24 +162,40 @@ jobs:
           if(existing) assert.equal(existing.dist?.integrity,p.integrity,'Immutable version contains different bytes')
           console.log(JSON.stringify({name:p.name,version:p.version,published:!!existing,latest:meta['dist-tags']?.latest,versions:Object.keys(meta.versions??{}).length}))
           JS
+      - name: Verify the published release matches these exact bytes
+        if: github.event_name == 'workflow_run' || (github.event_name == 'workflow_dispatch' && inputs.publish == true)
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict'
+          import {readFileSync} from 'node:fs'
+          import {createHash} from 'node:crypto'
+          const p=JSON.parse(readFileSync('npm-dist/package-verification.json','utf8'))
+          const tag='dsh-dot-mcp-v'+p.version
+          const commit=await fetch('https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/commits/'+tag)
+          assert.equal(commit.status,200)
+          assert.equal((await commit.json()).sha,process.env.EXPECTED_SHA)
+          const response=await fetch('https://github.com/'+process.env.GITHUB_REPOSITORY+'/releases/download/'+tag+'/'+p.filename)
+          assert.equal(response.status,200)
+          const bytes=Buffer.from(await response.arrayBuffer())
+          assert.equal(createHash('sha256').update(bytes).digest('hex'),p.sha256)
+          JS
       - name: Preserve exact verified publication payload
         uses: actions/upload-artifact@v4
         with:
-          name: npm-${{ matrix.package_name }}-verified
+          name: npm-dsh-dot-mcp-verified
           path: npm-dist/
           if-no-files-found: error
           retention-days: 14
           compression-level: 0
 
   publish:
-    name: Publish ${{ matrix.package_name }}
-    if: github.event_name == 'workflow_dispatch' && inputs.publish == true && github.repository == 'Tests4gptplay/dsh-dots'
+    name: Publish dsh-dot-mcp
+    if: github.repository == 'Tests4gptplay/dsh-dots' && ((github.event_name == 'workflow_dispatch' && inputs.publish == true) || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
     needs: [prepare, verify-classic]
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        package_name: [dsh-dot-mcp]
     permissions:
       contents: read
       id-token: write
@@ -182,7 +206,7 @@ jobs:
       - run: npm install --global npm@11.9.0 --ignore-scripts
       - uses: actions/download-artifact@v4
         with:
-          name: npm-${{ matrix.package_name }}-verified
+          name: npm-dsh-dot-mcp-verified
           path: npm-dist
       - name: Confirm immutable version before publication
         id: registry

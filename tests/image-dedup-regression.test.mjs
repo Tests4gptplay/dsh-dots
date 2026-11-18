@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const s=fs.readFileSync(new URL('../src/mcp-server.mjs',import.meta.url),'utf8');
+const f=new Function(s.slice(s.indexOf('export function resultOf'),s.indexOf('export function makeHandler')).replace('export ','')+';return resultOf')();
+const make=(image,media)=>{const v={sessionId:'s',results:[{result:{value:image}}]};Object.defineProperty(v,Symbol.for('dsh-dots.mcpContent'),{value:media});return v};
+const image={data:'YWJj',attachment:{mediaType:'image/png',bytes:3},bounds:{x:1}};
+const media=[{type:'image',data:'YWJj',mimeType:'image/png'}];
+const original=make(image,media),r=f(original);
+assert.equal(r.content[1].data,'YWJj');assert.equal(r.structuredContent.results[0].result.value.data,undefined);
+assert.equal(image.data,'YWJj');assert.deepEqual(r.structuredContent.results[0].result.value.bounds,{x:1});
+assert.equal(f(make(image,[])).structuredContent.results[0].result.value.data,'YWJj');
+assert.equal(f(make(image,[{...media[0],data:'other'}])).structuredContent.results[0].result.value.data,'YWJj');
+assert.equal(f(make({...image,attachment:{mediaType:'text/plain'}},media)).structuredContent.results[0].result.value.data,'YWJj');
+assert.equal(f({data:'YWJj',attachment:{mediaType:'image/png'}}).content[1].data,'YWJj');
+assert.equal(f({results:[{result:{isError:true,value:{data:'abc'}}}]}).isError,true);
+assert.equal(f({value:1n}).structuredContent.value,'1');
+console.log('8 behavior checks passed; original native result unchanged; matching images deduplicated only.');
