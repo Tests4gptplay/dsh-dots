@@ -1,7 +1,7 @@
-name: Publish verified scoped npm package
+name: Publish verified Classic Dots via npm OIDC
 on:
   push:
-    branches: [main]
+    branches: ['1.0.12']
     paths:
       - '.github/workflows/npm-publish.yml'
       - 'scripts/npm/**'
@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   prepare:
-    if: github.ref == 'refs/heads/main' && github.repository == 'Tests4gptplay/dsh-dots'
+    if: github.ref == 'refs/heads/1.0.12' && github.repository == 'Tests4gptplay/dsh-dots'
     runs-on: ubuntu-24.04
     outputs:
       publish: ${{ steps.request.outputs.publish }}
@@ -55,6 +55,9 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.publish == 'true' || needs.prepare.outputs.verify == 'true'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/setup-node@v4
         with:
@@ -68,15 +71,13 @@ jobs:
       - name: Check exact tarball and immutable registry version
         id: registry
         run: node npm-dist/check-registry.mjs
-      - name: Publish the verified tarball with the short-lived secret
+      - name: Publish the verified tarball through npm OIDC
         if: needs.prepare.outputs.publish == 'true' && steps.registry.outputs.exists != 'true'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TARBALL: ${{ steps.registry.outputs.filename }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$NODE_AUTH_TOKEN" || { echo 'NPM_TOKEN repository secret is missing'; exit 1; }
-          npm publish "./npm-dist/$NPM_TARBALL" --access public --tag latest --ignore-scripts --provenance=false
+          npm publish "./npm-dist/$NPM_TARBALL" --access public --tag latest --ignore-scripts
       - name: Verify public npm integrity without credentials
         run: node npm-dist/check-registry.mjs --require-present
