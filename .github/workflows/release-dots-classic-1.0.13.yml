@@ -1,0 +1,79 @@
+name: Publish Classic Dots 1.0.13
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/release-dots-classic-1.0.13.yml']
+permissions:
+  contents: read
+jobs:
+  release:
+    if: github.repository == 'Tests4gptplay/dsh-dots'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '452435301b73a42eb603fff4caeb3001a29d070c'
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Build and verify both Classic package identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = '452435301b73a42eb603fff4caeb3001a29d070c'
+          test "$(node -p 'require("./package.json").name')" = 'dsh-dots'
+          test "$(node -p 'require("./package.json").version')" = '1.0.13'
+          npm install --global npm@11.9.0 --ignore-scripts
+          npm test
+          npm run pack:check
+          git diff --exit-code -- lib
+          mkdir -p out/github out/npm
+          npm pack --ignore-scripts --pack-destination out/github
+          node scripts/npm/prepare-scoped-npm.mjs out/npm
+          (cd out/github && sha256sum dsh-dots-1.0.13.tgz > SHA256SUMS.txt)
+      - name: Upload immutable Classic GitHub release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view v1.0.13 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Classic v1.0.13 already exists; preserve its immutable assets'
+            exit 1
+          fi
+          printf '%s\n' '# DSH Dots Classic 1.0.13' '' \
+            '修复 DSH Desktop 更新或退出后登录保持操作一直显示「已安排」的问题，旧排队记录可以重新应用。' \
+            'Fixes retrying login persistence after the deferred apply process is interrupted or after a DSH Desktop update.' > out/release-notes.md
+          gh release create v1.0.13 out/github/dsh-dots-1.0.13.tgz out/github/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target 452435301b73a42eb603fff4caeb3001a29d070c \
+            --title 'DSH Dots Classic 1.0.13' --latest=false --notes-file out/release-notes.md
+      - name: Publish only the established scoped Classic npm package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir=out/npm
+          filename=tests4gptplay-dsh-dots-1.0.13.tgz
+          actual=$(sha256sum "$dir/$filename" | cut -d' ' -f1)
+          test "$actual" = "$(node -p 'require("./out/npm/package-verification.json").sha256')"
+          if npm view '@tests4gptplay/dsh-dots@1.0.13' version >/dev/null 2>&1; then
+            test "$(npm view '@tests4gptplay/dsh-dots@1.0.13' dist.integrity)" = "$(node -p 'require("./out/npm/package-verification.json").integrity')"
+          elif [ -n "$NODE_AUTH_TOKEN" ]; then
+            printf '%s\n' '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > "$RUNNER_TEMP/classic-npmrc"
+            NPM_CONFIG_USERCONFIG="$RUNNER_TEMP/classic-npmrc" npm publish "./$dir/$filename" --access public --tag latest --ignore-scripts --provenance=false
+          else
+            npm publish "./$dir/$filename" --access public --tag latest --ignore-scripts
+          fi
+          for try in $(seq 1 12); do
+            integrity=$(npm view '@tests4gptplay/dsh-dots@1.0.13' dist.integrity 2>/dev/null || true)
+            test -z "$integrity" || break
+            sleep 5
+          done
+          test "$integrity" = "$(node -p 'require("./out/npm/package-verification.json").integrity')"
+          test "$(npm view '@tests4gptplay/dsh-dots' dist-tags.latest)" = '1.0.13'
+          echo 'Classic npm 1.0.13 package identity and integrity verified'
