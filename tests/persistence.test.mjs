@@ -130,7 +130,7 @@ test('one-shot after-exit helper waits for IPC disconnect, then applies once and
     const manifest = `${archive}.dots-persistence-pending.json`
     await writeFile(stage, patched)
     await writeFile(manifest, JSON.stringify({ archive, stage, expectedSha: sha(source), resultSha: sha(patched), status: 'scheduled' }))
-    assert.equal((await inspect({ override: archive })).state, 'scheduled')
+    assert.equal((await inspect({ override: archive })).state, 'available')
     const child = spawn(process.execPath, [fileURLToPath(new URL('../src/persistence-after-exit.mjs', import.meta.url)), manifest],
       { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] })
     await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject) })
@@ -248,5 +248,155 @@ test('compiled allocator formatting and long method bodies do not create arbitra
     assert.equal((await applyPersistence({ override: archive })).state, 'applied')
     await restorePersistence({ override: archive })
     assert.equal(sha(await readFile(archive)), sha(makeAsar(alt)))
+  })
+})
+
+test('a dead deferred helper cannot strand the apply action', async () => {
+  const { spawn } = await import('node:child_process')
+  await withArchive(async ({ archive, source }) => {
+    const patched = rewriteArchive(source)
+    const expectedSha = sha(source)
+    const manifest = `${archive}.dots-persistence-v2-pending.json`
+    const stage = `${archive}.dots-persistence-v2-stage-${expectedSha.slice(0, 16)}`
+    await writeFile(stage, patched)
+    const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { stdio: 'ignore' })
+    await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject) })
+    try {
+      await writeFile(manifest, JSON.stringify({ archive, stage, expectedSha, resultSha: sha(patched),
+        status: 'scheduled', helperPid: child.pid, ownerPid: process.pid }))
+      assert.equal((await inspect({ override: archive })).state, 'scheduled')
+      const exited = new Promise(resolve => child.once('exit', resolve))
+      child.kill()
+      await exited
+      assert.equal((await inspect({ override: archive })).state, 'available')
+      assert.equal(sha(await readFile(archive)), expectedSha)
+      const result = await applyPersistence({ override: archive })
+      assert.equal(result.state, 'applied')
+      assert.equal(sha(await readFile(archive)), sha(patched))
+      await assert.rejects(readFile(manifest), { code: 'ENOENT' })
+    } finally {
+      if (child.exitCode === null && child.signalCode === null) child.kill()
+    }
+  })
+})
+
+test('new after-exit helper acknowledges ownership and only applies once the parent disconnects', async () => {
+  const { spawn } = await import('node:child_process')
+  await withArchive(async ({ archive, source }) => {
+    const patched = rewriteArchive(source)
+    const expectedSha = sha(source)
+    const manifest = `${archive}.dots-persistence-v2-pending.json`
+    const stage = `${archive}.dots-persistence-v2-stage-${expectedSha.slice(0, 16)}`
+    const request = 'fixture-request-live'
+    await writeFile(stage, patched)
+    const child = spawn(process.execPath,
+      [fileURLToPath(new URL('../src/persistence-after-exit.mjs', import.meta.url)), manifest, request],
+      { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] })
+    const exited = new Promise(resolve => child.once('exit', resolve))
+    try {
+      await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject) })
+      await writeFile(manifest, JSON.stringify({ archive, stage, expectedSha, resultSha: sha(patched),
+        status: 'scheduled', request, helperPid: child.pid, ownerPid: process.pid }))
+      const ready = new Promise(resolve => child.once('message', resolve))
+      child.send({ type: 'prepare', request })
+      assert.deepEqual(await ready, { type: 'ready', request })
+      assert.equal((await inspect({ override: archive })).state, 'scheduled')
+      assert.deepEqual(await applyPersistence({ override: archive }),
+        { state: 'scheduled', archive, changed: false, restartRequired: true, canRestore: false })
+      assert.equal(sha(await readFile(archive)), sha(source))
+      child.disconnect()
+      assert.equal(await exited, 0)
+      assert.equal(sha(await readFile(archive)), sha(patched))
+      await assert.rejects(readFile(manifest), { code: 'ENOENT' })
+    } finally {
+      if (child.exitCode === null && child.signalCode === null) child.kill()
+    }
+  })
+})
+
+test('a new helper cannot execute a record before the owning parent arms it', async () => {
+  const { spawn } = await import('node:child_process')
+  await withArchive(async ({ archive, source }) => {
+    const patched = rewriteArchive(source)
+    const expectedSha = sha(source)
+    const manifest = `${archive}.dots-persistence-v2-pending.json`
+    const stage = `${archive}.dots-persistence-v2-stage-${expectedSha.slice(0, 16)}`
+    const request = 'fixture-unarmed'
+    await writeFile(stage, patched)
+    const child = spawn(process.execPath,
+      [fileURLToPath(new URL('../src/persistence-after-exit.mjs', import.meta.url)), manifest, request],
+      { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] })
+    const exited = new Promise(resolve => child.once('exit', resolve))
+    try {
+      await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject) })
+      await writeFile(manifest, JSON.stringify({ archive, stage, expectedSha, resultSha: sha(patched),
+        status: 'scheduled', request, helperPid: child.pid, ownerPid: process.pid }))
+      child.disconnect()
+      assert.equal(await exited, 0)
+      assert.equal(sha(await readFile(archive)), sha(source))
+      assert.equal((await inspect({ override: archive })).state, 'available')
+    } finally {
+      if (child.exitCode === null && child.signalCode === null) child.kill()
+    }
+  })
+})
+
+test('explicit retry migrates the real legacy record without racing its old helper', async () => {
+  const { spawn } = await import('node:child_process')
+  await withArchive(async ({ archive, source }) => {
+    const patched = rewriteArchive(source)
+    const expectedSha = sha(source)
+    const oldManifest = `${archive}.dots-persistence-pending.json`
+    const oldStage = `${archive}.dots-persistence-stage-${expectedSha.slice(0,16)}`
+    const newManifest = `${archive}.dots-persistence-v2-pending.json`
+    const newStage = `${archive}.dots-persistence-v2-stage-${expectedSha.slice(0,16)}`
+    await writeFile(oldStage, patched)
+    await writeFile(oldManifest, JSON.stringify({ archive, stage: oldStage, expectedSha,
+      resultSha: sha(patched), status: 'scheduled' }))
+    const oldChild = spawn(process.execPath, [
+      fileURLToPath(new URL('../src/persistence-after-exit.mjs', import.meta.url)), oldManifest,
+    ], { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] })
+    const oldExit = new Promise(resolve => oldChild.once('exit', resolve))
+    const hostUrl = new URL('../src/persistence.mjs', import.meta.url).href
+    const host = spawn(process.execPath, ['--input-type=module', '-e', `
+      import { applyPersistence } from ${JSON.stringify(hostUrl)}
+      process.once('message', () => process.disconnect())
+      const result = await applyPersistence({ override: process.argv[1], platform: 'win32' })
+      process.send(result)
+    `, archive], { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] })
+    const hostExit = new Promise(resolve => host.once('exit', resolve))
+    try {
+      assert.equal((await inspect({ override: archive })).state, 'available')
+      const result = await new Promise(resolve => host.once('message', resolve))
+      assert.equal(result.state, 'scheduled')
+      const pending = JSON.parse(await readFile(newManifest, 'utf8'))
+      assert.ok(pending.helperPid > 0)
+      await assert.rejects(readFile(oldManifest), { code: 'ENOENT' })
+      await assert.rejects(readFile(oldStage), { code: 'ENOENT' })
+      oldChild.disconnect()
+      assert.equal(await oldExit, 1)
+      assert.equal(sha(await readFile(archive)), expectedSha)
+      assert.equal((await inspect({ override: archive })).state, 'scheduled')
+      assert.equal(sha(await readFile(newStage)), sha(patched))
+      // Simulate the older helper already having read the stage and having applied the
+      // same candidate. The new helper treats that exact result as completed, not stale.
+      await writeFile(archive, patched)
+      host.send('exit')
+      assert.equal(await hostExit, 0)
+      for (let i = 0; i < 100 && (await inspect({ override: archive })).state !== 'applied'; i++) {
+        await new Promise(resolve => setTimeout(resolve, 20))
+      }
+      for (let i = 0; i < 100; i++) {
+        try { await readFile(newManifest) }
+        catch (error) { if (error.code === 'ENOENT') break; throw error }
+        await new Promise(resolve => setTimeout(resolve, 20))
+      }
+      assert.equal(sha(await readFile(archive)), sha(patched))
+      await assert.rejects(readFile(newManifest), { code: 'ENOENT' })
+      await assert.rejects(readFile(newStage), { code: 'ENOENT' })
+    } finally {
+      if (oldChild.exitCode === null && oldChild.signalCode === null) oldChild.kill()
+      if (host.exitCode === null && host.signalCode === null) host.kill()
+    }
   })
 })

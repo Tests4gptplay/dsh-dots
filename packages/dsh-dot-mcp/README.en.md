@@ -1,10 +1,10 @@
-# DSH Dot MCP 1.0.2
+# DSH Dot MCP 1.0.3
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
 [中文](README.md) · [Setup guide](#connect-your-dot) · [2.0.0 release notes and screenshots](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) · [Report an issue](https://github.com/Tests4gptplay/dsh-dots/issues)
 
-**Independent MCP edition 1.0.2:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
+**Independent MCP edition 1.0.3:** Connect ChatGPT Dot to native DSH sessions, tools and workspaces, with Secure MCP Tunnel, proactive notifications and an independent plugin installation identity.
 
 [Dot MCP 1.0.2 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/dsh-dot-mcp-v1.0.2/docs/releases/dsh-dot-mcp-v1.0.2.en.md) · [Original 2.0.0 native checks](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md)
 
@@ -26,15 +26,15 @@ This version adds **two-way collaboration between Dot and DSH**: use Dot in DSH,
 
 Existing features remain available: startup preload, retained pages across panel switches, light/dark themes, Chinese and English UI, reload, opening in an external browser, and Desktop login retention with check, apply and restore controls. The toolbar adds Back navigation, and clicking the Dots icon or title returns to Dot home.
 
-## Install DSH Dot MCP 1.0.2
+## Install DSH Dot MCP 1.0.3
 
 In DSH, open **Plugins → Add plugin** and enter the fixed release:
 
 ```text
-github:Tests4gptplay/dsh-dots#dsh-dot-mcp-v1.0.2
+github:Tests4gptplay/dsh-dots#main
 ```
 
-The npm package is `dsh-dot-mcp@1.0.2`, with `dsh-dot-mcp-1.0.2.tgz` in GitHub Releases. The simpler Dots edition remains on the [1.0.22 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.22) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.22`.
+The published 1.0.2 npm package is `dsh-dot-mcp@1.0.2`, with `dsh-dot-mcp-1.0.2.tgz` in GitHub Releases. The simpler Dots edition remains on the [1.0.12 branch](https://github.com/Tests4gptplay/dsh-dots/tree/1.0.12) and can be installed with `github:Tests4gptplay/dsh-dots#1.0.12`.
 
 For the complete connection walkthrough, see the [setup guide](#connect-your-dot); the same five-step guide is expandable at the bottom of Dots Settings.
 
