@@ -6,7 +6,7 @@ The toolbar and ring icon adapt to DSH's light and dark themes, with Chinese and
 
 **Login retention (Desktop):** Open **DSH Settings → Dots Login Retention** to check status, apply, or restore the Dots-specific persistent browser setup.
 
-## Install DSH Dots 1.0.12 (classic edition)
+## Install DSH Dots 1.0.13 (classic edition)
 
 In DeepSeek Harness, open **Plugins → Add plugin** and enter this pinned branch in the package name or address field:
 

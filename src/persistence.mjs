@@ -14,7 +14,7 @@ const rename = promisify(fileSystem.rename)
 const unlink = promisify(fileSystem.unlink)
 const readdir = promisify(fileSystem.readdir)
 const stat = promisify(fileSystem.stat)
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { basename, dirname, join, resolve } from 'node:path'
 import { execFileSync, spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -161,46 +161,112 @@ export async function inspect(options = {}) {
   const state = moduleState(asarHeader(bytes).module)
   const backup = state === 'applied' ? await matchingBackup(archive, bytes) : undefined
   const pending = await readPending(archive)
-  if (pending?.expectedSha === digest(bytes) && pending.status === 'scheduled') {
+  const matchingPending = pending && pending.expectedSha === digest(bytes)
+  if (matchingPending && scheduledIsLive(pending)) {
     return { state: 'scheduled', archive, canRestore: false, platform: options.platform ?? process.platform }
   }
   return { state, archive, canRestore: Boolean(backup),
-    ...(pending?.expectedSha === digest(bytes) && pending.status === 'failed' ? { error: pending.error } : {}),
+    ...(matchingPending && pending.status === 'failed' ? { error: pending.error } : {}),
+    ...(matchingPending && pending.status === 'scheduled'
+      ? { error: pending.format === 1 ? '检测到旧版待应用操作，可重新应用。' : '上次延后应用进程已退出，可重新操作。' } : {}),
     platform: options.platform ?? process.platform }
 }
-function pendingPath(path) { return `${path}.dots-persistence-pending.json` }
+function pendingPath(path, format = 2) {
+  return format === 1 ? `${path}.dots-persistence-pending.json` : `${path}.dots-persistence-v2-pending.json`
+}
+function stagePath(path, expectedSha, format = 2) {
+  const label = format === 1 ? 'dots-persistence-stage' : 'dots-persistence-v2-stage'
+  return `${path}.${label}-${expectedSha.slice(0, 16)}`
+}
+function scheduledIsLive(record) {
+  if (record?.status !== 'scheduled' || record.format === 1) return false
+  const pid = record.helperPid ?? record.ownerPid
+  if (!Number.isSafeInteger(pid) || pid <= 0) return false
+  try { process.kill(pid, 0); return true }
+  catch (error) { if (error.code === 'ESRCH') return false; if (error.code === 'EPERM') return true; throw error }
+}
+
+function awaitHelperReady(child, request, persistPid) {
+  return new Promise((resolve, reject) => {
+    const done = (error) => {
+      clearTimeout(timer)
+      child.off('spawn', onSpawn)
+      child.off('error', done)
+      child.off('exit', onExit)
+      child.off('message', onMessage)
+      error ? reject(error) : resolve()
+    }
+    const onExit = () => done(new Error('延后应用进程未就绪就退出；安装文件没有替换。'))
+    const onMessage = message => { if (message?.type === 'ready' && message.request === request) done() }
+    const onSpawn = async () => {
+      try {
+        await persistPid(child.pid)
+        child.send({ type: 'prepare', request }, error => { if (error) done(error) })
+      } catch (error) { done(error) }
+    }
+    const timer = setTimeout(() => done(new Error('延后应用进程未报告就绪；请重试。')), 12000)
+    child.once('spawn', onSpawn)
+    child.once('error', done)
+    child.once('exit', onExit)
+    child.on('message', onMessage)
+  })
+}
+
 async function readPending(path) {
-  let contents
-  try { contents = await readFile(pendingPath(path), 'utf8') }
-  catch (error) { if (error.code === 'ENOENT') return null; throw error }
-  try {
-    const data = JSON.parse(contents)
-    return data && typeof data === 'object' && !Array.isArray(data) ? data : { status: 'invalid' }
-  } catch (error) {
-    if (error instanceof SyntaxError) return { status: 'invalid' }
-    throw error
+  for (const format of [2, 1]) {
+    let contents
+    try { contents = await readFile(pendingPath(path, format), 'utf8') }
+    catch (error) { if (error.code === 'ENOENT') continue; throw error }
+    try {
+      const data = JSON.parse(contents)
+      return data && typeof data === 'object' && !Array.isArray(data) ? { ...data, format } : { status: 'invalid', format }
+    } catch (error) {
+      if (error instanceof SyntaxError) return { status: 'invalid', format }
+      throw error
+    }
   }
+  return null
 }
 async function clearPending(path, record) {
-  // Only remove this plugin's own staged archives, never application or user files.
+  // Disarm the old helper first. It only knows its original record/stage filenames.
+  const format = record?.format ?? 2
+  await unlink(pendingPath(path, format)).catch(error => { if (error.code !== 'ENOENT') throw error })
+  const prefix = format === 1 ? 'dots-persistence-stage' : 'dots-persistence-v2-stage'
   const stages = record?.status === 'invalid'
-    ? (await readdir(dirname(path))).filter(name => name.startsWith(`${basename(path)}.dots-persistence-stage-`)
-      && /\.dots-persistence-stage-[a-f0-9]{16}$/u.test(name)).map(name => join(dirname(path), name))
+    ? (await readdir(dirname(path))).filter(name => name.startsWith(`${basename(path)}.${prefix}-`)
+      && /\.dots-persistence(?:-v2)?-stage-[a-f0-9]{16}$/u.test(name)).map(name => join(dirname(path), name))
     : record && typeof record.expectedSha === 'string' && /^[a-f0-9]{64}$/u.test(record.expectedSha)
-      && record.stage === `${path}.dots-persistence-stage-${record.expectedSha.slice(0, 16)}` ? [record.stage] : []
+      && record.stage === stagePath(path, record.expectedSha, format) ? [record.stage] : []
   for (const stage of stages) {
     await unlink(stage).catch(error => { if (error.code !== 'ENOENT') throw error })
   }
-  await unlink(pendingPath(path)).catch(error => { if (error.code !== 'ENOENT') throw error })
+}
+async function retryLegacy(path, expected, payload, pending, platform) {
+  if (pending?.format !== 1 || pending.status !== 'scheduled' || pending.expectedSha !== digest(expected)) return undefined
+  // While an older helper could be finishing, supersede only an identical repair.
+  if (pending.resultSha !== digest(payload)) throw new Error('旧版待应用操作与当前修改不同，请先完全退出 DSH。')
+  await clearPending(path, pending)
+  if (platform === 'win32') return scheduleAfterExit(path, expected, payload)
+  return undefined
 }
 /** Schedule one operation when Windows keeps the active ASAR open. An IPC disconnect
  * from the DSH Host triggers it after application exit, without a polling service. */
+const deferredSchedules = new Map()
 async function scheduleAfterExit(path, expected, payload) {
+  const running = deferredSchedules.get(path)
+  if (running) { await running.catch(() => {}); return scheduleAfterExit(path, expected, payload) }
+  const launching = launchAfterExit(path, expected, payload)
+  deferredSchedules.set(path, launching)
+  try { return await launching }
+  finally { deferredSchedules.delete(path) }
+}
+async function launchAfterExit(path, expected, payload) {
   const sha = digest(expected)
-  const stage = `${path}.dots-persistence-stage-${sha.slice(0, 16)}`
-  const pending = { archive: path, stage, expectedSha: sha, resultSha: digest(payload), status: 'scheduled' }
+  const stage = stagePath(path, sha)
+  const pending = { archive: path, stage, expectedSha: sha, resultSha: digest(payload),
+    status: 'scheduled', request: randomUUID(), ownerPid: process.pid }
   const existing = await readPending(path)
-  if (existing?.status === 'scheduled' && existing.expectedSha === sha) {
+  if (existing?.expectedSha === sha && scheduledIsLive(existing)) {
     if (existing.resultSha === pending.resultSha) {
       return { state: 'scheduled', archive: path, changed: false, restartRequired: true, canRestore: false }
     }
@@ -211,19 +277,23 @@ async function scheduleAfterExit(path, expected, payload) {
   // A previous interrupted write may have left its own staged file behind.
   await unlink(stage).catch(error => { if (error.code !== 'ENOENT') throw error })
   await writeFile(stage, payload, { flag: 'wx' })
+  let child
   try {
     if (digest(await readArchive(stage)) !== pending.resultSha) throw new Error('延后应用文件校验失败')
     await writeFile(pendingPath(path), JSON.stringify(pending), { flag: 'wx' })
-    const child = spawn(process.execPath, [fileURLToPath(new URL('./persistence-after-exit.mjs', import.meta.url)), pendingPath(path)], {
+    child = spawn(process.execPath, [fileURLToPath(new URL('./persistence-after-exit.mjs', import.meta.url)), pendingPath(path), pending.request], {
       detached: true, stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
       env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, windowsHide: true,
     })
-    await new Promise((resolve, reject) => {
-      child.once('spawn', resolve)
-      child.once('error', reject)
+    await awaitHelperReady(child, pending.request, async helperPid => {
+      await writeFile(pendingPath(path), JSON.stringify({ ...pending, helperPid }))
     })
+    child.channel?.unref()
     child.unref()
   } catch (error) {
+    // A child cannot apply an operation while its parent IPC is still connected.
+    // Stop this exact child before removing its staged request.
+    child?.kill()
     await unlink(pendingPath(path)).catch(() => {})
     await unlink(stage).catch(() => {})
     throw error
@@ -231,14 +301,18 @@ async function scheduleAfterExit(path, expected, payload) {
   return { state: 'scheduled', archive: path, changed: true, restartRequired: true, canRestore: false }
 }
 /** Called once by the detached helper when its parent DSH process exits. */
-export async function finishScheduled(path) {
+export async function finishScheduled(path, request) {
   const pending = JSON.parse(await readFile(path, 'utf8'))
-  if (pending.status !== 'scheduled' || path !== pendingPath(pending.archive)) throw new Error('待应用修复记录不匹配')
+  const format = pending.request ? 2 : 1
+  if (pending.status !== 'scheduled' || path !== pendingPath(pending.archive, format) || (pending.request && pending.request !== request)) throw new Error('待应用修复记录不匹配')
   const expected = await readArchive(pending.archive)
-  if (digest(expected) !== pending.expectedSha) throw new Error('DSH 已更新，已放弃旧版本的待应用修复')
-  const patched = await readArchive(pending.stage)
-  if (digest(patched) !== pending.resultSha) throw new Error('待应用修复内容校验失败')
-  await replaceAndVerify(pending.archive, expected, patched)
+  const actual = digest(expected)
+  if (actual !== pending.resultSha) {
+    if (actual !== pending.expectedSha) throw new Error('DSH 已更新，已放弃旧版本的待应用修复')
+    const patched = await readArchive(pending.stage)
+    if (digest(patched) !== pending.resultSha) throw new Error('待应用修复内容校验失败')
+    await replaceAndVerify(pending.archive, expected, patched)
+  }
   await unlink(pending.stage).catch(() => {})
   await unlink(path).catch(() => {})
 }
@@ -290,11 +364,17 @@ export async function applyPersistence(options = {}) {
   const state = moduleState(asarHeader(original).module)
   if (state === 'applied') return { state: 'applied', archive, canRestore: Boolean(await matchingBackup(archive, original)), changed: false, restartRequired: false }
   if (state !== 'available') throw new Error('当前 DSH Desktop 浏览器代码未匹配到修复目标')
+  const pending = await readPending(archive)
+  if (pending?.expectedSha === digest(original) && scheduledIsLive(pending)) {
+    return { state: 'scheduled', archive, changed: false, restartRequired: true, canRestore: false }
+  }
   const patched = rewriteArchive(original)
   const backup = join(dirname(archive), `${BACKUP_PREFIX}${digest(original).slice(0, 16)}`)
   try { await copyFile(archive, backup, constants.COPYFILE_EXCL) }
   catch (error) { if (error.code !== 'EEXIST') throw error }
   if (digest(await readArchive(backup)) !== digest(original)) throw new Error('已有备份与当前 DSH 版本不匹配，未修改安装文件')
+  const retry = await retryLegacy(archive, original, patched, pending, options.platform ?? process.platform)
+  if (retry) return retry
   try { await replaceAndVerify(archive, original, patched) }
   catch (error) {
     if ((options.platform ?? process.platform) === 'win32' && ['EBUSY', 'EPERM'].includes(error.code)) {
@@ -311,9 +391,15 @@ export async function restorePersistence(options = {}) {
   await ensureWritableMac(options)
   const patched = await readArchive(archive)
   if (moduleState(asarHeader(patched).module) !== 'applied') throw new Error('当前 DSH Desktop 未应用 Dots 持久化修复')
+  const pending = await readPending(archive)
+  if (pending?.expectedSha === digest(patched) && scheduledIsLive(pending)) {
+    return { state: 'scheduled', archive, changed: false, restartRequired: true, canRestore: false }
+  }
   const backup = await matchingBackup(archive, patched)
   if (!backup) throw new Error('找不到与当前安装版本匹配的原版备份')
   const original = await readArchive(backup)
+  const retry = await retryLegacy(archive, patched, original, pending, options.platform ?? process.platform)
+  if (retry) return retry
   try { await replaceAndVerify(archive, patched, original) }
   catch (error) {
     if ((options.platform ?? process.platform) === 'win32' && ['EBUSY', 'EPERM'].includes(error.code)) {
