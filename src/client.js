@@ -369,6 +369,185 @@ function DotsPage({ t, openExternal }) {
 }
 
 
+
+Object.assign(zh, {
+  skillsTitle: '故障处理 Skills',
+  skillsIntro: 'Dot 遇到问题时先查这里，验证解决后再补记。笔记保存在当前 DSH 配置中，不会自动执行。内置条目只读，本地记录可编辑或删除。',
+  skillsSearch: '搜索症状、错误码或标题', skillsRefresh: '刷新列表', skillsAdd: '新建 Skill',
+  skillsLoading: '正在读取…', skillsEmpty: '没有匹配的 Skill。', skillsBuiltin: '内置', skillsLearned: '本地记录',
+  skillsName: '标题', skillsSymptom: '症状', skillsResolution: '处理方法', skillsVerification: '验证结果',
+  skillsScope: '适用范围（可选）', skillsEdit: '编辑', skillsSave: '保存 Skill', skillsCancel: '取消',
+  skillsDelete: '删除', skillsDeletePrompt: '删除这条本地记录？', skillsDeleteConfirm: '确认删除',
+  skillsSaved: '已保存。', skillsRemoved: '已删除。', skillsMissing: '这条记录已不存在，请刷新列表。',
+  skillsPrivate: '请只记验证过的结果，不要填写密钥或完整日志。',
+})
+Object.assign(en, {
+  skillsTitle: 'Troubleshooting Skills',
+  skillsIntro: 'Dot checks here when it encounters a problem and records fixes it has verified. Notes are stored in this DSH profile and never run automatically. Built-in entries are read only; local notes can be edited or deleted.',
+  skillsSearch: 'Search symptoms, error codes or titles', skillsRefresh: 'Refresh list', skillsAdd: 'New Skill',
+  skillsLoading: 'Loading…', skillsEmpty: 'No matching Skills.', skillsBuiltin: 'Built in', skillsLearned: 'Local note',
+  skillsName: 'Title', skillsSymptom: 'Symptom', skillsResolution: 'Resolution', skillsVerification: 'Verification',
+  skillsScope: 'Scope (optional)', skillsEdit: 'Edit', skillsSave: 'Save Skill', skillsCancel: 'Cancel',
+  skillsDelete: 'Delete', skillsDeletePrompt: 'Delete this local note?', skillsDeleteConfirm: 'Confirm deletion',
+  skillsSaved: 'Saved.', skillsRemoved: 'Deleted.', skillsMissing: 'This note no longer exists. Refresh the list.',
+  skillsPrivate: 'Record verified results only. Do not include credentials or full logs.',
+})
+
+const skillFields = [
+  ['title', 'skillsName', 120],
+  ['symptom', 'skillsSymptom', 600],
+  ['resolution', 'skillsResolution', 2400],
+  ['verification', 'skillsVerification', 1000],
+  ['scope', 'skillsScope', 300],
+]
+
+/** The settings panel uses the same profile-local store as the MCP troubleshooting tools. */
+function DotsSkillSettings({ t, mcpRpc }) {
+  const [query, setQuery] = useState('')
+  const [revision, setRevision] = useState(0)
+  const [list, setList] = useState({ query: null, entries: [], error: '' })
+  const [selected, setSelected] = useState('')
+  const [detail, setDetail] = useState(null)
+  const [draft, setDraft] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState('')
+  const [message, setMessage] = useState(null)
+  const [writing, setWriting] = useState(false)
+  const writer = useRef(null)
+  const queryText = query.trim()
+  const skillInputId = React.useId()
+  const detailId = React.useId()
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        const entries = await mcpRpc('skillList', queryText ? { query: queryText } : {}, controller.signal)
+        if (!Array.isArray(entries)) throw new Error(t('skillsMissing'))
+        if (!controller.signal.aborted) setList({ query: queryText, entries, error: '' })
+      } catch (error) {
+        if (!controller.signal.aborted) setList({ query: queryText, entries: [], error: String(error.message || error) })
+      }
+    }
+    // A fresh settings mount (and an explicit refresh of the unfiltered list) reads immediately.
+    const timer = queryText ? setTimeout(() => { void load() }, 180) : null
+    if (!timer) void load()
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [mcpRpc, queryText, revision, t])
+
+  useEffect(() => {
+    if (!selected) return
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        const entry = await mcpRpc('skillRead', { id: selected }, controller.signal)
+        if (!controller.signal.aborted) setDetail({ id: selected, entry, error: entry ? '' : t('skillsMissing') })
+      } catch (error) {
+        if (!controller.signal.aborted) setDetail({ id: selected, error: String(error.message || error) })
+      }
+    }
+    void load()
+    return () => controller.abort()
+  }, [mcpRpc, selected, revision, t])
+
+  useEffect(() => () => writer.current?.abort(), [])
+
+  async function write(endpoint, payload) {
+    if (writer.current) return
+    const controller = new AbortController()
+    writer.current = controller
+    setWriting(true)
+    setMessage(null)
+    try {
+      const result = await mcpRpc(endpoint, payload, controller.signal)
+      if (controller.signal.aborted) return
+      const saving = endpoint === 'skillSave'
+      if (!result || (saving && !result.id)) throw new Error(t('skillsMissing'))
+      setDraft(null)
+      setConfirmDelete('')
+      setDetail(null)
+      if (saving && !payload.id) setQuery('')
+      setSelected(saving ? result.id : '')
+      setRevision(count => count + 1)
+      setMessage({ text: t(saving ? 'skillsSaved' : 'skillsRemoved') })
+    } catch (error) {
+      if (!controller.signal.aborted) setMessage({ error: true, text: String(error.message || error) })
+    } finally {
+      writer.current = null
+      if (!controller.signal.aborted) setWriting(false)
+    }
+  }
+
+  const button = (key, action, { primary = false, type = 'button', disabled = writing } = {}) => h('button', {
+    type, onClick: action, disabled, className: 'dotsMcpButton' + (primary ? ' dotsPrimaryButton' : ''),
+  }, t(key))
+  const startDraft = (entry = {}) => {
+    setConfirmDelete('')
+    setMessage(null)
+    setDraft({ id: entry.id, ...Object.fromEntries(skillFields.map(([key]) => [key, entry[key] ?? ''])) })
+  }
+  const form = draft ? h('form', { className: 'dotsSkillsForm', onSubmit: event => {
+    event.preventDefault()
+    if (skillFields.some(([key]) => key !== 'scope' && !draft[key].trim())) return
+    const payload = Object.fromEntries(skillFields.map(([key]) => [key, draft[key].trim()]))
+    if (draft.id) payload.id = draft.id
+    void write('skillSave', payload)
+  } },
+  h('h4', null, t(draft.id ? 'skillsEdit' : 'skillsAdd')),
+  ...skillFields.map(([key, label, limit]) => {
+    const props = { value: draft[key], maxLength: limit, required: key !== 'scope', disabled: writing,
+      onInput: event => { const value = event.currentTarget.value; setDraft(current => ({ ...current, [key]: value })) } }
+    return h('label', { className: 'dotsMcpField', key }, h('span', { className: 'dotsFieldLabel' }, t(label)),
+      key === 'title' || key === 'scope' ? h('input', { ...props, type: 'text', autoFocus: key === 'title' }) : h('textarea', { ...props, rows: 3 }))
+  }),
+  h('p', { className: 'dotsMcpHint' }, t('skillsPrivate')),
+  h('div', { className: 'dotsMcpRow dotsActions' },
+    button('skillsSave', undefined, { primary: true, type: 'submit',
+      disabled: writing || skillFields.some(([key]) => key !== 'scope' && !draft[key].trim()) }),
+    button('skillsCancel', () => { setDraft(null); setMessage(null) }))) : null
+
+  const pendingList = list.query !== queryText
+  const shown = pendingList ? [] : list.entries
+  return h('section', { className: 'dotsSettingsCard dotsSkillsCard', 'data-testid': 'dots-skill-settings', 'aria-labelledby': skillInputId + '-title' },
+    h('div', { className: 'dotsCardHeader' }, h('h3', { id: skillInputId + '-title' }, t('skillsTitle')),
+      button('skillsAdd', () => startDraft(), { primary: true, disabled: writing || draft !== null })),
+    h('p', { className: 'dotsCardIntro' }, t('skillsIntro')),
+    h('div', { className: 'dotsFieldRow dotsSkillsSearch' },
+      h('input', { type: 'search', value: query, maxLength: 300, id: skillInputId, 'aria-label': t('skillsSearch'),
+        placeholder: t('skillsSearch'), onInput: event => { setQuery(event.currentTarget.value); setSelected(''); setConfirmDelete('') } }),
+      button('skillsRefresh', () => { setRevision(count => count + 1); setDetail(null); setConfirmDelete(''); setMessage(null) })),
+    form,
+    message ? h('p', { className: 'dotsMessage', role: message.error ? 'alert' : 'status' }, message.text) : null,
+    pendingList ? h('p', { className: 'dotsMcpHint', role: 'status' }, t('skillsLoading'))
+      : list.error ? h('p', { className: 'dotsMessage', role: 'alert' }, list.error)
+      : shown.length === 0 ? h('p', { className: 'dotsMcpHint', role: 'status' }, t('skillsEmpty')) : null,
+    shown.length ? h('ul', { className: 'dotsSkillsList' }, ...shown.map(row => {
+      const expanded = selected === row.id
+      const current = detail?.id === row.id ? detail : null
+      const entry = current?.entry
+      return h('li', { key: row.id, className: 'dotsSkillRow' },
+        h('button', { type: 'button', className: 'dotsSkillToggle', 'aria-expanded': expanded,
+          'aria-controls': expanded ? detailId : undefined,
+          onClick: () => { setSelected(expanded ? '' : row.id); setDetail(null); setConfirmDelete(''); setMessage(null) } },
+          h('span', { className: 'dotsSkillTitle' }, row.title),
+          h('span', { className: 'dotsSkillBadge' }, t(row.builtIn ? 'skillsBuiltin' : 'skillsLearned'))),
+        expanded ? h('div', { id: detailId, className: 'dotsSkillDetail' },
+          !current ? h('p', { className: 'dotsMcpHint', role: 'status' }, t('skillsLoading')) : null,
+          current?.error ? h('p', { className: 'dotsMessage', role: 'alert' }, current.error) : null,
+          entry ? h('dl', null, ...skillFields.slice(1).filter(([key]) => entry[key]).flatMap(([key, label]) => [
+            h('dt', { key: key + '-label' }, t(label)), h('dd', { key }, entry[key]),
+          ])) : null,
+          entry && !entry.builtIn && confirmDelete !== entry.id ? h('div', { className: 'dotsMcpRow' },
+            button('skillsEdit', () => startDraft(entry), { disabled: writing || draft !== null }),
+            button('skillsDelete', () => setConfirmDelete(entry.id), { disabled: writing || draft !== null })) : null,
+          entry && !entry.builtIn && confirmDelete === entry.id ? h('div', { className: 'dotsSkillConfirm' },
+            h('p', null, t('skillsDeletePrompt')),
+            h('div', { className: 'dotsMcpRow' },
+              button('skillsDeleteConfirm', () => { void write('skillRemove', { id: entry.id }) }),
+              button('skillsCancel', () => setConfirmDelete('')))) : null,
+        ) : null)
+    })) : null)
+}
+
 /** DSH Settings section: maintenance stays outside the Dots main page and Plugins page. */
 function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop = true }) {
   const [status, setStatus] = useState(null)
@@ -420,7 +599,8 @@ function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop
       button('persistenceApply', () => { void act('apply') }, state === 'available'),
       button('persistenceRestore', () => { void act('restore') }, state === 'applied' && status?.canRestore === true)),
     message ? h('p', { role: 'status' }, message) : null)
-  return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc, tunnelRpc, notifyRpc }) : null)
+  return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc, tunnelRpc, notifyRpc }) : null,
+    mcpRpc ? h(DotsSkillSettings, { t, mcpRpc }) : null)
 }
 
 exports.name = 'dsh-dot-mcp-client'
@@ -435,6 +615,7 @@ exports.mountPersistentDotsPage = mountPersistentDotsPage
 exports.mountDesktopDotGuest = mountDesktopDotGuest
 exports.desktopBrowserBridge = desktopBrowserBridge
 exports.DotsPersistenceSettings = DotsPersistenceSettings
+exports.DotsSkillSettings = DotsSkillSettings
 exports.apply = function apply(ctx) {
   ctx.effect(() => ctx.locale.register(NAMESPACE, { zh, en }), 'dsh-dot-mcp.localization')
   ctx.effect(() => {

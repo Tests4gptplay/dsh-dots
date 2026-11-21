@@ -114,3 +114,23 @@ body[data-ds-dark-theme] .dotsPage { color-scheme:dark; }
   .dotsSettings .dotsFieldRow { flex-wrap: wrap; }
   .dotsSettings .dotsFieldRow > input:not([type=checkbox]) { min-width: 140px; }
 }
+
+.dotsSettings > .dotsSkillsCard { margin-top: 16px; }
+.dotsSettings .dotsSkillsList { list-style: none; margin: 12px 0 0; padding: 0; }
+.dotsSettings .dotsSkillRow { border-top: 1px solid var(--dots-stroke); }
+.dotsSettings .dotsSkillToggle {
+  appearance: none; display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0;
+  padding: 9px 4px; border: 0; background: transparent; color: inherit; font: inherit;
+  text-align: start; cursor: pointer;
+}
+.dotsSettings .dotsSkillToggle:hover { background: var(--dsw-alias-interactive-bg-hover, #7f7f7f10); }
+.dotsSettings .dotsSkillToggle::before { content: '›'; flex: none; width: 10px; color: var(--dots-muted); font-size: 16px; line-height: 1; }
+.dotsSettings .dotsSkillToggle[aria-expanded=true]::before { transform: rotate(90deg); }
+.dotsSettings .dotsSkillTitle { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 550; }
+.dotsSettings .dotsSkillBadge { flex: none; padding: 1px 6px; border-radius: 5px; color: var(--dots-muted); background: var(--dsw-alias-bg-hover, #7f7f7f0d); font-size: 11px; }
+.dotsSettings .dotsSkillDetail { padding: 0 5px 12px 22px; font-size: 12px; }
+.dotsSettings .dotsSkillDetail dl { margin: 0 0 8px; }
+.dotsSettings .dotsSkillDetail dt { color: var(--dots-muted); font-weight: 600; }
+.dotsSettings .dotsSkillDetail dd { margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.dotsSettings .dotsSkillConfirm > p { margin: 0 0 8px; }
+.dotsSettings .dotsSkillsForm { margin-top: 12px; padding: 12px; border: 1px solid var(--dots-stroke); border-radius: 8px; }

@@ -1,6 +1,6 @@
 window.__ModuleLoader__.load({ id: "dsh-dot-mcp", factory: (require) => {
 var module = { exports: {} }; var exports = module.exports;
-const __DOTS_CLIENT_CSS__ = "/* Native DSH panel, with Dot content full-bleed; never style the foreign origin. */\n.dotsPage { color-scheme:light; box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 auto; align-self:stretch; width:100%; height:100%; min-height:0; min-width:0; overflow:hidden; color:var(--dsw-alias-label-primary,inherit); background:var(--dsw-alias-bg-base,transparent); }\n.dotsToolbar { box-sizing:border-box; display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:calc(var(--dsh-frame-top-clearance,0px) + 8px) 18px 9px; min-height:48px; background:var(--dsw-alias-bg-base,transparent); border-bottom:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.18)); }\n.dotsBrand,.dotsToolbarActions { display:inline-flex; align-items:center; gap:9px; min-width:0; }\n.dotsBrand { appearance:none; border:0; background:transparent; color:inherit; padding:0; cursor:pointer; font:inherit; text-align:left; border-radius:var(--dsw-radius-sm,7px); }\n.dotsBrand:hover { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }\n.dotsBrand:focus-visible { outline:2px solid currentColor; outline-offset:3px; }\n.dotsMark,.dotsMark svg { display:block; flex:none; width:23px; height:23px; }\n.dotsBrandName { font-size:14px; font-weight:600; letter-spacing:.01em; }\n.dotsTool { appearance:none; cursor:pointer; border:0; border-radius:var(--dsw-radius-sm,7px); padding:7px 10px; font:inherit; font-size:12px; line-height:1.3; color:inherit; background:transparent; white-space:nowrap; }\n.dotsTool:disabled { opacity:.45; cursor:default; }\n.dotsTool:hover:not(:disabled) { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }\n.dotsTool:focus-visible { outline:2px solid currentColor; outline-offset:2px; }\n.dotsOpen { border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.2)); }\n.dotsContent { box-sizing:border-box; position:relative; flex:1 1 0; width:100%; min-height:0; min-width:0; overflow:hidden; background:var(--dsw-alias-bg-base,transparent); }\n.dotsGuestHost,.dotsWebFrame { display:block; position:absolute; inset:0; width:100%; height:100%; box-sizing:border-box; border:0; background:var(--dsw-alias-bg-base,transparent); }\n/* Electron webview uses an internal shadow iframe as a flex child. Do not override its display:flex. */\n.dotsWebview { display:flex; flex:1 1 auto; min-width:0; min-height:0; width:100%; height:100%; border:0; background:transparent; -webkit-app-region:no-drag; }\n.dotsEmbedNotice { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); z-index:1; max-width:calc(100% - 36px); display:flex; gap:12px; align-items:center; padding:10px 12px; border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.22)); border-radius:var(--dsw-radius-md,10px); background:var(--dsw-alias-bg-base,rgba(127,127,127,.12)); color:var(--dsw-alias-label-primary,inherit); box-shadow:0 4px 22px rgba(0,0,0,.1); font-size:12px; }\n.dotsSidebarIcon { display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; color:inherit; }\n.dotsSidebarIcon svg { display:block; width:100%; height:100%; }\n@media(max-width:540px) { .dotsToolbar { padding-inline:11px; } .dotsTool { padding:6px; } .dotsEmbedNotice { flex-wrap:wrap; } }\n\n/* DSH is authoritative for Light/Dark/System; prefer its resolved theme attribute. */\nbody[data-ds-dark-theme] .dotsPage { color-scheme:dark; }\n\n/* Fallback host: keeps the proven in-slot page filling the native center column. */\n.dotsFallbackHost { box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 0; min-height:0; min-width:0; width:100%; position:relative; }\n\n/* Settings-only design system. DSH owns the theme; controls retain native semantics. */\n.dotsSettings {\n  --dots-accent: var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4d6bfe);\n  --dots-stroke: var(--dsw-alias-settings-card-stroke, var(--dsw-alias-border-l3, #d9dde5));\n  --dots-muted: var(--dsw-alias-label-secondary, #626b7a);\n  box-sizing: border-box; width: 100%; min-width: 0; padding: 4px 0 16px;\n  font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.6;\n  color: var(--dsw-alias-label-primary, inherit);\n}\n.dotsSettings *, .dotsSettings *::before, .dotsSettings *::after { box-sizing: border-box; }\n.dotsMcpSettings { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 0; }\n.dotsSettings .dotsSettingsCard {\n  width: 100%; min-width: 0; padding: 18px 20px; margin: 0;\n  border: 1px solid var(--dots-stroke); border-radius: 12px;\n  background: var(--dsw-alias-settings-card-fill, var(--dsw-alias-bg-layer-2, transparent));\n}\n.dotsSettings > .dotsSettingsCard { margin-bottom: 16px; }\n.dotsSettings h3, .dotsSettings h4, .dotsSettings p { margin: 0; overflow-wrap: anywhere; }\n.dotsSettings h3, .dotsSettings h4 { font: inherit; font-size: 14px; line-height: 22px; font-weight: 650; }\n.dotsSettings .dotsCardHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 6px; }\n.dotsSettings .dotsCardIntro { color: var(--dots-muted); font-size: 12px; line-height: 19px; margin-bottom: 16px; }\n.dotsSettings .dotsMcpHint { color: var(--dots-muted); font-size: 12px; line-height: 19px; opacity: 1; margin-top: 6px; }\n.dotsSettings .dotsMcpRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }\n.dotsSettings .dotsFieldRow { display: flex; align-items: center; gap: 8px; min-width: 0; }\n.dotsSettings .dotsFieldRow > input { flex: 1 1 0; width: 0; min-width: 0; }\n.dotsSettings .dotsFieldRow > button { flex: 0 0 auto; }\n.dotsSettings .dotsMcpField { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 14px 0 0; font-size: 13px; line-height: 20px; }\n.dotsSettings .dotsMcpField > label, .dotsSettings .dotsFieldLabel { font-weight: 500; }\n/* Text inputs and checkboxes have deliberately separate sizing rules. */\n.dotsSettings input:not([type=checkbox]):not([type=radio]), .dotsSettings textarea {\n  display: block; width: 100%; min-width: 0; min-height: 34px; margin: 0; padding: 7px 10px;\n  border: 1px solid var(--dsw-alias-border-l3, #d9dde5); border-radius: 7px;\n  background: var(--dsw-alias-bg-layer-2, transparent); color: var(--dsw-alias-label-primary, inherit);\n  font: inherit; font-size: 13px; line-height: 20px; box-shadow: none;\n}\n.dotsSettings .dotsFieldRow > input:not([type=checkbox]) { width: 0; }\n.dotsSettings textarea { min-height: 84px; resize: vertical; }\n.dotsSettings input::placeholder, .dotsSettings textarea::placeholder { color: var(--dsw-alias-label-tertiary, #818996); opacity: 1; }\n.dotsSettings input:focus-visible, .dotsSettings textarea:focus-visible, .dotsSettings button:focus-visible, .dotsSettings summary:focus-visible, .dotsSettings a:focus-visible {\n  outline: 2px solid var(--dots-accent); outline-offset: 2px;\n}\n.dotsSettings .dotsMcpSwitch {\n  display: inline-flex; align-items: center; flex-wrap: nowrap; gap: 9px; min-height: 28px; width: auto; margin: 0;\n  font-size: 13px; line-height: 20px; cursor: pointer;\n}\n.dotsSettings input[type=checkbox], .dotsSettings input[type=radio] {\n  flex: 0 0 16px; width: 16px; height: 16px; min-width: 16px; min-height: 16px; margin: 0; padding: 0;\n  accent-color: var(--dots-accent); cursor: pointer;\n}\n.dotsSettings .dotsMcpSwitch > span { min-width: 0; }\n.dotsSettings .dotsSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 0 12px; }\n.dotsSettings .dotsChoices { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 8px 0 0; }\n.dotsSettings .dotsMcpButton {\n  appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 34px;\n  margin: 0; padding: 6px 12px; border: 1px solid var(--dsw-alias-border-l3, #d9dde5); border-radius: 7px;\n  background: var(--dsw-alias-bg-layer-2, transparent); color: inherit; font: inherit; font-size: 12px; line-height: 20px;\n  cursor: pointer; text-align: center; white-space: normal; overflow-wrap: anywhere;\n}\n.dotsSettings .dotsMcpButton:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover, #7f7f7f10); }\n.dotsSettings .dotsPrimaryButton { border-color: var(--dots-accent); color: var(--dots-accent); background: color-mix(in srgb, var(--dots-accent) 7%, transparent); font-weight: 600; }\n.dotsSettings .dotsMcpButton:disabled, .dotsSettings input:disabled, .dotsSettings textarea:disabled { opacity: .5; cursor: default; }\n.dotsSettings .dotsActions { margin-top: 14px; }\n.dotsSettings .dotsMcpLinks { display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0; }\n.dotsSettings a { color: var(--dots-accent); font-size: 12px; line-height: 20px; text-decoration: none; overflow-wrap: anywhere; }\n.dotsSettings a:hover { text-decoration: underline; text-underline-offset: 3px; }\n.dotsSettings .dotsStatus { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; padding: 2px 8px; border-radius: 5px; font-size: 11px; line-height: 19px; color: var(--dots-muted); background: var(--dsw-alias-bg-hover, #7f7f7f0d); }\n.dotsSettings .dotsStatus[data-active=true] { color: var(--dsw-alias-state-success-primary, #168154); background: color-mix(in srgb, var(--dsw-alias-state-success-primary, #168154) 8%, transparent); }\n.dotsSettings .dotsStatus::before { content: ''; flex: none; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }\n.dotsSettings .dotsSectionTitle { margin-top: 16px; font-size: 12px; line-height: 20px; font-weight: 600; color: var(--dots-muted); }\n.dotsSettings .dotsDivider { height: 0; margin: 18px 0; border: 0; border-top: 1px solid var(--dots-stroke); }\n.dotsSettings .dotsDetails { margin-top: 14px; border-top: 1px solid var(--dots-stroke); padding-top: 12px; }\n.dotsSettings .dotsDetails summary { cursor: pointer; font-size: 12px; line-height: 22px; font-weight: 500; color: var(--dots-muted); }\n.dotsSettings .dotsDetails[open] summary { margin-bottom: 10px; }\n.dotsSettings .dotsDetails p + p { margin-top: 8px; }\n.dotsSettings .dotsMessage { padding: 8px 10px; margin-top: 10px; border-radius: 7px; background: var(--dsw-alias-interactive-bg-hover, #7f7f7f0d); font-size: 12px; line-height: 20px; }\n.dotsSettings .dotsReport { font: 11px/18px ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; margin: 0; }\n.dotsSettings .dotsMetrics { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 14px; font-size: 12px; color: var(--dots-muted); }\n.dotsSettings .dotsMetrics strong { font-weight: 600; color: var(--dsw-alias-label-primary, inherit); }\n.dotsSettings .dotsToolList { display: grid; gap: 10px; }\n.dotsSettings .dotsToolList p { font-size: 12px; }\n.dotsSettings .dotsToolList code { font-size: 11px; overflow-wrap: anywhere; }\n@media (max-width: 560px) {\n  .dotsSettings .dotsSettingsCard { padding: 14px; }\n  .dotsSettings .dotsChoices { gap: 8px 16px; }\n  .dotsSettings .dotsFieldRow { flex-wrap: wrap; }\n  .dotsSettings .dotsFieldRow > input:not([type=checkbox]) { min-width: 140px; }\n}\n";
+const __DOTS_CLIENT_CSS__ = "/* Native DSH panel, with Dot content full-bleed; never style the foreign origin. */\n.dotsPage { color-scheme:light; box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 auto; align-self:stretch; width:100%; height:100%; min-height:0; min-width:0; overflow:hidden; color:var(--dsw-alias-label-primary,inherit); background:var(--dsw-alias-bg-base,transparent); }\n.dotsToolbar { box-sizing:border-box; display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:calc(var(--dsh-frame-top-clearance,0px) + 8px) 18px 9px; min-height:48px; background:var(--dsw-alias-bg-base,transparent); border-bottom:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.18)); }\n.dotsBrand,.dotsToolbarActions { display:inline-flex; align-items:center; gap:9px; min-width:0; }\n.dotsBrand { appearance:none; border:0; background:transparent; color:inherit; padding:0; cursor:pointer; font:inherit; text-align:left; border-radius:var(--dsw-radius-sm,7px); }\n.dotsBrand:hover { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }\n.dotsBrand:focus-visible { outline:2px solid currentColor; outline-offset:3px; }\n.dotsMark,.dotsMark svg { display:block; flex:none; width:23px; height:23px; }\n.dotsBrandName { font-size:14px; font-weight:600; letter-spacing:.01em; }\n.dotsTool { appearance:none; cursor:pointer; border:0; border-radius:var(--dsw-radius-sm,7px); padding:7px 10px; font:inherit; font-size:12px; line-height:1.3; color:inherit; background:transparent; white-space:nowrap; }\n.dotsTool:disabled { opacity:.45; cursor:default; }\n.dotsTool:hover:not(:disabled) { background:var(--dsw-alias-bg-hover,rgba(127,127,127,.12)); }\n.dotsTool:focus-visible { outline:2px solid currentColor; outline-offset:2px; }\n.dotsOpen { border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.2)); }\n.dotsContent { box-sizing:border-box; position:relative; flex:1 1 0; width:100%; min-height:0; min-width:0; overflow:hidden; background:var(--dsw-alias-bg-base,transparent); }\n.dotsGuestHost,.dotsWebFrame { display:block; position:absolute; inset:0; width:100%; height:100%; box-sizing:border-box; border:0; background:var(--dsw-alias-bg-base,transparent); }\n/* Electron webview uses an internal shadow iframe as a flex child. Do not override its display:flex. */\n.dotsWebview { display:flex; flex:1 1 auto; min-width:0; min-height:0; width:100%; height:100%; border:0; background:transparent; -webkit-app-region:no-drag; }\n.dotsEmbedNotice { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); z-index:1; max-width:calc(100% - 36px); display:flex; gap:12px; align-items:center; padding:10px 12px; border:.5px solid var(--dsw-alias-border-l3,rgba(127,127,127,.22)); border-radius:var(--dsw-radius-md,10px); background:var(--dsw-alias-bg-base,rgba(127,127,127,.12)); color:var(--dsw-alias-label-primary,inherit); box-shadow:0 4px 22px rgba(0,0,0,.1); font-size:12px; }\n.dotsSidebarIcon { display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; color:inherit; }\n.dotsSidebarIcon svg { display:block; width:100%; height:100%; }\n@media(max-width:540px) { .dotsToolbar { padding-inline:11px; } .dotsTool { padding:6px; } .dotsEmbedNotice { flex-wrap:wrap; } }\n\n/* DSH is authoritative for Light/Dark/System; prefer its resolved theme attribute. */\nbody[data-ds-dark-theme] .dotsPage { color-scheme:dark; }\n\n/* Fallback host: keeps the proven in-slot page filling the native center column. */\n.dotsFallbackHost { box-sizing:border-box; position:relative; z-index:2; display:flex; flex-direction:column; flex:1 1 0; min-height:0; min-width:0; width:100%; position:relative; }\n\n/* Settings-only design system. DSH owns the theme; controls retain native semantics. */\n.dotsSettings {\n  --dots-accent: var(--dsw-alias-brand-primary-new-colorprimary-new-color, #4d6bfe);\n  --dots-stroke: var(--dsw-alias-settings-card-stroke, var(--dsw-alias-border-l3, #d9dde5));\n  --dots-muted: var(--dsw-alias-label-secondary, #626b7a);\n  box-sizing: border-box; width: 100%; min-width: 0; padding: 4px 0 16px;\n  font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.6;\n  color: var(--dsw-alias-label-primary, inherit);\n}\n.dotsSettings *, .dotsSettings *::before, .dotsSettings *::after { box-sizing: border-box; }\n.dotsMcpSettings { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 0; }\n.dotsSettings .dotsSettingsCard {\n  width: 100%; min-width: 0; padding: 18px 20px; margin: 0;\n  border: 1px solid var(--dots-stroke); border-radius: 12px;\n  background: var(--dsw-alias-settings-card-fill, var(--dsw-alias-bg-layer-2, transparent));\n}\n.dotsSettings > .dotsSettingsCard { margin-bottom: 16px; }\n.dotsSettings h3, .dotsSettings h4, .dotsSettings p { margin: 0; overflow-wrap: anywhere; }\n.dotsSettings h3, .dotsSettings h4 { font: inherit; font-size: 14px; line-height: 22px; font-weight: 650; }\n.dotsSettings .dotsCardHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 6px; }\n.dotsSettings .dotsCardIntro { color: var(--dots-muted); font-size: 12px; line-height: 19px; margin-bottom: 16px; }\n.dotsSettings .dotsMcpHint { color: var(--dots-muted); font-size: 12px; line-height: 19px; opacity: 1; margin-top: 6px; }\n.dotsSettings .dotsMcpRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }\n.dotsSettings .dotsFieldRow { display: flex; align-items: center; gap: 8px; min-width: 0; }\n.dotsSettings .dotsFieldRow > input { flex: 1 1 0; width: 0; min-width: 0; }\n.dotsSettings .dotsFieldRow > button { flex: 0 0 auto; }\n.dotsSettings .dotsMcpField { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 14px 0 0; font-size: 13px; line-height: 20px; }\n.dotsSettings .dotsMcpField > label, .dotsSettings .dotsFieldLabel { font-weight: 500; }\n/* Text inputs and checkboxes have deliberately separate sizing rules. */\n.dotsSettings input:not([type=checkbox]):not([type=radio]), .dotsSettings textarea {\n  display: block; width: 100%; min-width: 0; min-height: 34px; margin: 0; padding: 7px 10px;\n  border: 1px solid var(--dsw-alias-border-l3, #d9dde5); border-radius: 7px;\n  background: var(--dsw-alias-bg-layer-2, transparent); color: var(--dsw-alias-label-primary, inherit);\n  font: inherit; font-size: 13px; line-height: 20px; box-shadow: none;\n}\n.dotsSettings .dotsFieldRow > input:not([type=checkbox]) { width: 0; }\n.dotsSettings textarea { min-height: 84px; resize: vertical; }\n.dotsSettings input::placeholder, .dotsSettings textarea::placeholder { color: var(--dsw-alias-label-tertiary, #818996); opacity: 1; }\n.dotsSettings input:focus-visible, .dotsSettings textarea:focus-visible, .dotsSettings button:focus-visible, .dotsSettings summary:focus-visible, .dotsSettings a:focus-visible {\n  outline: 2px solid var(--dots-accent); outline-offset: 2px;\n}\n.dotsSettings .dotsMcpSwitch {\n  display: inline-flex; align-items: center; flex-wrap: nowrap; gap: 9px; min-height: 28px; width: auto; margin: 0;\n  font-size: 13px; line-height: 20px; cursor: pointer;\n}\n.dotsSettings input[type=checkbox], .dotsSettings input[type=radio] {\n  flex: 0 0 16px; width: 16px; height: 16px; min-width: 16px; min-height: 16px; margin: 0; padding: 0;\n  accent-color: var(--dots-accent); cursor: pointer;\n}\n.dotsSettings .dotsMcpSwitch > span { min-width: 0; }\n.dotsSettings .dotsSwitchRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 0 12px; }\n.dotsSettings .dotsChoices { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 8px 0 0; }\n.dotsSettings .dotsMcpButton {\n  appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 34px;\n  margin: 0; padding: 6px 12px; border: 1px solid var(--dsw-alias-border-l3, #d9dde5); border-radius: 7px;\n  background: var(--dsw-alias-bg-layer-2, transparent); color: inherit; font: inherit; font-size: 12px; line-height: 20px;\n  cursor: pointer; text-align: center; white-space: normal; overflow-wrap: anywhere;\n}\n.dotsSettings .dotsMcpButton:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover, #7f7f7f10); }\n.dotsSettings .dotsPrimaryButton { border-color: var(--dots-accent); color: var(--dots-accent); background: color-mix(in srgb, var(--dots-accent) 7%, transparent); font-weight: 600; }\n.dotsSettings .dotsMcpButton:disabled, .dotsSettings input:disabled, .dotsSettings textarea:disabled { opacity: .5; cursor: default; }\n.dotsSettings .dotsActions { margin-top: 14px; }\n.dotsSettings .dotsMcpLinks { display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0; }\n.dotsSettings a { color: var(--dots-accent); font-size: 12px; line-height: 20px; text-decoration: none; overflow-wrap: anywhere; }\n.dotsSettings a:hover { text-decoration: underline; text-underline-offset: 3px; }\n.dotsSettings .dotsStatus { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; padding: 2px 8px; border-radius: 5px; font-size: 11px; line-height: 19px; color: var(--dots-muted); background: var(--dsw-alias-bg-hover, #7f7f7f0d); }\n.dotsSettings .dotsStatus[data-active=true] { color: var(--dsw-alias-state-success-primary, #168154); background: color-mix(in srgb, var(--dsw-alias-state-success-primary, #168154) 8%, transparent); }\n.dotsSettings .dotsStatus::before { content: ''; flex: none; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }\n.dotsSettings .dotsSectionTitle { margin-top: 16px; font-size: 12px; line-height: 20px; font-weight: 600; color: var(--dots-muted); }\n.dotsSettings .dotsDivider { height: 0; margin: 18px 0; border: 0; border-top: 1px solid var(--dots-stroke); }\n.dotsSettings .dotsDetails { margin-top: 14px; border-top: 1px solid var(--dots-stroke); padding-top: 12px; }\n.dotsSettings .dotsDetails summary { cursor: pointer; font-size: 12px; line-height: 22px; font-weight: 500; color: var(--dots-muted); }\n.dotsSettings .dotsDetails[open] summary { margin-bottom: 10px; }\n.dotsSettings .dotsDetails p + p { margin-top: 8px; }\n.dotsSettings .dotsMessage { padding: 8px 10px; margin-top: 10px; border-radius: 7px; background: var(--dsw-alias-interactive-bg-hover, #7f7f7f0d); font-size: 12px; line-height: 20px; }\n.dotsSettings .dotsReport { font: 11px/18px ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; margin: 0; }\n.dotsSettings .dotsMetrics { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 14px; font-size: 12px; color: var(--dots-muted); }\n.dotsSettings .dotsMetrics strong { font-weight: 600; color: var(--dsw-alias-label-primary, inherit); }\n.dotsSettings .dotsToolList { display: grid; gap: 10px; }\n.dotsSettings .dotsToolList p { font-size: 12px; }\n.dotsSettings .dotsToolList code { font-size: 11px; overflow-wrap: anywhere; }\n@media (max-width: 560px) {\n  .dotsSettings .dotsSettingsCard { padding: 14px; }\n  .dotsSettings .dotsChoices { gap: 8px 16px; }\n  .dotsSettings .dotsFieldRow { flex-wrap: wrap; }\n  .dotsSettings .dotsFieldRow > input:not([type=checkbox]) { min-width: 140px; }\n}\n\n.dotsSettings > .dotsSkillsCard { margin-top: 16px; }\n.dotsSettings .dotsSkillsList { list-style: none; margin: 12px 0 0; padding: 0; }\n.dotsSettings .dotsSkillRow { border-top: 1px solid var(--dots-stroke); }\n.dotsSettings .dotsSkillToggle {\n  appearance: none; display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0;\n  padding: 9px 4px; border: 0; background: transparent; color: inherit; font: inherit;\n  text-align: start; cursor: pointer;\n}\n.dotsSettings .dotsSkillToggle:hover { background: var(--dsw-alias-interactive-bg-hover, #7f7f7f10); }\n.dotsSettings .dotsSkillToggle::before { content: '›'; flex: none; width: 10px; color: var(--dots-muted); font-size: 16px; line-height: 1; }\n.dotsSettings .dotsSkillToggle[aria-expanded=true]::before { transform: rotate(90deg); }\n.dotsSettings .dotsSkillTitle { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 550; }\n.dotsSettings .dotsSkillBadge { flex: none; padding: 1px 6px; border-radius: 5px; color: var(--dots-muted); background: var(--dsw-alias-bg-hover, #7f7f7f0d); font-size: 11px; }\n.dotsSettings .dotsSkillDetail { padding: 0 5px 12px 22px; font-size: 12px; }\n.dotsSettings .dotsSkillDetail dl { margin: 0 0 8px; }\n.dotsSettings .dotsSkillDetail dt { color: var(--dots-muted); font-weight: 600; }\n.dotsSettings .dotsSkillDetail dd { margin: 0 0 8px; white-space: pre-wrap; overflow-wrap: anywhere; }\n.dotsSettings .dotsSkillConfirm > p { margin: 0 0 8px; }\n.dotsSettings .dotsSkillsForm { margin-top: 12px; padding: 12px; border: 1px solid var(--dots-stroke); border-radius: 8px; }\n";
 /** Native DSH main panel and sidebar entry. Uses the user's own ChatGPT web login. */
 const React = require('react')
 const { createElement: h, useState, useRef, useEffect } = React
@@ -372,6 +372,185 @@ function DotsPage({ t, openExternal }) {
 }
 
 
+
+Object.assign(zh, {
+  skillsTitle: '故障处理 Skills',
+  skillsIntro: 'Dot 遇到问题时先查这里，验证解决后再补记。笔记保存在当前 DSH 配置中，不会自动执行。内置条目只读，本地记录可编辑或删除。',
+  skillsSearch: '搜索症状、错误码或标题', skillsRefresh: '刷新列表', skillsAdd: '新建 Skill',
+  skillsLoading: '正在读取…', skillsEmpty: '没有匹配的 Skill。', skillsBuiltin: '内置', skillsLearned: '本地记录',
+  skillsName: '标题', skillsSymptom: '症状', skillsResolution: '处理方法', skillsVerification: '验证结果',
+  skillsScope: '适用范围（可选）', skillsEdit: '编辑', skillsSave: '保存 Skill', skillsCancel: '取消',
+  skillsDelete: '删除', skillsDeletePrompt: '删除这条本地记录？', skillsDeleteConfirm: '确认删除',
+  skillsSaved: '已保存。', skillsRemoved: '已删除。', skillsMissing: '这条记录已不存在，请刷新列表。',
+  skillsPrivate: '请只记验证过的结果，不要填写密钥或完整日志。',
+})
+Object.assign(en, {
+  skillsTitle: 'Troubleshooting Skills',
+  skillsIntro: 'Dot checks here when it encounters a problem and records fixes it has verified. Notes are stored in this DSH profile and never run automatically. Built-in entries are read only; local notes can be edited or deleted.',
+  skillsSearch: 'Search symptoms, error codes or titles', skillsRefresh: 'Refresh list', skillsAdd: 'New Skill',
+  skillsLoading: 'Loading…', skillsEmpty: 'No matching Skills.', skillsBuiltin: 'Built in', skillsLearned: 'Local note',
+  skillsName: 'Title', skillsSymptom: 'Symptom', skillsResolution: 'Resolution', skillsVerification: 'Verification',
+  skillsScope: 'Scope (optional)', skillsEdit: 'Edit', skillsSave: 'Save Skill', skillsCancel: 'Cancel',
+  skillsDelete: 'Delete', skillsDeletePrompt: 'Delete this local note?', skillsDeleteConfirm: 'Confirm deletion',
+  skillsSaved: 'Saved.', skillsRemoved: 'Deleted.', skillsMissing: 'This note no longer exists. Refresh the list.',
+  skillsPrivate: 'Record verified results only. Do not include credentials or full logs.',
+})
+
+const skillFields = [
+  ['title', 'skillsName', 120],
+  ['symptom', 'skillsSymptom', 600],
+  ['resolution', 'skillsResolution', 2400],
+  ['verification', 'skillsVerification', 1000],
+  ['scope', 'skillsScope', 300],
+]
+
+/** The settings panel uses the same profile-local store as the MCP troubleshooting tools. */
+function DotsSkillSettings({ t, mcpRpc }) {
+  const [query, setQuery] = useState('')
+  const [revision, setRevision] = useState(0)
+  const [list, setList] = useState({ query: null, entries: [], error: '' })
+  const [selected, setSelected] = useState('')
+  const [detail, setDetail] = useState(null)
+  const [draft, setDraft] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState('')
+  const [message, setMessage] = useState(null)
+  const [writing, setWriting] = useState(false)
+  const writer = useRef(null)
+  const queryText = query.trim()
+  const skillInputId = React.useId()
+  const detailId = React.useId()
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        const entries = await mcpRpc('skillList', queryText ? { query: queryText } : {}, controller.signal)
+        if (!Array.isArray(entries)) throw new Error(t('skillsMissing'))
+        if (!controller.signal.aborted) setList({ query: queryText, entries, error: '' })
+      } catch (error) {
+        if (!controller.signal.aborted) setList({ query: queryText, entries: [], error: String(error.message || error) })
+      }
+    }
+    // A fresh settings mount (and an explicit refresh of the unfiltered list) reads immediately.
+    const timer = queryText ? setTimeout(() => { void load() }, 180) : null
+    if (!timer) void load()
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [mcpRpc, queryText, revision, t])
+
+  useEffect(() => {
+    if (!selected) return
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        const entry = await mcpRpc('skillRead', { id: selected }, controller.signal)
+        if (!controller.signal.aborted) setDetail({ id: selected, entry, error: entry ? '' : t('skillsMissing') })
+      } catch (error) {
+        if (!controller.signal.aborted) setDetail({ id: selected, error: String(error.message || error) })
+      }
+    }
+    void load()
+    return () => controller.abort()
+  }, [mcpRpc, selected, revision, t])
+
+  useEffect(() => () => writer.current?.abort(), [])
+
+  async function write(endpoint, payload) {
+    if (writer.current) return
+    const controller = new AbortController()
+    writer.current = controller
+    setWriting(true)
+    setMessage(null)
+    try {
+      const result = await mcpRpc(endpoint, payload, controller.signal)
+      if (controller.signal.aborted) return
+      const saving = endpoint === 'skillSave'
+      if (!result || (saving && !result.id)) throw new Error(t('skillsMissing'))
+      setDraft(null)
+      setConfirmDelete('')
+      setDetail(null)
+      if (saving && !payload.id) setQuery('')
+      setSelected(saving ? result.id : '')
+      setRevision(count => count + 1)
+      setMessage({ text: t(saving ? 'skillsSaved' : 'skillsRemoved') })
+    } catch (error) {
+      if (!controller.signal.aborted) setMessage({ error: true, text: String(error.message || error) })
+    } finally {
+      writer.current = null
+      if (!controller.signal.aborted) setWriting(false)
+    }
+  }
+
+  const button = (key, action, { primary = false, type = 'button', disabled = writing } = {}) => h('button', {
+    type, onClick: action, disabled, className: 'dotsMcpButton' + (primary ? ' dotsPrimaryButton' : ''),
+  }, t(key))
+  const startDraft = (entry = {}) => {
+    setConfirmDelete('')
+    setMessage(null)
+    setDraft({ id: entry.id, ...Object.fromEntries(skillFields.map(([key]) => [key, entry[key] ?? ''])) })
+  }
+  const form = draft ? h('form', { className: 'dotsSkillsForm', onSubmit: event => {
+    event.preventDefault()
+    if (skillFields.some(([key]) => key !== 'scope' && !draft[key].trim())) return
+    const payload = Object.fromEntries(skillFields.map(([key]) => [key, draft[key].trim()]))
+    if (draft.id) payload.id = draft.id
+    void write('skillSave', payload)
+  } },
+  h('h4', null, t(draft.id ? 'skillsEdit' : 'skillsAdd')),
+  ...skillFields.map(([key, label, limit]) => {
+    const props = { value: draft[key], maxLength: limit, required: key !== 'scope', disabled: writing,
+      onInput: event => { const value = event.currentTarget.value; setDraft(current => ({ ...current, [key]: value })) } }
+    return h('label', { className: 'dotsMcpField', key }, h('span', { className: 'dotsFieldLabel' }, t(label)),
+      key === 'title' || key === 'scope' ? h('input', { ...props, type: 'text', autoFocus: key === 'title' }) : h('textarea', { ...props, rows: 3 }))
+  }),
+  h('p', { className: 'dotsMcpHint' }, t('skillsPrivate')),
+  h('div', { className: 'dotsMcpRow dotsActions' },
+    button('skillsSave', undefined, { primary: true, type: 'submit',
+      disabled: writing || skillFields.some(([key]) => key !== 'scope' && !draft[key].trim()) }),
+    button('skillsCancel', () => { setDraft(null); setMessage(null) }))) : null
+
+  const pendingList = list.query !== queryText
+  const shown = pendingList ? [] : list.entries
+  return h('section', { className: 'dotsSettingsCard dotsSkillsCard', 'data-testid': 'dots-skill-settings', 'aria-labelledby': skillInputId + '-title' },
+    h('div', { className: 'dotsCardHeader' }, h('h3', { id: skillInputId + '-title' }, t('skillsTitle')),
+      button('skillsAdd', () => startDraft(), { primary: true, disabled: writing || draft !== null })),
+    h('p', { className: 'dotsCardIntro' }, t('skillsIntro')),
+    h('div', { className: 'dotsFieldRow dotsSkillsSearch' },
+      h('input', { type: 'search', value: query, maxLength: 300, id: skillInputId, 'aria-label': t('skillsSearch'),
+        placeholder: t('skillsSearch'), onInput: event => { setQuery(event.currentTarget.value); setSelected(''); setConfirmDelete('') } }),
+      button('skillsRefresh', () => { setRevision(count => count + 1); setDetail(null); setConfirmDelete(''); setMessage(null) })),
+    form,
+    message ? h('p', { className: 'dotsMessage', role: message.error ? 'alert' : 'status' }, message.text) : null,
+    pendingList ? h('p', { className: 'dotsMcpHint', role: 'status' }, t('skillsLoading'))
+      : list.error ? h('p', { className: 'dotsMessage', role: 'alert' }, list.error)
+      : shown.length === 0 ? h('p', { className: 'dotsMcpHint', role: 'status' }, t('skillsEmpty')) : null,
+    shown.length ? h('ul', { className: 'dotsSkillsList' }, ...shown.map(row => {
+      const expanded = selected === row.id
+      const current = detail?.id === row.id ? detail : null
+      const entry = current?.entry
+      return h('li', { key: row.id, className: 'dotsSkillRow' },
+        h('button', { type: 'button', className: 'dotsSkillToggle', 'aria-expanded': expanded,
+          'aria-controls': expanded ? detailId : undefined,
+          onClick: () => { setSelected(expanded ? '' : row.id); setDetail(null); setConfirmDelete(''); setMessage(null) } },
+          h('span', { className: 'dotsSkillTitle' }, row.title),
+          h('span', { className: 'dotsSkillBadge' }, t(row.builtIn ? 'skillsBuiltin' : 'skillsLearned'))),
+        expanded ? h('div', { id: detailId, className: 'dotsSkillDetail' },
+          !current ? h('p', { className: 'dotsMcpHint', role: 'status' }, t('skillsLoading')) : null,
+          current?.error ? h('p', { className: 'dotsMessage', role: 'alert' }, current.error) : null,
+          entry ? h('dl', null, ...skillFields.slice(1).filter(([key]) => entry[key]).flatMap(([key, label]) => [
+            h('dt', { key: key + '-label' }, t(label)), h('dd', { key }, entry[key]),
+          ])) : null,
+          entry && !entry.builtIn && confirmDelete !== entry.id ? h('div', { className: 'dotsMcpRow' },
+            button('skillsEdit', () => startDraft(entry), { disabled: writing || draft !== null }),
+            button('skillsDelete', () => setConfirmDelete(entry.id), { disabled: writing || draft !== null })) : null,
+          entry && !entry.builtIn && confirmDelete === entry.id ? h('div', { className: 'dotsSkillConfirm' },
+            h('p', null, t('skillsDeletePrompt')),
+            h('div', { className: 'dotsMcpRow' },
+              button('skillsDeleteConfirm', () => { void write('skillRemove', { id: entry.id }) }),
+              button('skillsCancel', () => setConfirmDelete('')))) : null,
+        ) : null)
+    })) : null)
+}
+
 /** DSH Settings section: maintenance stays outside the Dots main page and Plugins page. */
 function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop = true }) {
   const [status, setStatus] = useState(null)
@@ -423,7 +602,8 @@ function DotsPersistenceSettings({ t, rpc, mcpRpc, tunnelRpc, notifyRpc, desktop
       button('persistenceApply', () => { void act('apply') }, state === 'available'),
       button('persistenceRestore', () => { void act('restore') }, state === 'applied' && status?.canRestore === true)),
     message ? h('p', { role: 'status' }, message) : null)
-  return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc, tunnelRpc, notifyRpc }) : null)
+  return h('div', { className: 'dotsSettings' }, desktop ? persistence : null, mcpRpc ? h(DotsMcpSettings, { t, mcpRpc, tunnelRpc, notifyRpc }) : null,
+    mcpRpc ? h(DotsSkillSettings, { t, mcpRpc }) : null)
 }
 
 exports.name = 'dsh-dot-mcp-client'
@@ -438,6 +618,7 @@ exports.mountPersistentDotsPage = mountPersistentDotsPage
 exports.mountDesktopDotGuest = mountDesktopDotGuest
 exports.desktopBrowserBridge = desktopBrowserBridge
 exports.DotsPersistenceSettings = DotsPersistenceSettings
+exports.DotsSkillSettings = DotsSkillSettings
 exports.apply = function apply(ctx) {
   ctx.effect(() => ctx.locale.register(NAMESPACE, { zh, en }), 'dsh-dot-mcp.localization')
   ctx.effect(() => {

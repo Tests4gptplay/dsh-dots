@@ -1,4 +1,4 @@
-# DSH Dot MCP 1.0.3
+# DSH Dot MCP 1.0.4-test.skills.2
 
 **在 DSH 里使用 Dot，让 Dot 调用 DSH 完成工作。**
 
@@ -81,6 +81,10 @@ ChatGPT Dot 的**主动事件触发**采用官方 MCP Events 的 Webhook 协议�
 实机截图、原生环境验证和两轮文件任务实验，集中在 [2.0.0 更新记录](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.md)。其他版本见 [更新记录索引](CHANGELOG.md)。
 
 遇到问题可在 [Issues](https://github.com/Tests4gptplay/dsh-dots/issues) 提交 DSH 版本、系统和错误提示；连接密钥请从截图与日志中移除。
+
+## 排障技能（Skills）
+
+在 **DSH 设置 → Dot MCP → 排障技能** 可搜索和查看排障经验。MCP 在调用前提示有排障技能库，执行失败时附带完整索引，由 Dot 阅读条目并结合现场判断。Dot 在报告失败前须查阅，验证解决后须先新增或修订学习条目再结束，你也可以在面板编辑或删除学习条目；新安装的技能库默认留空；如有内置技能，则为只读。条目存放在当前 DSH 配置中，不会自动执行或授予权限，请勿保存密钥和私密日志。
 
 ## 支持项目
 

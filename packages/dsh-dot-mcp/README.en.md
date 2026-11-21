@@ -1,4 +1,4 @@
-# DSH Dot MCP 1.0.3
+# DSH Dot MCP 1.0.4-test.skills.2
 
 **Use your Dot inside DSH—and let your Dot put DSH to work.**
 
@@ -81,6 +81,10 @@ Dot in the embedded DSH page and Dot in the ChatGPT mobile app can use the confi
 The [2.0.0 release notes](https://github.com/Tests4gptplay/dsh-dots/blob/v2.0.0/docs/releases/v2.0.0.en.md) contain actual screenshots, native-environment checks and the two-turn file-task experiment. See the [changelog](CHANGELOG.md) for other versions.
 
 When reporting an [issue](https://github.com/Tests4gptplay/dsh-dots/issues), include your DSH version, operating system and error message. Remove connection keys from screenshots and logs.
+
+## Troubleshooting Skills
+
+In **DSH Settings → Dot MCP → Skills**, search for and review reusable troubleshooting notes. MCP advertises the library before a call and includes the full catalog when an operation fails. Dot reads relevant entries and decides whether they apply. Dot checks the library before reporting failure and saves or updates a learned note before ending once it has verified a fix; the panel also lets you edit or delete learned notes. A fresh library starts empty; any built-in entries are read-only. Notes are stored in this DSH profile, are not automatically executed, and do not grant permissions. Do not include secrets or private logs.
 
 ## Support the project
 

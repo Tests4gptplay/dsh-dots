@@ -3,6 +3,7 @@ import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 import { randomBytes, randomUUID } from 'node:crypto'
+import { createSkillStore } from './skill-store.mjs'
 import { createDshAdapter, getService } from './mcp-adapter.mjs'
 
 export const MCP_GUIDES = Object.freeze({
@@ -41,10 +42,11 @@ export function validatePreferences(value, current = defaults()) {
 export function createMcpController(ctx, options = {}) {
   const profile = getService(ctx, 'profileContext')
   const configPath = options.configPath ?? join(profile?.dir ?? join(homedir(), '.dsh'), 'dsh-dots', 'mcp.json')
+  const skills = createSkillStore({ directory: dirname(configPath) })
   const loadServer = options.loadServer ?? (() => import('./mcp-server.mjs'))
   let prefs = defaults(), loaded = false, runtime, peer, error = '', lastCall = null, lastCheck = null, disposed = false
   let currentWorkspaceId
-  const adapter = () => createDshAdapter(ctx, peer, { currentWorkspace: () => currentWorkspaceId })
+  const adapter = () => createDshAdapter(ctx, peer, { currentWorkspace: () => currentWorkspaceId, skills })
   const checks = new Set()
   let serial = Promise.resolve()
   const enqueue = action => {
@@ -117,6 +119,10 @@ export function createMcpController(ctx, options = {}) {
   })
   return {
     status,
+    skillList: (args) => skills.list(args),
+    skillRead: (args) => skills.read(args),
+    skillSave: (args) => skills.save(args),
+    skillRemove: (args) => skills.remove(args),
     currentWorkspace: ({ workspaceId }) => { currentWorkspaceId = workspaceId; return { workspaceId } },
     initialize: () => guarded(async () => { await reconcile(); return status() }),
     configure: patch => guarded(async () => {
@@ -193,7 +199,8 @@ export function createMcpController(ctx, options = {}) {
 
 /** These endpoints use DSH's authenticated UI transport; the public MCP endpoint cannot change this configuration. */
 export function registerMcpTransport(connection, controller) {
-  const disposers = ['status', 'configure', 'check', 'rotate', 'currentWorkspace'].map(endpoint => {
+  const acceptsPayload = ['configure', 'currentWorkspace', 'skillList', 'skillRead', 'skillSave', 'skillRemove']
+  const disposers = ['status', 'check', 'rotate', ...acceptsPayload].map(endpoint => {
     const method = `dsh-dot-mcp-mcp/${endpoint}`
     return connection.fetch.register({ path: `/api/${method}`, methods: ['POST'], requestBody: 'buffered',
       async fetch(request) {
@@ -203,7 +210,7 @@ export function registerMcpTransport(connection, controller) {
         if (body?.type !== 'client-request' || body.method !== method || typeof body.rpcId !== 'string' || !body.rpcId) return new Response('Invalid DSH request', { status: 400 })
         try {
           request.signal.throwIfAborted()
-          const value = endpoint === 'configure' || endpoint === 'currentWorkspace' ? await controller[endpoint](body.payload)
+          const value = acceptsPayload.includes(endpoint) ? await controller[endpoint](body.payload)
             : endpoint === 'check' ? await controller.check(request.signal) : await controller[endpoint]()
           return Response.json({ type: 'server-response', rpcId: body.rpcId, result: { ok: true, value } })
         } catch (cause) {

@@ -28,6 +28,7 @@ export function createTestReact(onUpdate = () => {}) {
       const cleanup = callback()
       if (typeof cleanup === 'function') effectCleanups.push(cleanup)
     },
+    useId() { return 'synthetic-' + active + '-' + hookIndex++ },
     useState(initial) {
       if (active === null) throw new Error('useState requires a rendered function component')
       const key = active

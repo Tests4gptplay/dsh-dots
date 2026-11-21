@@ -90,7 +90,7 @@ test('on/off persists, retains its endpoint, and disposes only the MCP peer', as
  assert.equal(first.running, true)
  const saved = JSON.parse(await readFile(join(dir, 'mcp.json'), 'utf8'))
  assert.equal(saved.enabled, true);assert.equal(saved.port, first.port);assert.equal(saved.token.length, 43)
- assert.equal((await control.check()).lastCheck.toolCount, 17)
+ assert.equal((await control.check()).lastCheck.toolCount, 20)
  await control.configure({ enabled: false });assert.equal(peers[0].disposed, true)
  await assert.rejects(fetch(first.localUrl));assert.equal(calls.length, 0, 'Disabling never calls session/cancel')
  const second = await control.configure({ enabled: true });assert.equal(second.localUrl, first.localUrl)
@@ -175,7 +175,7 @@ test('settings RPC uses native envelopes and validates only transport structure'
  const r = await route.fetch(new Request('http://localhost'+route.path,{ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }))
  assert.deepEqual(await r.json(), { type: 'server-response', rpcId: 'native-rpc', result: { ok: true, value: { enabled: false } } })
  assert.equal((await route.fetch(new Request('http://localhost'+route.path,{ method: 'POST',body: '{}' }))).status, 415)
- await off();assert.equal(removed.length, 5)
+ await off();assert.equal(removed.length, 9)
 })
 
 test('modern 2026 MCP client discovers and invokes the same service', async t => {
@@ -201,5 +201,5 @@ test('the connected Dot receives the preference for direct native API/plugin exe
   assert.match(tools.find(x => x.name === 'dsh_api_list').description, /instead of creating a chat session/)
   assert.match(tools.find(x => x.name === 'dsh_api_call').description, /Directly execute/)
   const status = await c.callTool({ name: 'dsh_status', arguments: {} })
-  assert.match(status.structuredContent.executionGuidance, /execute them directly/)
+  assert.match(status.structuredContent.executionGuidance, /Dot 直接使用 DSH 原生 API/)
 })
