@@ -6,7 +6,7 @@ import { toNodeHandler, hostHeaderValidation, originValidation } from '@modelcon
 import * as z from 'zod/v4'
 import { EXECUTION_GUIDANCE, SKILL_GUIDANCE, SKILL_TOOL_PREFIX } from './mcp-adapter.mjs'
 
-export const VERSION = '1.0.4-test.skills.2'
+export const VERSION = '1.0.4'
 // The SDK requires a finite byte count. Use the JavaScript counting boundary,
 // not a product-specific file/message quota, in both HTTP layers.
 const maxRequestBodySize = Number.MAX_SAFE_INTEGER
